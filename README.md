@@ -50,3 +50,7 @@ Press CTRL+C to quit
 ```
 
 * Go to http://127.0.0.1:5000 and Enjoy.
+
+![image](https://github.com/user-attachments/assets/045c48ba-eabd-49ed-b4d8-58fd03e35780)
+
+![image](https://github.com/user-attachments/assets/f357af96-d002-49fe-82ab-f64da16f5d73)
