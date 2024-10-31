@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.6.6/css/flag-icons.min.css">
+    <title>Analyse des Observables</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 80%;
+            margin: 0 auto;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        .high-risk {
+            background-color: red;
+            color: white;
+        }
+
+        .high-detection {
+            background-color: red;
+            color: white;
+        }
+
+        .clean-detection {
+            background-color: green;
+            color: white;
+        }
+
+        .warning-row {
+            background-color: orange;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="startForm">
+            <h1>Analyse des Observables</h1>
+
+            <!-- Formulaire d'analyse des observables -->
+            <form id="analyzeForm" method="POST" action="/analyze">
+                <label for="observables">Collez vos observables ici :</label>
+                <textarea name="observables" placeholder="Exemple : 1.2.3.4, www.example.com, etc."
+                    required="true"></textarea>
+                <br>
+
+                <div>
+                    <h3>Choisissez les engines à utiliser :</h3>
+                    <label><input type="checkbox" name="engines" value="virustotal" checked> VirusTotal</label><br>
+                    <label><input type="checkbox" name="engines" value="abuseipdb" checked> AbuseIPDB</label><br>
+                    <label><input type="checkbox" name="engines" value="ipinfo" checked> IPinfo</label><br>
+                    <label><input type="checkbox" name="engines" value="spur" checked> Spur.us</label><br>
+                    <label><input type="checkbox" name="engines" value="google_safe_browsing" checked> Google Safe
+                        Browsing</label><br>
+                </div>
+
+                <button type="submit" class="btn">Lancer l'analyse</button>
+            </form>
+        </div>
+
+        <!-- Résultats d'analyse -->
+        {% if results %}
+        <script>
+            // Fonction pour cacher le formulaire lors du clic sur "Lancer l'analyse"
+            function hideForm() {
+                // Cacher le formulaire
+                document.getElementById("startForm").style.display = "none";
+            }
+            hideForm()
+        </script>
+
+        <h1>Résultats de l'analyse</h1>
+
+        <button class="btn" onclick="location.href='/'">Nouvelle analyse</button>
+        <!-- Options d'export -->
+        <form method="GET" action="/export">
+            <button type="submit" name="format" value="csv" class="btn">Exporter en CSV</button>
+            <button type="submit" name="format" value="excel" class="btn">Exporter en Excel</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Observable</th>
+                    <th>Type</th>
+                    <th>Résultat VirusTotal</th>
+                    <th>Résultat AbuseIPDB</th>
+                    <th>Résultat IPinfo</th>
+                    <th>Résultat Spur.us</th>
+                    <th>Google Safe Browsing</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in results %}
+                <tr
+                    class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% endif %} {% if result.virustotal and result.virustotal.total_malicious > 10 %}high-detection{% endif %} {% if result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% endif %} {% if result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% endif %}">
+                    <td>{{ result.observable }}</td>
+                    <td>{{ result.type }}</td>
+                    <!-- VirusTotal -->
+                    <td>
+                        {% if result.virustotal %}
+                        Ratio: {{ result.virustotal.detection_ratio }}
+                        <a href="{{ result.virustotal.link }}" target="_blank">[VT]</a><br>
+                        Community: {{ result.virustotal.community_score }}
+                        {% else %}
+                        Non applicable
+                        {% endif %}
+                    </td>
+                    <!-- AbuseIPDB -->
+                    <td>
+                        {% if result.abuseipdb %}
+                        Reports: {{ result.abuseipdb.reports }}
+                        <a href="{{ result.abuseipdb.link }}" target="_blank">[Link]</a><br>
+                        Risk: {{ result.abuseipdb.risk_score }}%<br>
+                        {% else %}
+                        Non applicable
+                        {% endif %}
+                    </td>
+                    <!-- IPinfo -->
+                    <td>
+                        {% if result.ipinfo %}
+
+                        Geoloc: {{ result.ipinfo.geolocation }}<br>
+                        Country: <span class="fi fi-{{ result.ipinfo.country | lower }}"></span> ({{
+                        result.ipinfo.country }}) <br>
+                        Hostname: {{ result.ipinfo.hostname }}<br>
+                        ASN: {{ result.ipinfo.asn }}
+                        {% else %}
+                        Non applicable
+                        {% endif %}
+                    </td>
+                    <!-- Spur.us -->
+                    <td>
+                        {% if result.spur %}
+                        {{ result.spur.tunnels }}<br>
+                        {% else %}
+                        Non applicable
+                        {% endif %}
+                    </td>
+                    <!-- Google Safe Browsing -->
+                    <td>
+                        {% if result.google_safe_browsing %}
+                        Threat: {{ result.google_safe_browsing.threat_found }} <br>
+                        Details: {{ result.google_safe_browsing.details }}
+                        {% else %}
+                        Non applicable
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% endif %}
+    </div>
+
+</body>
+
+</html>

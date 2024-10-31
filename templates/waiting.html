@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Analyse en cours</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        
+        .loader {
+            border: 16px solid #f3f3f3; /* Light grey */
+            border-top: 16px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 2s linear infinite;
+            margin: auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-container {
+            text-align: center;
+            margin-top: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container">
+        <div class="loader"></div>
+        <p>Analyse en cours, veuillez patienter...</p>
+    </div>
+    <script>
+        function checkResults() {
+            fetch('/is_analysis_complete')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.complete) {
+                        window.location.href = '/results'; // Redirect to results page
+                    } else {
+                        setTimeout(checkResults, 2000); // Check again in 2 seconds
+                    }
+                });
+        }
+
+        checkResults(); // Start checking for results
+    </script>
+</body>
+</html>
