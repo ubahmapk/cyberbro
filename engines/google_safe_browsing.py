@@ -9,6 +9,8 @@ requests.packages.urllib3.disable_warnings()
 with open("secrets.json") as f:
     data = json.load(f)
     API_KEY = data.get("google_safe_browsing")
+    proxy = data.get("proxy_url")
+    PROXIES = { 'http': proxy, 'https': proxy }
 
 def query_google_safe_browsing(observable):
     url = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={API_KEY}"
@@ -44,7 +46,7 @@ def query_google_safe_browsing(observable):
         }
     }
 
-    response = requests.post(url, json=body)
+    response = requests.post(url, json=body, proxies=PROXIES, verify=False)
     data = response.json()
 
     if 'matches' in data:
