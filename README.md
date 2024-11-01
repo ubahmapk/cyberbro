@@ -55,3 +55,10 @@ Press CTRL+C to quit
 
 ![image](https://github.com/user-attachments/assets/db009d2c-c611-4f2c-b7e9-21019e239197)
 
+# Use docker
+
+```bash
+docker compose up -d
+```
+
+> Don't forget to edit the `secrets.json` before building the image.

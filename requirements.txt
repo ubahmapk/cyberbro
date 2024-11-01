@@ -3,3 +3,4 @@ flask
 pandas
 jwt
 openpyxl
+dnspython

@@ -1,6 +1,7 @@
 import re
 
 def identify_observable_type(observable):
+    """testing the observable against a set of patterns to identify its type"""
     patterns = {
         "IPv4": r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$",
         "IPv6": r"^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$",

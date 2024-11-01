@@ -16,10 +16,11 @@ def query_ipinfo(ip):
     data = response.json()
     
     if 'ip' in data:
+        ip = data.get("ip", "Unknown")
         hostname = data.get("hostname", "Unknown")
         city = data.get("city", "Unknown")
         region = data.get("region", "Unknown")
         asn = data.get("org", "Unknown")
         country = data.get("country", "Unknown")
-        return {"geolocation": f"{city} - {region}", "country": country, "hostname": hostname, "asn": asn}
+        return {"ip": ip, "geolocation": f"{city} - {region}", "country": country, "hostname": hostname, "asn": asn}
     return None
