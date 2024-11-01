@@ -1,4 +1,4 @@
-from engines import abuseipdb, virustotal, ipinfo, spur_us, google_safe_browsing
+from engines import abuseipdb, virustotal, ipinfo, spur_us, reverse_dns, google_safe_browsing
 from utils import *
 from flask import Flask, request, render_template, send_file, redirect, url_for, jsonify
 import pandas as pd
@@ -18,12 +18,27 @@ def perform_analysis(observables, selected_engines):
     for observable in observables:
         observable_type = identify_observable_type(observable.strip())
         result = {"observable": observable.strip(), "type": observable_type}
+
+        # Assume that the reverse DNS will fail unless it succeeds
+        result['reversed_success'] = False
         
         # Vérifier chaque engine sélectionné
         if "virustotal" in selected_engines and observable_type in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
             result['virustotal'] = virustotal.query_virustotal(observable.strip())
 
+        if "google_safe_browsing" in selected_engines and observable_type in ["URL", "FQDN", "IPv4", "IPv6"]:
+            result['google_safe_browsing'] = google_safe_browsing.query_google_safe_browsing(observable.strip())
+
+        if "reverse_dns" in selected_engines and observable_type in ["IPv4", "IPv6", "FQDN"]:
+            result['reverse_dns'] = reverse_dns.reverse_dns(observable.strip())
+            if observable_type == "FQDN" and result['reverse_dns'] is not None:
+                result['reversed_success'] = True
+                observable_type = "IPv4"  # Change the observable type to IP for further analysis
+                observable = result["reverse_dns"]["reverse_dns"][-1] # Change the observable to the resolved IP
+            
+
         if "ipinfo" in selected_engines and observable_type in ["IPv4", "IPv6"]:
+            # if observable is FQDN, we need to resolve it to an IP first
             result['ipinfo'] = ipinfo.query_ipinfo(observable.strip())
 
         if "abuseipdb" in selected_engines and observable_type in ["IPv4", "IPv6"]:
@@ -32,10 +47,6 @@ def perform_analysis(observables, selected_engines):
         if "spur" in selected_engines and observable_type in ["IPv4", "IPv6"]:
             result['spur'] = spur_us.process_ip_with_spur(observable.strip())
 
-        if "google_safe_browsing" in selected_engines and observable_type in ["URL", "FQDN", "IPv4", "IPv6"]:
-            result['google_safe_browsing'] = google_safe_browsing.query_google_safe_browsing(observable.strip())
-
-        
         results.append(result)
 
     print("Résultats d'analyse:", results)
