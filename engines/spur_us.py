@@ -5,7 +5,7 @@ import time
 import jwt
 import csv
 
-# disable ssl warning in case of proxy like Zscaler which breaks ssl...
+# Disable SSL warning in case of proxy like Zscaler which breaks SSL...
 requests.packages.urllib3.disable_warnings()
 
 with open("secrets.json") as f:
@@ -24,7 +24,6 @@ def check_token_validity(token):
     except Exception:
         return False
 
-
 def read_token():
     try:
         with open("token.txt", "r") as f:
@@ -32,7 +31,7 @@ def read_token():
         if check_token_validity(token):
             return token
         else:
-            print("invalid token")
+            print("Invalid token")
             return None
     except Exception:
         return None
@@ -68,24 +67,46 @@ def get_token():
     token_response = requests.post(url_token_request, json=request_data, headers=headers_token_request, proxies=PROXIES, verify=False)
 
     if token_response.status_code == 200:
-        # Extraction du token JWT de la réponse JSON
+        # Extract the JWT token from the JSON response
         token_response_json = token_response.json()
         jwt_token = token_response_json.get("idToken", None)
         if jwt_token:
-            #print("Token JWT obtenu avec succès :", jwt_token)
+            #print("Successfully obtained JWT token:", jwt_token)
             with open("token.txt", "w") as f:
                 f.write(jwt_token)
             return jwt_token
         else:
-            print("Impossible de trouver le token JWT dans la réponse.")
+            print("Unable to find the JWT token in the response.")
             return None
     else:
-        print("Échec de la requête pour obtenir le token JWT. Statut de la réponse :", token_response.status_code)
+        print("Failed to request JWT token. Response status:", token_response.status_code)
         return None
 
 def process_ip_with_spur(ip):
+    """
+    Processes an IP address using the Spur.us API and returns relevant information.
+    Args:
+        ip (str): The IP address to be processed.
+    Returns:
+        dict: A dictionary containing the following keys:
+            - ip (str): The processed IP address.
+            - organization (str): The organization associated with the IP address.
+            - city (str): The city associated with the IP address.
+            - country (str): The country associated with the IP address.
+            - state (str): The state associated with the IP address.
+            - infrastructure (str): The infrastructure information of the IP address.
+            - risks (str): A comma-separated list of risks associated with the IP address.
+            - client_types (str): A comma-separated list of client types associated with the IP address.
+            - client_behaviors (str): A comma-separated list of client behaviors associated with the IP address.
+            - client_proxies (str): A comma-separated list of client proxies associated with the IP address.
+            - tunnels (str): A comma-separated list of tunnels associated with the IP address or "Not anonymous" if none.
+    Raises:
+        Exception: If the request to the Spur.us API fails.
+    Note:
+        This function includes a delay of 3 seconds to accommodate API rate limiting.
+    """
     
-    # API rate slowing down bro
+    # API rate slowing down
     time.sleep(3)
 
     # Variables
@@ -113,10 +134,10 @@ def process_ip_with_spur(ip):
     # URL
     url = f"https://app.spur.us/api/v1/search/{ip_address}"
 
-    # Requête
+    # Request
     response = requests.get(url, proxies=PROXIES, headers=headers, verify=False)
 
-    # Traitement de la réponse et extraction des informations pertinentes
+    # Process the response and extract relevant information
     if response.status_code == 200:
         data = response.json().get('data', {})
         v2 = data.get('v2', {})

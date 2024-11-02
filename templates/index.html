@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en"></html>
 
 <head>
+    <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/8.5.0/svg/terminal.svg" type="image/x-icon">
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.6.6/css/flag-icons.min.css">
-    <title>Analyse des Observables</title>
+    <title>Observable Analysis</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -67,17 +68,16 @@
 <body>
     <div class="container">
         <div id="startForm">
-            <h1>Analyse des Observables</h1>
+            <h1>Observable Analysis</h1>
 
-            <!-- Formulaire d'analyse des observables -->
+            <!-- Observable analysis form -->
             <form id="analyzeForm" method="POST" action="/analyze">
-                <label for="observables">Collez vos observables ici :</label>
-                <textarea name="observables" placeholder="Exemple : 1.2.3.4, www.example.com, etc."
-                    required="true"></textarea>
+                <label for="observables">Paste your observables here:</label>
+                <textarea name="observables" placeholder="Example: 1.2.3.4, www.example.com, etc." required></textarea>
                 <br>
 
                 <div>
-                    <h3>Choisissez les engines à utiliser :</h3>
+                    <h3>Select the engines to use:</h3>
                     <label><input type="checkbox" name="engines" value="virustotal" checked> VirusTotal</label><br>
                     <label><input type="checkbox" name="engines" value="abuseipdb" checked> AbuseIPDB</label><br>
                     <label><input type="checkbox" name="engines" value="ipinfo" checked> IPinfo</label><br>
@@ -86,28 +86,27 @@
                     <label><input type="checkbox" name="engines" value="google_safe_browsing" checked> Google Safe Browsing</label>
                 </div>
 
-                <button type="submit" class="btn">Lancer l'analyse</button>
+                <button type="submit" class="btn">Start Analysis</button>
             </form>
         </div>
 
-        <!-- Résultats d'analyse -->
+        <!-- Analysis results -->
         {% if results %}
         <script>
-            // Fonction pour cacher le formulaire lors du clic sur "Lancer l'analyse"
+            // Function to hide the form when "Start Analysis" is clicked
             function hideForm() {
-                // Cacher le formulaire
                 document.getElementById("startForm").style.display = "none";
             }
-            hideForm()
+            hideForm();
         </script>
 
-        <h1>Résultats de l'analyse</h1>
+        <h1>Analysis Results</h1>
 
-        <button class="btn" onclick="location.href='/'">Nouvelle analyse</button>
-        <!-- Options d'export -->
+        <button class="btn" onclick="location.href='/'">New Analysis</button>
+        <!-- Export options -->
         <form method="GET" action="/export">
-            <button type="submit" name="format" value="csv" class="btn">Exporter en CSV</button>
-            <button type="submit" name="format" value="excel" class="btn">Exporter en Excel</button>
+            <button type="submit" name="format" value="csv" class="btn">Export to CSV</button>
+            <button type="submit" name="format" value="excel" class="btn">Export to Excel</button>
         </form>
 
         <table>
@@ -116,17 +115,16 @@
                     <th>Observable</th>
                     <th>Type</th>
                     <th>Reverse DNS</th>
-                    <th>Résultat IPinfo</th>
-                    <th>Résultat AbuseIPDB</th>
-                    <th>Résultat Spur.us</th>
-                    <th>Résultat VirusTotal</th>
+                    <th>IPinfo Result</th>
+                    <th>AbuseIPDB Result</th>
+                    <th>Spur.us Result</th>
+                    <th>VirusTotal Result</th>
                     <th>Google Safe Browsing</th>
                 </tr>
             </thead>
             <tbody>
                 {% for result in results %}
-                <tr
-                    class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% elif result.virustotal and result.virustotal.total_malicious > 10 %}high-detection{% elif result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% endif %}">
+                <tr class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% elif result.virustotal and result.virustotal.total_malicious > 10 %}high-detection{% elif result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% endif %}">
                     <td>{{ result.observable }}</td>
                     <td>{{ result.type }}</td>
                     <!-- Reverse DNS -->
@@ -134,31 +132,27 @@
                         {% if result.reverse_dns %}
                         {{ result.reverse_dns.reverse_dns }}
                         {% else %}
-                        Non applicable
-                        {% endif %}   
+                        Not applicable
+                        {% endif %}
+                    </td>
                     <!-- IPinfo -->
                     <td>
-                        {% if result.ipinfo and result.reversed_success == True %}
-
+                        {% if result.ipinfo and result.reversed_success %}
                         Reverse DNS applied<br>
                         IP: {{ result.ipinfo.ip }}<br>
-
                         {% endif %}
-
                         {% if result.ipinfo %}
-
                         Geoloc: {{ result.ipinfo.geolocation }}<br>
-                        Country: <span class="fi fi-{{ result.ipinfo.country | lower }}"></span> ({{
-                        result.ipinfo.country }}) <br>
+                        Country: <span class="fi fi-{{ result.ipinfo.country | lower }}"></span> ({{ result.ipinfo.country }}) <br>
                         Hostname: {{ result.ipinfo.hostname }}<br>
                         ASN: {{ result.ipinfo.asn }}
                         {% else %}
-                        Non applicable
+                        Not applicable
                         {% endif %}
-                    </td>     
+                    </td>
                     <!-- AbuseIPDB -->
                     <td>
-                        {% if result.abuseipdb and result.reversed_success == True %}
+                        {% if result.abuseipdb and result.reversed_success %}
                         Reverse DNS applied<br>
                         {% endif %}
                         {% if result.abuseipdb %}
@@ -166,20 +160,20 @@
                         <a href="{{ result.abuseipdb.link }}" target="_blank">{{ result.abuseipdb.reports }}</a><br>
                         Risk: {{ result.abuseipdb.risk_score }}%<br>
                         {% else %}
-                        Non applicable
+                        Not applicable
                         {% endif %}
-                    </td>    
+                    </td>
                     <!-- Spur.us -->
                     <td>
-                        {% if result.spur and result.reversed_success == True %}
+                        {% if result.spur and result.reversed_success %}
                         Reverse DNS applied<br>
                         {% endif %}
                         {% if result.spur %}
                         {{ result.spur.tunnels }}<br>
                         {% else %}
-                        Non applicable
+                        Not applicable
                         {% endif %}
-                    </td>         
+                    </td>
                     <!-- VirusTotal -->
                     <td>
                         {% if result.virustotal %}
@@ -187,7 +181,7 @@
                         <a href="{{ result.virustotal.link }}" target="_blank">{{ result.virustotal.detection_ratio }}</a><br>
                         Community: {{ result.virustotal.community_score }}
                         {% else %}
-                        Non applicable
+                        Not applicable
                         {% endif %}
                     </td>
                     <!-- Google Safe Browsing -->
@@ -196,7 +190,7 @@
                         Threat: {{ result.google_safe_browsing.threat_found }} <br>
                         Details: {{ result.google_safe_browsing.details }}
                         {% else %}
-                        Non applicable
+                        Not applicable
                         {% endif %}
                     </td>
                 </tr>

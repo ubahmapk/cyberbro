@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
+    <link rel="icon" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/8.5.0/svg/terminal.svg" type="image/x-icon">    
     <meta charset="UTF-8">
-    <title>Analyse en cours</title>
+    <title>Analysis in Progress</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            text-align: center; /* Center align all text */
+            margin-top: 100px; /* Move content down */
         }
         
         .loader {
@@ -14,7 +17,7 @@
             border-radius: 50%;
             width: 60px;
             height: 60px;
-            animation: spin 2s linear infinite;
+            animation: spin 2s linear infinite; /* Spin animation */
             margin: auto;
         }
 
@@ -22,29 +25,25 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        .loading-container {
-            text-align: center;
-            margin-top: 100px;
-        }
     </style>
 </head>
 <body>
-    <div class="loading-container">
-        <div class="loader"></div>
-        <p>Analyse en cours, veuillez patienter...</p>
-    </div>
+    <div class="loader"></div>
+    <p>Analysis in progress, please wait...</p>
+    
     <script>
+        // Function to check if the analysis is complete
         function checkResults() {
             fetch('/is_analysis_complete')
                 .then(response => response.json())
                 .then(data => {
                     if (data.complete) {
-                        window.location.href = '/results'; // Redirect to results page
+                        window.location.href = '/results'; // Redirect to results page if complete
                     } else {
-                        setTimeout(checkResults, 2000); // Check again in 2 seconds
+                        setTimeout(checkResults, 2000); // Check again in 2 seconds if not complete
                     }
-                });
+                })
+                .catch(error => console.error('Error:', error)); // Log any errors
         }
 
         checkResults(); // Start checking for results
