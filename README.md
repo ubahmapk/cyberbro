@@ -2,6 +2,14 @@
 
 A good alternative for CyberGordon
 
+# Features
+
+* Check if an IP address is malicious using VirusTotal, AbuseIPDB, IPInfo, Spur.us and Google Safe Browsing.
+* Uses multithreading to speed up the process (articially limited with `time.sleep()` because of free API usage).
+* Performs a reverse DNS lookup.
+* Provides the ability to export the results to a CSV file and an Excel file.
+* Uses a proxy if needed.
+
 # Getting Started
 
 * To get started, clone the repository and install the requirements.
