@@ -42,6 +42,14 @@
             padding: 10px 20px;
             margin: 10px 0;
             cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
         }
 
         .high-risk {
@@ -62,6 +70,34 @@
         .warning-row {
             background-color: orange;
         }
+
+        .filter-input,
+        .filter-select {
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: calc(100% - 22px);
+        }
+
+        .filter-input:focus,
+        .filter-select:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        .filters-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .filters-container .filter-input,
+        .filters-container .filter-select,
+        .filters-container .btn {
+            flex: 1;
+            min-width: 150px;
+        }
     </style>
 </head>
 
@@ -72,18 +108,22 @@
 
             <!-- Observable analysis form -->
             <form id="analyzeForm" method="POST" action="/analyze">
-                <label for="observables">Paste your observables here:</label>
-                <textarea name="observables" placeholder="Example: 1.2.3.4, www.example.com, etc." required></textarea>
+                <label for="observables">Paste your observables here, line by line:</label>
+                <textarea name="observables" placeholder="1.2.3.4
+example.com
+d41d8cd98f00b204e9800998ecf8427e
+" required></textarea>
                 <br>
 
                 <div>
-                    <h3>Select the engines to use:</h3>
+                    <h3>Select the engines to use</h3>
                     <label><input type="checkbox" name="engines" value="virustotal" checked> VirusTotal</label><br>
                     <label><input type="checkbox" name="engines" value="abuseipdb" checked> AbuseIPDB</label><br>
                     <label><input type="checkbox" name="engines" value="ipinfo" checked> IPinfo</label><br>
                     <label><input type="checkbox" name="engines" value="spur" checked> Spur.us</label><br>
                     <label><input type="checkbox" name="engines" value="reverse_dns" checked> Reverse DNS </label><br>
-                    <label><input type="checkbox" name="engines" value="google_safe_browsing" checked> Google Safe Browsing</label>
+                    <label><input type="checkbox" name="engines" value="google_safe_browsing" checked> Google Safe
+                        Browsing</label>
                 </div>
 
                 <button type="submit" class="btn">Start Analysis</button>
@@ -109,7 +149,65 @@
             <button type="submit" name="format" value="excel" class="btn">Export to Excel</button>
         </form>
 
-        <table>
+        <p>Analysis start time: {{ analysis_metadata.start_time_string }}</p>
+        <p>Analysis duration: {{ analysis_metadata.analysis_duration_string }}</p>
+
+        <div class="filters-container">
+            <!-- Search input -->
+            <input type="text" id="searchInput" class="filter-input" onkeyup="filterTable()"
+                placeholder="Search for observables..">
+
+            <!-- Observable type filter dropdown -->
+            <select id="typeFilter" class="filter-select" onchange="filterTable()">
+                <option value="all">All observables types</option>
+                {% set types = [] %}
+                {% for result in results %}
+                {% if result.type not in types %}
+                {% set _ = types.append(result.type) %}
+                <option value="{{ result.type }}">{{ result.type }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+
+            <!-- Country filter dropdown -->
+            <select id="countryFilter" class="filter-select" onchange="filterTable()">
+                <option value="all">All Countries</option>
+                {% set countries = [] %}
+                {% for result in results %}
+                {% if result.ipinfo and result.ipinfo.country not in countries %}
+                {% set _ = countries.append(result.ipinfo.country) %}
+                <option value="{{ result.ipinfo.country | lower }}">{{ result.ipinfo.country }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+
+            <!-- Risk filter dropdown -->
+            <select id="riskFilter" class="filter-select" onchange="filterTable()">
+                <option value="all">All Risks</option>
+                <option value="high">High Risk</option>
+                <option value="low">Low Risk</option>
+            </select>
+
+            <!-- Detection filter dropdown -->
+            <select id="detectionFilter" class="filter-select" onchange="filterTable()">
+                <option value="all">All Detections</option>
+                <option value="high">High Detection</option>
+                <option value="clean">Clean Detection</option>
+            </select>
+
+            <!-- Proxy/VPN filter dropdown -->
+            <select id="proxyVpnFilter" class="filter-select" onchange="filterTable()">
+                <option value="all">All connection info</option>
+                <option value="proxy">Proxy</option>
+                <option value="vpn">VPN</option>
+                <option value="not anonymous">Not anonymous</option>
+            </select>
+
+            <!-- Clear filters button -->
+            <button class="btn" onclick="clearFilters()">Clear Filters</button>
+        </div>
+
+        <table id="resultsTable">
             <thead>
                 <tr>
                     <th>Observable</th>
@@ -123,8 +221,9 @@
                 </tr>
             </thead>
             <tbody>
-                {% for result in results %}
-                <tr class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% elif result.virustotal and result.virustotal.total_malicious > 10 %}high-detection{% elif result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% endif %}">
+                {% for result in results if not result.analysis_metadata %}
+                <tr
+                    class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% elif result.virustotal and result.virustotal.total_malicious > 10 %}high-detection{% elif result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% endif %}">
                     <td>{{ result.observable }}</td>
                     <td>{{ result.type }}</td>
                     <!-- Reverse DNS -->
@@ -143,7 +242,8 @@
                         {% endif %}
                         {% if result.ipinfo %}
                         Geoloc: {{ result.ipinfo.geolocation }}<br>
-                        Country: <span class="fi fi-{{ result.ipinfo.country | lower }}"></span> ({{ result.ipinfo.country }}) <br>
+                        Country: <span class="fi fi-{{ result.ipinfo.country | lower }}"></span> ({{
+                        result.ipinfo.country }}) <br>
                         Hostname: {{ result.ipinfo.hostname }}<br>
                         ASN: {{ result.ipinfo.asn }}
                         {% else %}
@@ -156,7 +256,7 @@
                         Reverse DNS applied<br>
                         {% endif %}
                         {% if result.abuseipdb %}
-                        Reports: 
+                        Reports:
                         <a href="{{ result.abuseipdb.link }}" target="_blank">{{ result.abuseipdb.reports }}</a><br>
                         Risk: {{ result.abuseipdb.risk_score }}%<br>
                         {% else %}
@@ -177,8 +277,9 @@
                     <!-- VirusTotal -->
                     <td>
                         {% if result.virustotal %}
-                        Ratio: 
-                        <a href="{{ result.virustotal.link }}" target="_blank">{{ result.virustotal.detection_ratio }}</a><br>
+                        Ratio:
+                        <a href="{{ result.virustotal.link }}" target="_blank">{{ result.virustotal.detection_ratio
+                            }}</a><br>
                         Community: {{ result.virustotal.community_score }}
                         {% else %}
                         Not applicable
@@ -197,9 +298,75 @@
                 {% endfor %}
             </tbody>
         </table>
-
         {% endif %}
     </div>
 
 </body>
+
 </html>
+<script>
+    // Function to filter table rows based on search input and dropdown selections
+    function filterTable() {
+        const searchInput = document.getElementById("searchInput").value.toLowerCase();
+        const countryFilter = document.getElementById("countryFilter").value.toLowerCase();
+        const riskFilter = document.getElementById("riskFilter").value.toLowerCase();
+        const detectionFilter = document.getElementById("detectionFilter").value.toLowerCase();
+        const typeFilter = document.getElementById("typeFilter").value.toLowerCase();
+        const proxyVpnFilter = document.getElementById("proxyVpnFilter").value.toLowerCase();
+        const table = document.getElementById("resultsTable");
+        const tr = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < tr.length; i++) {
+            let td = tr[i].getElementsByTagName("td");
+            let showRow = true;
+
+            // Search filter
+            if (searchInput) {
+                showRow = Array.from(td).some(cell => cell.innerText.toLowerCase().includes(searchInput));
+            }
+
+            // Country filter
+            if (showRow && countryFilter !== "all") {
+                const countrySpan = td[3].querySelector(".fi");
+                const country = countrySpan ? countrySpan.className.split("-")[1] : "";
+                showRow = country === countryFilter;
+            }
+
+            // Risk filter
+            if (showRow && riskFilter !== "all") {
+                const riskClass = tr[i].classList.contains("high-risk") ? "high" : "low";
+                showRow = riskClass === riskFilter;
+            }
+
+            // Detection filter
+            if (showRow && detectionFilter !== "all") {
+                const detectionClass = tr[i].classList.contains("high-detection") ? "high" : tr[i].classList.contains("clean-detection") ? "clean" : "low";
+                showRow = detectionClass === detectionFilter;
+            }
+
+            // Type filter
+            if (showRow && typeFilter !== "all") {
+                showRow = td[1].innerText.toLowerCase() === typeFilter;
+            }
+
+            // Proxy/VPN filter
+            if (showRow && proxyVpnFilter !== "all") {
+                const spurResult = td[5].innerText.toLowerCase();
+                showRow = spurResult.includes(proxyVpnFilter);
+            }
+
+            tr[i].style.display = showRow ? "" : "none";
+        }
+    }
+
+    // Function to clear all filters
+    function clearFilters() {
+        document.getElementById("searchInput").value = "";
+        document.getElementById("countryFilter").value = "all";
+        document.getElementById("riskFilter").value = "all";
+        document.getElementById("detectionFilter").value = "all";
+        document.getElementById("typeFilter").value = "all";
+        document.getElementById("proxyVpnFilter").value = "all";
+        filterTable();
+    }
+</script>
