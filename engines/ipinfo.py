@@ -48,7 +48,7 @@ def query_ipinfo(ip):
         country = data.get("country", "Unknown")
         
         # Return the extracted information in a dictionary
-        return {"ip": ip, "geolocation": f"{city} - {region}", "country": country, "hostname": hostname, "asn": asn}
+        return {"ip": ip, "geolocation": f"{city} - {region}", "country": country, "hostname": hostname, "asn": asn, "link": f"https://ipinfo.io/{ip}"}
     
     # Return None if 'ip' key is not in the response
     return None

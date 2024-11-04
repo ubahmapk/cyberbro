@@ -160,7 +160,8 @@ def process_ip_with_spur(ip):
             "client_types": ", ".join(client.get("types", [])),
             "client_behaviors": ", ".join(client.get("behaviors", [])),
             "client_proxies": ", ".join(client.get("proxies", [])),
-            "tunnels": tunnels
+            "tunnels": tunnels,
+            "link": f"https://spur.us/context/{ip_address}"
         }
     else:
         print(f"Failed to process IP {ip_address}. Status code: {response.status_code}")
