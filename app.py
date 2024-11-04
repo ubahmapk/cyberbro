@@ -31,9 +31,9 @@ def perform_analysis(observables, selected_engines):
         if "google_safe_browsing" in selected_engines and observable_type in ["URL", "FQDN", "IPv4", "IPv6"]:
             result['google_safe_browsing'] = google_safe_browsing.query_google_safe_browsing(observable.strip())
 
-        if "reverse_dns" in selected_engines and observable_type in ["IPv4", "IPv6", "FQDN"]:
+        if "reverse_dns" in selected_engines and observable_type in ["IPv4", "IPv6", "FQDN", "URL"]:
             result['reverse_dns'] = reverse_dns.reverse_dns(observable.strip())
-            if observable_type == "FQDN" and result['reverse_dns'] is not None:
+            if observable_type == "FQDN" and result['reverse_dns'] is not None or observable_type == "URL" and result['reverse_dns'] is not None:
                 result['reversed_success'] = True
                 observable_type = "IPv4"
                 observable = result["reverse_dns"]["reverse_dns"][-1]
