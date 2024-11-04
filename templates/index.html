@@ -238,9 +238,9 @@ d41d8cd98f00b204e9800998ecf8427e
                     <td>
                         {% if result.ipinfo and result.reversed_success %}
                         Reverse DNS applied<br>
-                        IP: {{ result.ipinfo.ip }}<br>
                         {% endif %}
                         {% if result.ipinfo %}
+                        IP: <a href="{{ result.ipinfo.link }}" target="_blank">{{ result.ipinfo.ip }}</a><br>
                         Geoloc: {{ result.ipinfo.geolocation }}<br>
                         Country: <span class="fi fi-{{ result.ipinfo.country | lower }}"></span> ({{
                         result.ipinfo.country }}) <br>
@@ -269,7 +269,7 @@ d41d8cd98f00b204e9800998ecf8427e
                         Reverse DNS applied<br>
                         {% endif %}
                         {% if result.spur %}
-                        {{ result.spur.tunnels }}<br>
+                        <a href="{{ result.spur.link }}" target="_blank">{{ result.spur.tunnels }}</a><br>
                         {% else %}
                         Not applicable
                         {% endif %}
