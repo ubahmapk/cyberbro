@@ -51,7 +51,7 @@ Press CTRL+C to quit
 
 * Go to http://127.0.0.1:5000 and Enjoy.
 
-![image](https://github.com/user-attachments/assets/fe5950cb-a839-4e60-9632-f8892b564fe3)
+![image](https://github.com/user-attachments/assets/c65ddce9-5d92-4374-a318-e4ac054ed774)
 
 ![image](https://github.com/user-attachments/assets/b3ec1258-94dd-4f51-bf8f-c52b80702bac)
 
