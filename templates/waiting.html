@@ -40,7 +40,7 @@
                     if (data.complete) {
                         window.location.href = '/results'; // Redirect to results page if complete
                     } else {
-                        setTimeout(checkResults, 2000); // Check again in 2 seconds if not complete
+                        setTimeout(checkResults, 1000); // Check again in 1 seconds if not complete
                     }
                 })
                 .catch(error => console.error('Error:', error)); // Log any errors
