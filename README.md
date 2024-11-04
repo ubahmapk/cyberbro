@@ -1,6 +1,6 @@
 # Cyberbro
 
-A replacement for CyberGordon
+A good alternative for CyberGordon
 
 # Getting Started
 
@@ -51,9 +51,9 @@ Press CTRL+C to quit
 
 * Go to http://127.0.0.1:5000 and Enjoy.
 
-![image](https://github.com/user-attachments/assets/045c48ba-eabd-49ed-b4d8-58fd03e35780)
+![image](https://github.com/user-attachments/assets/fe5950cb-a839-4e60-9632-f8892b564fe3)
 
-![image](https://github.com/user-attachments/assets/db009d2c-c611-4f2c-b7e9-21019e239197)
+![image](https://github.com/user-attachments/assets/b3ec1258-94dd-4f51-bf8f-c52b80702bac)
 
 # Use docker
 
