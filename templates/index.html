@@ -234,7 +234,7 @@ d41d8cd98f00b204e9800998ecf8427e
             <tbody>
                 {% for result in results %}
                 <tr
-                    class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% elif result.virustotal and result.virustotal.total_malicious > 10 %}high-detection{% elif result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% endif %}">
+                    class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% elif result.virustotal and result.virustotal.total_malicious > 10 or result.virustotal and result.virustotal.community_score < -10 %}high-detection{% elif result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% endif %}">
                     <td>{{ result.observable }}</td>
                     <td>{{ result.type }}</td>
                     <!-- Reverse DNS -->
