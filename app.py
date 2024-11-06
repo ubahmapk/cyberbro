@@ -5,6 +5,7 @@ import pandas as pd
 import threading
 import time
 import queue
+import os
 
 app = Flask(__name__)
 
@@ -110,17 +111,71 @@ def is_analysis_complete():
 @app.route('/export')
 def export():
     format = request.args.get('format')
-    df = pd.DataFrame(results)  # Convert results to DataFrame
+    
+    # Prepare data for DataFrame
+    data = []
+    for result in results:
+        ipinfo_data = result.get("ipinfo", {})
+        spur_data = result.get("spur", {})
+        abuseipdb_data = result.get("abuseipdb", {})
+        virustotal_data = result.get("virustotal", {})
+        google_safe_browsing_data = result.get("google_safe_browsing", {})
+
+        row = {
+            "observable": result.get("observable"),
+            "type": result.get("type"),
+            "rev_dns": result.get("reversed_success"),
+            "ipinfo_cn": ipinfo_data.get("country"),
+            "ipinfo_geo": ipinfo_data.get("geolocation"),
+            "ipinfo_asn": ipinfo_data.get("asn").split(' ', 1)[0] if ipinfo_data.get("asn") else None,
+            "ipinfo_org": ipinfo_data.get("asn").split(' ', 1)[1] if ipinfo_data.get("asn") else None,
+            "spur_us_anon": spur_data.get("tunnels"),
+            "a_ipdb_reports": abuseipdb_data.get("reports"),
+            "a_ipdb_risk": abuseipdb_data.get("risk_score"),
+            "vt_detect": virustotal_data.get("detection_ratio"),
+            "vt_nb_detect": virustotal_data.get("total_malicious"),
+            "vt_community": virustotal_data.get("community_score"),
+            "gsb_threat": google_safe_browsing_data.get("threat_found")
+        }
+        data.append(row)
+    
+    df = pd.DataFrame(data)  # Convert results to DataFrame
+    timestamp = time.strftime("%Y-%m-%d_%H_%M_%S", time.localtime())
 
     if format == 'csv':
-        csv_path = 'results.csv'
-        df.to_csv(csv_path, index=False)
-        return send_file(csv_path, as_attachment=True)
+        csv_path = f'{timestamp}_analysis_result.csv'
+        df.to_csv(csv_path, index=False, sep=';')
+        response = send_file(csv_path, as_attachment=True)
+        # Delete the file after 10 seconds
+        threading.Thread(target=lambda path: (time.sleep(10), os.remove(path)), args=(csv_path,)).start()
+        return response
 
     elif format == 'excel':
-        excel_path = 'results.xlsx'
-        df.to_excel(excel_path, index=False)
-        return send_file(excel_path, as_attachment=True)
+        excel_path = f'{timestamp}_analysis_result.xlsx'
+        with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Results')
+            workbook  = writer.book
+            worksheet = writer.sheets['Results']
+            # Get the dimensions of the dataframe.
+            (max_row, max_col) = df.shape
+            # Apply autofilter to the worksheet.
+            worksheet.auto_filter.ref = worksheet.dimensions
+            # Adjust column widths based on the length of the longest entry in each column
+            for col in worksheet.columns:
+                max_length = 0
+                column = col[0].column_letter # Get the column name
+                for cell in col:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = (max_length + 2)
+                worksheet.column_dimensions[column].width = adjusted_width
+        response = send_file(excel_path, as_attachment=True)
+        # Delete the file after 10 seconds
+        threading.Thread(target=lambda path: (time.sleep(10), os.remove(path)), args=(excel_path,)).start()
+        return response
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -5,7 +5,7 @@
     <link rel="icon" href="/images/favicon.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.6.6/css/flag-icons.min.css">
-    <title>Observable Analysis</title>
+    <title>Cyberbro</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -103,8 +103,13 @@
 
 <body>
     <div class="container">
+    
+    <!-- GitHub logo with link -->
+    <a href="https://github.com/stanfrbd/cyberbro" target="_blank" class="github-logo">
+        <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Logo" width="40" height="40">
+    </a>
         <div id="startForm">
-            <h1>Observable Analysis</h1>
+            <h1>Cyberbro - Observable Analysis</h1>
 
             <!-- Observable analysis form -->
             <form id="analyzeForm" method="POST" action="/analyze">
@@ -140,7 +145,7 @@ d41d8cd98f00b204e9800998ecf8427e
             hideForm();
         </script>
 
-        <h1>Analysis Results</h1>
+        <h1>Cyberbro - Analysis Results</h1>
 
         <button class="btn" onclick="location.href='/'">New Analysis</button>
         <!-- Export options -->
@@ -212,16 +217,16 @@ d41d8cd98f00b204e9800998ecf8427e
                 <tr>
                     <th>Observable</th>
                     <th>Type</th>
-                    <th>Reverse DNS</th>
-                    <th>IPinfo Result</th>
-                    <th>AbuseIPDB Result</th>
-                    <th>Spur.us Result</th>
-                    <th>VirusTotal Result</th>
+                    <th>DNS Lookup</th>
+                    <th>IPinfo</th>
+                    <th>AbuseIPDB</th>
+                    <th>Spur.us</th>
+                    <th>VirusTotal</th>
                     <th>Google Safe Browsing</th>
                 </tr>
             </thead>
             <tbody>
-                {% for result in results if not result.analysis_metadata %}
+                {% for result in results %}
                 <tr
                     class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% elif result.virustotal and result.virustotal.total_malicious > 10 %}high-detection{% elif result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% endif %}">
                     <td>{{ result.observable }}</td>

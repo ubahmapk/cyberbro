@@ -1,9 +1,7 @@
 import requests
-import argparse
 import json
 import time
 import jwt
-import csv
 
 # Disable SSL warning in case of proxy like Zscaler which breaks SSL...
 requests.packages.urllib3.disable_warnings()
