@@ -41,6 +41,9 @@ cp secrets-sample.json secrets.json
 }
 ```
 
+* To get API keys, refer to the official documentation of the services.
+* Everything is free as long as you are authenticated (restrictions may be applied).
+
 # Launch the app
 
 ```
@@ -75,3 +78,25 @@ docker compose up -d
 
 ![image](https://github.com/user-attachments/assets/d68d82e7-f1ab-45c1-b0a2-ad9a7e4681bc)
 ![image](https://github.com/user-attachments/assets/9c0648bc-c475-4df6-81c4-17be068aa26a)
+
+# Security
+
+Disclaimer: this is a development server, not intended for production.
+
+# License
+
+```
+        DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE 
+                    Version 2, December 2004 
+
+ Copyright (C) 2004 Sam Hocevar <sam@hocevar.net> 
+
+ Everyone is permitted to copy and distribute verbatim or modified 
+ copies of this license document, and changing it is allowed as long 
+ as the name is changed. 
+
+            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE 
+   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION 
+
+  0. You just DO WHAT THE FUCK YOU WANT TO.
+```
