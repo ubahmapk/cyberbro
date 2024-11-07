@@ -4,7 +4,8 @@ A good alternative for CyberGordon
 
 # Features
 
-* Check if an IP address is malicious using VirusTotal, AbuseIPDB, IPInfo, Spur.us and Google Safe Browsing.
+* Check if an observable (IP, hash, domain, URL) is malicious using VirusTotal, AbuseIPDB, IPInfo, Spur.us and Google Safe Browsing.
+* Comprehensive report with search and filter features (type, country, risk, detection, proxy/VPN).
 * Uses multithreading to speed up the process (articially limited with `time.sleep()` because of free API usage).
 * Performs a reverse DNS lookup.
 * Provides the ability to export the results to a CSV file and an Excel file.
@@ -59,10 +60,6 @@ Press CTRL+C to quit
 
 * Go to http://127.0.0.1:5000 and Enjoy.
 
-![image](https://github.com/user-attachments/assets/33c36c70-f85a-4c58-b5ff-4cabee51a82c)
-
-![image](https://github.com/user-attachments/assets/c65ddce9-5d92-4374-a318-e4ac054ed774)
-
 # Use docker
 
 ```bash
@@ -70,3 +67,11 @@ docker compose up -d
 ```
 
 > Don't forget to edit the `secrets.json` before building the image.
+
+# Screenshots
+
+![image](https://github.com/user-attachments/assets/b0243594-2d22-4505-810c-9e3df09dc617)
+![image](https://github.com/user-attachments/assets/f6658546-ef5d-4c47-9367-b1443eab4b6b)
+
+![image](https://github.com/user-attachments/assets/d68d82e7-f1ab-45c1-b0a2-ad9a7e4681bc)
+![image](https://github.com/user-attachments/assets/9c0648bc-c475-4df6-81c4-17be068aa26a)
