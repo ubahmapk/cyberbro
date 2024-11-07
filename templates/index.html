@@ -7,18 +7,41 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.6.6/css/flag-icons.min.css">
     <title>Cyberbro</title>
     <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-hover-color: #0056b3;
+            --background-color: #f8f9fa;
+            --text-color: #343a40;
+            --border-color: #ced4da;
+            --border-radius: 5px;
+            --dark-background-color: #1e2a36;
+            --dark-text-color: #d1d1d1;
+            --dark-border-color: #3a4b5a;
+            --dark-primary-color: #3a4b5a;
+            --dark-primary-hover-color: #4b5c6d;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
         }
 
         .container {
             width: 80%;
             margin: 0 auto;
+            padding: 20px;
         }
 
         textarea {
             width: 100%;
             height: 100px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 10px;
+            font-size: 1rem;
         }
 
         table {
@@ -29,60 +52,64 @@
 
         th,
         td {
-            padding: 10px;
-            border: 1px solid #ddd;
+            padding: 15px;
+            border: 1px solid var(--border-color);
             text-align: left;
         }
 
         th {
-            background-color: #f2f2f2;
+            background-color: #e9ecef;
         }
 
         .btn {
             padding: 10px 20px;
             margin: 10px 0;
             cursor: pointer;
-            background-color: #007bff;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: background-color 0.3s;
         }
 
         .btn:hover {
-            background-color: #0056b3;
+            background-color: var(--primary-hover-color);
         }
 
         .high-risk {
-            background-color: red;
-            color: white;
+            background-color: #dc3545;
+            color: black;
         }
 
         .high-detection {
-            background-color: red;
-            color: white;
+            background-color: #dc3545;
+            color: black;
         }
 
         .clean-detection {
-            background-color: green;
-            color: white;
+            background-color: #28a745;
+            color: black;
         }
 
         .warning-row {
-            background-color: orange;
+            background-color: #ffc107;
+            color: black;
         }
 
         .filter-input,
         .filter-select {
             padding: 10px;
             margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
             width: calc(100% - 22px);
+            font-size: 1rem;
         }
 
         .filter-input:focus,
         .filter-select:focus {
-            border-color: #007bff;
+            border-color: var(--primary-color);
             outline: none;
         }
 
@@ -99,27 +126,106 @@
             min-width: 150px;
         }
 
-        /* Add hover effect for table rows */
         tr:hover {
             background-color: #f1f1f1;
             color: black;
         }
+
+        body.dark-mode {
+            background-color: var(--dark-background-color);
+            color: var(--dark-text-color);
+        }
+
+        body.dark-mode th {
+            background-color: #2b3a47;
+        }
+
+        body.dark-mode td,
+        body.dark-mode th {
+            border-color: var(--dark-border-color);
+        }
+
+        body.dark-mode .filter-input,
+        body.dark-mode .filter-select {
+            background-color: #2b3a47;
+            color: var(--dark-text-color);
+            border-color: var(--dark-border-color);
+        }
+
+        body.dark-mode .filter-input:focus,
+        body.dark-mode .filter-select:focus {
+            border-color: var(--dark-primary-hover-color);
+        }
+
+        .dark-mode-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+
+        .dark-mode-toggle:hover {
+            background-color: var(--primary-hover-color);
+        }
+
+        body.dark-mode tr:hover {
+            background-color: #2b3a47;
+            color: var(--dark-text-color);
+        }
+
+        .github-logo-light {
+            display: block;
+        }
+
+        .github-logo-dark {
+            display: none;
+        }
+
+        body.dark-mode .github-logo-light {
+            display: none;
+        }
+
+        body.dark-mode .github-logo-dark {
+            display: block;
+        }
+
+        a {
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+
+    a:hover {
+        color: var(--primary-hover-color);
+    }
     </style>
 </head>
 
 <body>
     <div class="container">
-    
-    <!-- GitHub logo with link -->
-    <a href="https://github.com/stanfrbd/cyberbro" target="_blank" class="github-logo">
-        <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub Logo" width="40" height="40">
-    </a>
+        <button class="dark-mode-toggle" onclick="toggleDarkMode()">
+            <img id="darkModeIcon" src="https://img.icons8.com/ios-filled/50/ffffff/moon-symbol.png" alt="Dark Mode" width="20" height="20">
+        </button>
+
+        <a href="https://github.com/stanfrbd/cyberbro" target="_blank" class="github-logo">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo" width="40" height="40" class="github-logo-light">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo" width="40" height="40" class="github-logo-dark" style="filter: invert(1);">
+        </a>
         <div id="startForm">
             <h1>Cyberbro - Observable Analysis</h1>
 
-            <!-- Observable analysis form -->
             <form id="analyzeForm" method="POST" action="/analyze">
-                <label for="observables">Paste your observables here, line by line:</label>
+                <label for="observables">Paste your observables here, line by line:</label><br><br>
                 <textarea name="observables" placeholder="1.2.3.4
 example.com
 d41d8cd98f00b204e9800998ecf8427e
@@ -141,10 +247,8 @@ d41d8cd98f00b204e9800998ecf8427e
             </form>
         </div>
 
-        <!-- Analysis results -->
         {% if results %}
         <script>
-            // Function to hide the form when "Start Analysis" is clicked
             function hideForm() {
                 document.getElementById("startForm").style.display = "none";
             }
@@ -154,7 +258,6 @@ d41d8cd98f00b204e9800998ecf8427e
         <h1>Cyberbro - Analysis Results</h1>
 
         <button class="btn" onclick="location.href='/'">New Analysis</button>
-        <!-- Export options -->
         <form method="GET" action="/export">
             <button type="submit" name="format" value="csv" class="btn">Export to CSV</button>
             <button type="submit" name="format" value="excel" class="btn">Export to Excel</button>
@@ -164,11 +267,8 @@ d41d8cd98f00b204e9800998ecf8427e
         <p>Analysis duration: {{ analysis_metadata.analysis_duration_string }}</p>
 
         <div class="filters-container">
-            <!-- Search input -->
-            <input type="text" id="searchInput" class="filter-input" onkeyup="filterTable()"
-                placeholder="Search...">
+            <input type="text" id="searchInput" class="filter-input" onkeyup="filterTable()" placeholder="Search...">
 
-            <!-- Observable type filter dropdown -->
             <select id="typeFilter" class="filter-select" onchange="filterTable()">
                 <option value="all">All observables types</option>
                 {% set types = [] %}
@@ -180,7 +280,6 @@ d41d8cd98f00b204e9800998ecf8427e
                 {% endfor %}
             </select>
 
-            <!-- Country filter dropdown -->
             <select id="countryFilter" class="filter-select" onchange="filterTable()">
                 <option value="all">All Countries</option>
                 {% set countries = [] %}
@@ -192,21 +291,18 @@ d41d8cd98f00b204e9800998ecf8427e
                 {% endfor %}
             </select>
 
-            <!-- Risk filter dropdown -->
             <select id="riskFilter" class="filter-select" onchange="filterTable()">
                 <option value="all">All Risks</option>
                 <option value="high">High Risk</option>
                 <option value="low">Low Risk</option>
             </select>
 
-            <!-- Detection filter dropdown -->
             <select id="detectionFilter" class="filter-select" onchange="filterTable()">
                 <option value="all">All Detections</option>
                 <option value="high">High Detection</option>
                 <option value="clean">Clean Detection</option>
             </select>
 
-            <!-- Proxy/VPN filter dropdown -->
             <select id="proxyVpnFilter" class="filter-select" onchange="filterTable()">
                 <option value="all">All connection info</option>
                 <option value="proxy">Proxy</option>
@@ -214,7 +310,6 @@ d41d8cd98f00b204e9800998ecf8427e
                 <option value="not anonymous">Not anonymous</option>
             </select>
 
-            <!-- Clear filters button -->
             <button class="btn" onclick="clearFilters()">Clear Filters</button>
         </div>
 
@@ -237,7 +332,6 @@ d41d8cd98f00b204e9800998ecf8427e
                     class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% elif result.virustotal and result.virustotal.total_malicious > 10 or result.virustotal and result.virustotal.community_score < -10 %}high-detection{% elif result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% endif %}">
                     <td>{{ result.observable }}</td>
                     <td>{{ result.type }}</td>
-                    <!-- Reverse DNS -->
                     <td>
                         {% if result.reverse_dns %}
                         {{ result.reverse_dns.reverse_dns }}
@@ -245,7 +339,6 @@ d41d8cd98f00b204e9800998ecf8427e
                         Not applicable
                         {% endif %}
                     </td>
-                    <!-- IPinfo -->
                     <td>
                         {% if result.ipinfo and result.reversed_success %}
                         Reverse DNS applied<br>
@@ -261,7 +354,6 @@ d41d8cd98f00b204e9800998ecf8427e
                         Not applicable
                         {% endif %}
                     </td>
-                    <!-- AbuseIPDB -->
                     <td>
                         {% if result.abuseipdb and result.reversed_success %}
                         Reverse DNS applied<br>
@@ -274,7 +366,6 @@ d41d8cd98f00b204e9800998ecf8427e
                         Not applicable
                         {% endif %}
                     </td>
-                    <!-- Spur.us -->
                     <td>
                         {% if result.spur and result.reversed_success %}
                         Reverse DNS applied<br>
@@ -285,7 +376,6 @@ d41d8cd98f00b204e9800998ecf8427e
                         Not applicable
                         {% endif %}
                     </td>
-                    <!-- VirusTotal -->
                     <td>
                         {% if result.virustotal %}
                         Ratio:
@@ -296,7 +386,6 @@ d41d8cd98f00b204e9800998ecf8427e
                         Not applicable
                         {% endif %}
                     </td>
-                    <!-- Google Safe Browsing -->
                     <td>
                         {% if result.google_safe_browsing %}
                         Threat: {{ result.google_safe_browsing.threat_found }} <br>
@@ -316,7 +405,9 @@ d41d8cd98f00b204e9800998ecf8427e
 
 </html>
 <script>
-    // Function to filter table rows based on search input and dropdown selections
+    const moonIcon = "https://img.icons8.com/ios-filled/50/ffffff/moon-symbol.png";
+    const sunIcon = "https://img.icons8.com/ios-filled/50/ffffff/sun.png";
+
     function filterTable() {
         const searchInput = document.getElementById("searchInput").value.toLowerCase();
         const countryFilter = document.getElementById("countryFilter").value.toLowerCase();
@@ -331,36 +422,30 @@ d41d8cd98f00b204e9800998ecf8427e
             let td = tr[i].getElementsByTagName("td");
             let showRow = true;
 
-            // Search filter
             if (searchInput) {
                 showRow = Array.from(td).some(cell => cell.innerText.toLowerCase().includes(searchInput));
             }
 
-            // Country filter
             if (showRow && countryFilter !== "all") {
                 const countrySpan = td[3].querySelector(".fi");
                 const country = countrySpan ? countrySpan.className.split("-")[1] : "";
                 showRow = country === countryFilter;
             }
 
-            // Risk filter
             if (showRow && riskFilter !== "all") {
                 const riskClass = tr[i].classList.contains("high-risk") ? "high" : "low";
                 showRow = riskClass === riskFilter;
             }
 
-            // Detection filter
             if (showRow && detectionFilter !== "all") {
                 const detectionClass = tr[i].classList.contains("high-detection") ? "high" : tr[i].classList.contains("clean-detection") ? "clean" : "low";
                 showRow = detectionClass === detectionFilter;
             }
 
-            // Type filter
             if (showRow && typeFilter !== "all") {
                 showRow = td[1].innerText.toLowerCase() === typeFilter;
             }
 
-            // Proxy/VPN filter
             if (showRow && proxyVpnFilter !== "all") {
                 const spurResult = td[5].innerText.toLowerCase();
                 showRow = spurResult.includes(proxyVpnFilter);
@@ -370,7 +455,6 @@ d41d8cd98f00b204e9800998ecf8427e
         }
     }
 
-    // Function to clear all filters
     function clearFilters() {
         document.getElementById("searchInput").value = "";
         document.getElementById("countryFilter").value = "all";
@@ -380,4 +464,30 @@ d41d8cd98f00b204e9800998ecf8427e
         document.getElementById("proxyVpnFilter").value = "all";
         filterTable();
     }
+
+    function toggleDarkMode() {
+        document.body.classList.toggle("dark-mode");
+        localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
+        updateDarkModeIcon();
+    }
+
+    function updateDarkModeIcon() {
+        const darkModeIcon = document.getElementById("darkModeIcon");
+        if (document.body.classList.contains("dark-mode")) {
+            darkModeIcon.src = sunIcon;
+            darkModeIcon.alt = "Light Mode";
+        } else {
+            darkModeIcon.src = moonIcon;
+            darkModeIcon.alt = "Dark Mode";
+        }
+    }
+
+    function applyDarkMode() {
+        if (localStorage.getItem("darkMode") === "true") {
+            document.body.classList.add("dark-mode");
+        }
+        updateDarkModeIcon();
+    }
+
+    applyDarkMode();
 </script>
