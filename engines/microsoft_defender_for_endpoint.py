@@ -66,19 +66,15 @@ def get_token():
 
 def query_microsoft_defender_for_endpoint(observable):
     """
-    Queries the Microsoft Defender for Endpoint API for information about a given observable.
-    Args:
-        observable (str): The observable to query. This can be an IP address (IPv4 or IPv6), 
-                          a fully qualified domain name (FQDN), a URL, or a file hash.
+    Queries Microsoft Defender for Endpoint for information about a given observable.
+    Parameters:
+    observable (str): The observable to query. This can be a hash (MD5, SHA1, SHA256), IP address (IPv4, IPv6), 
+                      fully qualified domain name (FQDN), or URL.
     Returns:
-        dict: A dictionary containing the following keys:
-            - detection_ratio (str): The ratio of malicious detections to total engines.
-            - total_malicious (int): The total number of engines that flagged the observable as malicious.
-            - link (str): A link to the Microsoft Defender for Endpoint GUI for the observable.
-            - community_score (int or str): The community reputation score of the observable, or 'Unknown' if not available.
-    Raises:
-        requests.exceptions.RequestException: If there is an issue with the HTTP request.
-        KeyError: If the expected data is not found in the API response.
+    dict: A dictionary containing the response data from Microsoft Defender for Endpoint, including a link to 
+          the observable's details on the Microsoft Defender Security Center. If the observable is a file hash, 
+          additional file information is included (issuer, signer, isValidCertificate, filePublisher, 
+          fileProductName, determinationType, determinationValue). Returns None if the request fails.
     """
 
     jwt_token = read_token() or get_token()
@@ -87,8 +83,10 @@ def query_microsoft_defender_for_endpoint(observable):
 
     # Detect the observable type and adjust the API URL
     observable_type = identify_observable_type(observable)
+    file_info_url = None
     if observable_type in ["MD5", "SHA1", "SHA256"]:
-        url = f"https://api.securitycenter.microsoft.com/api/files/{observable}"
+        url = f"https://api.securitycenter.microsoft.com/api/files/{observable}/stats"
+        file_info_url = f"https://api.securitycenter.microsoft.com/api/files/{observable}"
         link = f"https://securitycenter.microsoft.com/file/{observable}"
     elif observable_type in ["IPv4", "IPv6"]:
         url = f"https://api.securitycenter.microsoft.com/api/ips/{observable}/stats"
@@ -102,10 +100,23 @@ def query_microsoft_defender_for_endpoint(observable):
         link = f"https://securitycenter.microsoft.com/url?url={observable}"
 
     response = requests.get(url, headers=headers, proxies=PROXIES, verify=False)
+    
+    if file_info_url:
+        file_info_response = requests.get(file_info_url, headers=headers, proxies=PROXIES, verify=False)
+        file_info = file_info_response.json()
+
     if response.status_code == 200:
         data = response.json()
         data["link"] = link
-        print(data)
+        if file_info_url:
+            data["issuer"] = file_info.get("issuer", "Unknown")
+            data["signer"] = file_info.get("signer", "Unknown")
+            data["isValidCertificate"] = file_info.get("isValidCertificate", "Unknown")
+            data["filePublisher"] = file_info.get("filePublisher", "Unknown")
+            data["fileProductName"] = file_info.get("fileProductName", "Unknown")
+            data["determinationType"] = file_info.get("determinationType", "Unknown")
+            data["determinationValue"] = file_info.get("determinationValue", "Unknown")
+        # print(data)
         return data
     else:
         print(f"Error: Received status code {response.status_code}")
