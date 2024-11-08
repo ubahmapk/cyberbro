@@ -406,13 +406,17 @@ d41d8cd98f00b204e9800998ecf8427e
                         First seen: {{ result.mde.orgFirstSeen }} <br>
                         Last seen: {{ result.mde.orgLastSeen }} <br>
                         {% elif result.mde and result.mde.sha1 %}
-                        Devices: <a href="{{ result.mde.link }}" target="_blank">{{ result.mde.globalPrevalence }}</a><br>
+                        Devices: <a href="{{ result.mde.link }}" target="_blank">{{ result.mde.organizationPrevalence }}</a><br>
+                        First seen: {{ result.mde.orgFirstSeen }} <br>
+                        Last seen: {{ result.mde.orgLastSeen }} <br>
+                        Top filenames: {{ result.mde.topFileNames }} <br>
+                        File product name: {{ result.mde.fileProductName }} <br>
+                        File publisher: {{ result.mde.filePublisher }} <br>
                         Signer : {{ result.mde.signer }} <br>
                         Issuer: {{ result.mde.issuer }} <br>
                         IsValidCertificate: {{ result.mde.isValidCertificate }} <br>
                         Determination: {{ result.mde.determinationType }} <br>
-                        First seen: {{ result.mde.globalFirstObserved }} <br>
-                        Last seen: {{ result.mde.globalLastObserved }}
+                        Determination value: {{ result.mde.determinationValue }}
                         {% elif result.mde and result.mde.host %}
                         Devices: <a href="{{ result.mde.link }}" target="_blank">{{ result.mde.orgPrevalence }}</a><br>
                         First seen: {{ result.mde.orgFirstSeen }} <br>

@@ -52,6 +52,7 @@ def query_virustotal(observable):
 
     response = requests.get(url, headers=headers, proxies=PROXIES, verify=False)
     data = response.json()
+    # print(data)
 
     if 'data' in data:
         attributes = data['data']['attributes']
