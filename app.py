@@ -1,4 +1,4 @@
-from engines import abuseipdb, virustotal, ipinfo, spur_us, reverse_dns, google_safe_browsing
+from engines import abuseipdb, virustotal, ipinfo, spur_us, reverse_dns, google_safe_browsing, microsoft_defender_for_endpoint
 from utils import *
 from flask import Flask, request, render_template, send_file, jsonify, send_from_directory
 import pandas as pd
@@ -25,6 +25,9 @@ def perform_analysis(observables, selected_engines):
     def analyze_observable(observable, observable_type, index):
         result = {"observable": observable.strip(), "type": observable_type}
         result['reversed_success'] = False
+
+        if "mde" in selected_engines and observable_type in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+            result['mde'] = microsoft_defender_for_endpoint.query_microsoft_defender_for_endpoint(observable.strip())
 
         if "virustotal" in selected_engines and observable_type in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
             result['virustotal'] = virustotal.query_virustotal(observable.strip())
@@ -75,7 +78,7 @@ def perform_analysis(observables, selected_engines):
     # convert analysis duration to minutes and seconds
     analysis_duration_string = f"{int(analysis_duration // 60)} minutes, {analysis_duration % 60:.2f} seconds"
     
-    analysis_metadata = {"start_time": start_time, "end_time": end_time, "start_time_string": start_time_string, "end_time_string": end_time_string ,"analysis_duration_string": analysis_duration_string, "analysis_duration": analysis_duration}
+    analysis_metadata = {"start_time": start_time, "end_time": end_time, "start_time_string": start_time_string, "end_time_string": end_time_string ,"analysis_duration_string": analysis_duration_string, "analysis_duration": analysis_duration, "selected_engines": selected_engines}
     analysis_in_progress = False  # End of analysis
     # Existing code to perform analysis
     print("Analysis results:", results)

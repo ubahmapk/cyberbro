@@ -234,13 +234,13 @@ d41d8cd98f00b204e9800998ecf8427e
 
                 <div>
                     <h3>Select the engines to use</h3>
-                    <label><input type="checkbox" name="engines" value="virustotal" checked> VirusTotal</label><br>
-                    <label><input type="checkbox" name="engines" value="abuseipdb" checked> AbuseIPDB</label><br>
-                    <label><input type="checkbox" name="engines" value="ipinfo" checked> IPinfo</label><br>
-                    <label><input type="checkbox" name="engines" value="spur" checked> Spur.us</label><br>
                     <label><input type="checkbox" name="engines" value="reverse_dns" checked> Reverse DNS </label><br>
-                    <label><input type="checkbox" name="engines" value="google_safe_browsing" checked> Google Safe
-                        Browsing</label>
+                    <label><input type="checkbox" name="engines" value="ipinfo" checked> IPinfo</label><br>
+                    <label><input type="checkbox" name="engines" value="abuseipdb" checked> AbuseIPDB</label><br>
+                    <label><input type="checkbox" name="engines" value="virustotal"> VirusTotal</label><br>
+                    <label><input type="checkbox" name="engines" value="spur"> Spur.us</label><br>
+                    <label><input type="checkbox" name="engines" value="mde"> Microsoft Defender for Endpoint</label><br>
+                    <label><input type="checkbox" name="engines" value="google_safe_browsing"> Google Safe Browsing</label>
                 </div>
 
                 <button type="submit" class="btn">Start Analysis</button>
@@ -321,9 +321,18 @@ d41d8cd98f00b204e9800998ecf8427e
                     <th>DNS Lookup</th>
                     <th>IPinfo</th>
                     <th>AbuseIPDB</th>
+                    {% if "spur" in analysis_metadata.selected_engines %}
                     <th>Spur.us</th>
+                    {% endif %}
+                    {% if "virustotal" in analysis_metadata.selected_engines %}
                     <th>VirusTotal</th>
+                    {% endif %}
+                    {% if "mde" in analysis_metadata.selected_engines %}
+                    <th>Microsoft Defender for Endpoint</th>
+                    {% endif %}
+                    {% if "google_safe_browsing" in analysis_metadata.selected_engines %}
                     <th>Google Safe Browsing</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -366,6 +375,7 @@ d41d8cd98f00b204e9800998ecf8427e
                         Not applicable
                         {% endif %}
                     </td>
+                    {% if "spur" in analysis_metadata.selected_engines %}
                     <td>
                         {% if result.spur and result.reversed_success %}
                         Reverse DNS applied<br>
@@ -376,6 +386,8 @@ d41d8cd98f00b204e9800998ecf8427e
                         Not applicable
                         {% endif %}
                     </td>
+                    {% endif %}
+                    {% if "virustotal" in analysis_metadata.selected_engines %}
                     <td>
                         {% if result.virustotal %}
                         Ratio:
@@ -386,6 +398,31 @@ d41d8cd98f00b204e9800998ecf8427e
                         Not applicable
                         {% endif %}
                     </td>
+                    {% endif %}
+                    {% if "mde" in analysis_metadata.selected_engines %}
+                    <td>
+                        {% if result.mde and result.mde.ipAddress %}
+                        Devices: <a href="{{ result.mde.link }}" target="_blank">{{ result.mde.orgPrevalence }}</a><br>
+                        First seen: {{ result.mde.orgFirstSeen }} <br>
+                        Last seen: {{ result.mde.orgLastSeen }} <br>
+                        {% elif result.mde and result.mde.sha1 %}
+                        Devices: <a href="{{ result.mde.link }}" target="_blank">{{ result.mde.globalPrevalence }}</a><br>
+                        Signer : {{ result.mde.signer }} <br>
+                        Issuer: {{ result.mde.issuer }} <br>
+                        IsValidCertificate: {{ result.mde.isValidCertificate }} <br>
+                        Determination: {{ result.mde.determinationType }} <br>
+                        First seen: {{ result.mde.globalFirstObserved }} <br>
+                        Last seen: {{ result.mde.globalLastObserved }}
+                        {% elif result.mde and result.mde.host %}
+                        Devices: <a href="{{ result.mde.link }}" target="_blank">{{ result.mde.orgPrevalence }}</a><br>
+                        First seen: {{ result.mde.orgFirstSeen }} <br>
+                        Last seen: {{ result.mde.orgLastSeen }} <br>
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if "google_safe_browsing" in analysis_metadata.selected_engines %}
                     <td>
                         {% if result.google_safe_browsing %}
                         Threat: {{ result.google_safe_browsing.threat_found }} <br>
@@ -394,6 +431,7 @@ d41d8cd98f00b204e9800998ecf8427e
                         Not applicable
                         {% endif %}
                     </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>

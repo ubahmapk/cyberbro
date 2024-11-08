@@ -9,6 +9,7 @@ A good alternative for CyberGordon
 * Uses multithreading to speed up the process (articially limited with `time.sleep()` because of free API usage).
 * Performs a reverse DNS lookup.
 * Provides the ability to export the results to a CSV file and an Excel file.
+* Checks if the observable has been seen on the Microsoft Defender for Endpoint (MDE) platform (your tenant).
 * Uses a proxy if needed.
 
 # Getting Started
@@ -37,12 +38,15 @@ cp secrets-sample.json secrets.json
     "google_safe_browsing": "token_here",
     "proxy_url": "",
     "spur_email": "spur_email_here",
-    "spur_password": "spur_password_here"
+    "spur_password": "spur_password_here",
+    "mde_tenant_id": "tenant_here",
+    "mde_client_id": "client_id_here",
+    "mde_client_secret": "client_secret_here"
 }
 ```
 
 * To get API keys, refer to the official documentation of the services.
-* Everything is free as long as you are authenticated (restrictions may be applied).
+* MDE is NOT free, you can skip it if you don't have an account (unchecked by default).
 
 # Launch the app
 

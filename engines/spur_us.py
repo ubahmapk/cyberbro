@@ -24,7 +24,7 @@ def check_token_validity(token):
 
 def read_token():
     try:
-        with open("token.txt", "r") as f:
+        with open("spur_token.txt", "r") as f:
             token = f.read()
         if check_token_validity(token):
             return token
@@ -70,7 +70,7 @@ def get_token():
         jwt_token = token_response_json.get("idToken", None)
         if jwt_token:
             #print("Successfully obtained JWT token:", jwt_token)
-            with open("token.txt", "w") as f:
+            with open("spur_token.txt", "w") as f:
                 f.write(jwt_token)
             return jwt_token
         else:
