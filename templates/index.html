@@ -237,6 +237,7 @@ d41d8cd98f00b204e9800998ecf8427e
                     <label><input type="checkbox" name="engines" value="reverse_dns" checked> Reverse DNS </label><br>
                     <label><input type="checkbox" name="engines" value="ipinfo" checked> IPinfo</label><br>
                     <label><input type="checkbox" name="engines" value="abuseipdb" checked> AbuseIPDB</label><br>
+                    <label><input type="checkbox" name="engines" value="ip_quality_score"> IP Quality Score</label><br>
                     <label><input type="checkbox" name="engines" value="virustotal"> VirusTotal</label><br>
                     <label><input type="checkbox" name="engines" value="spur"> Spur.us</label><br>
                     <label><input type="checkbox" name="engines" value="mde"> Microsoft Defender for Endpoint</label><br>
@@ -321,6 +322,9 @@ d41d8cd98f00b204e9800998ecf8427e
                     <th>DNS Lookup</th>
                     <th>IPinfo</th>
                     <th>AbuseIPDB</th>
+                    {% if "ip_quality_score" in analysis_metadata.selected_engines %}
+                    <th>IP Quality Score</th>
+                    {% endif %}
                     {% if "spur" in analysis_metadata.selected_engines %}
                     <th>Spur.us</th>
                     {% endif %}
@@ -375,6 +379,20 @@ d41d8cd98f00b204e9800998ecf8427e
                         Not applicable
                         {% endif %}
                     </td>
+                    {% if "ip_quality_score" in analysis_metadata.selected_engines %}
+                    <td>
+                        {% if result.ip_quality_score %}
+                        Score: <a href="{{ result.ip_quality_score.link }}" target="_blank">{{ result.ip_quality_score.fraud_score }}</a><br>
+                        Proxy: {{ result.ip_quality_score.proxy }}<br>
+                        VPN: {{ result.ip_quality_score.vpn }}<br>
+                        Tor: {{ result.ip_quality_score.tor }}<br>
+                        ISP: {{ result.ip_quality_score.ISP }}<br>
+                        Organization: {{ result.ip_quality_score.organization }}<br>
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
                     {% if "spur" in analysis_metadata.selected_engines %}
                     <td>
                         {% if result.spur and result.reversed_success %}

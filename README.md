@@ -4,7 +4,7 @@ A good alternative for CyberGordon
 
 # Features
 
-* Check if an observable (IP, hash, domain, URL) is malicious using VirusTotal, AbuseIPDB, IPInfo, Spur.us and Google Safe Browsing.
+* Check if an observable (IP, hash, domain, URL) is malicious using VirusTotal, AbuseIPDB, IPInfo, Spur.us, IP Quality Score, MDE and Google Safe Browsing.
 * Comprehensive report with search and filter features (type, country, risk, detection, proxy/VPN).
 * Uses multithreading to speed up the process (articially limited with `time.sleep()` because of free API usage).
 * Performs a reverse DNS lookup.
@@ -41,7 +41,8 @@ cp secrets-sample.json secrets.json
     "spur_password": "spur_password_here",
     "mde_tenant_id": "tenant_here",
     "mde_client_id": "client_id_here",
-    "mde_client_secret": "client_secret_here"
+    "mde_client_secret": "client_secret_here",
+    "ip_quality_score": "token_here"
 }
 ```
 
