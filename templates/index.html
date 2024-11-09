@@ -383,9 +383,20 @@ d41d8cd98f00b204e9800998ecf8427e
                     <td>
                         {% if result.ip_quality_score %}
                         Score: <a href="{{ result.ip_quality_score.link }}" target="_blank">{{ result.ip_quality_score.fraud_score }}</a><br>
+                        
+                        {% if result.ip_quality_score.proxy == True %}
                         Proxy: {{ result.ip_quality_score.proxy }}<br>
+                        {% endif %}
+
+                        {% if result.ip_quality_score.vpn == True %}
                         VPN: {{ result.ip_quality_score.vpn }}<br>
+                        {% endif %}
+                        {% if result.ip_quality_score.tor == True %}
                         Tor: {{ result.ip_quality_score.tor }}<br>
+                        {% endif %}
+                        {% if result.ip_quality_score.tor == False and result.ip_quality_score.vpn == False and result.ip_quality_score.proxy == False %}
+                        Not anonymous<br>
+                        {% endif %}
                         ISP: {{ result.ip_quality_score.ISP }}<br>
                         Organization: {{ result.ip_quality_score.organization }}<br>
                         {% else %}
@@ -506,9 +517,31 @@ d41d8cd98f00b204e9800998ecf8427e
                 showRow = td[1].innerText.toLowerCase() === typeFilter;
             }
 
+            // Spur or IP Quality Score
             if (showRow && proxyVpnFilter !== "all") {
-                const spurResult = td[5].innerText.toLowerCase();
-                showRow = spurResult.includes(proxyVpnFilter);
+                let anonymousResult = "";
+                for (let j = 5; j <= 8; j++) {
+                    if (td[j]) {
+                        anonymousResult = td[j].innerText.toLowerCase();
+                        if (anonymousResult.includes(proxyVpnFilter)) {
+                            break;
+                        }
+                    }
+                }
+                showRow = anonymousResult.includes(proxyVpnFilter);
+            }
+            // Spur or IP Quality Score (second time to cover all engines)
+            if (showRow && proxyVpnFilter !== "all") {
+                let anonymousResult = "";
+                for (let j = 5; j <= 8; j++) {
+                    if (td[j]) {
+                        anonymousResult = td[j].innerText.toLowerCase();
+                        if (anonymousResult.includes(proxyVpnFilter)) {
+                            break;
+                        }
+                    }
+                }
+                showRow = anonymousResult.includes(proxyVpnFilter);
             }
 
             tr[i].style.display = showRow ? "" : "none";
