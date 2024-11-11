@@ -285,9 +285,9 @@ d41d8cd98f00b204e9800998ecf8427e
                 <option value="all">All Countries</option>
                 {% set countries = [] %}
                 {% for result in results %}
-                {% if result.ipinfo and result.ipinfo.country not in countries %}
-                {% set _ = countries.append(result.ipinfo.country) %}
-                <option value="{{ result.ipinfo.country | lower }}">{{ result.ipinfo.country }}</option>
+                {% if result.ipinfo and result.ipinfo.country_code not in countries %}
+                {% set _ = countries.append(result.ipinfo.country_code) %}
+                <option value="{{ result.ipinfo.country_code | lower }}">{{ result.ipinfo.country_code }}</option>
                 {% endif %}
                 {% endfor %}
             </select>
@@ -359,8 +359,7 @@ d41d8cd98f00b204e9800998ecf8427e
                         {% if result.ipinfo %}
                         IP: <a href="{{ result.ipinfo.link }}" target="_blank">{{ result.ipinfo.ip }}</a><br>
                         Geoloc: {{ result.ipinfo.geolocation }}<br>
-                        Country: <span class="fi fi-{{ result.ipinfo.country | lower }}"></span> ({{
-                        result.ipinfo.country }}) <br>
+                        Country: {{result.ipinfo.country_name}} <span class="fi fi-{{ result.ipinfo.country_code | lower }}"></span> ({{ result.ipinfo.country_code }}) <br>
                         Hostname: {{ result.ipinfo.hostname }}<br>
                         ASN: {{ result.ipinfo.asn }}
                         {% else %}
