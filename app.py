@@ -1,4 +1,4 @@
-from engines import abuseipdb, virustotal, ipinfo, spur_us, reverse_dns, google_safe_browsing, microsoft_defender_for_endpoint, ip_quality_score
+from engines import abuseipdb, virustotal, ipinfo, spur_us, reverse_dns, google_safe_browsing, microsoft_defender_for_endpoint, ip_quality_score, spur_us_free
 from utils import *
 from flask import Flask, request, render_template, send_file, jsonify, send_from_directory
 import pandas as pd
@@ -51,7 +51,8 @@ def perform_analysis(observables, selected_engines):
             result['abuseipdb'] = abuseipdb.query_abuseipdb(observable.strip())
 
         if "spur" in selected_engines and observable_type in ["IPv4", "IPv6"]:
-            result['spur'] = spur_us.process_ip_with_spur(observable.strip())
+            #result['spur'] = spur_us.process_ip_with_spur(observable.strip())
+            result['spur'] = spur_us_free.get_spur(observable.strip())
 
         if "ip_quality_score" in selected_engines and observable_type in ["IPv4", "IPv6"]:
             result['ip_quality_score'] = ip_quality_score.query_ip_quality_score(observable.strip())

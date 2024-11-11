@@ -1,7 +1,10 @@
 requests
+requests[socks]
 flask
 pandas
 jwt
 openpyxl
 dnspython
 pycountry
+fake_useragent
+bs4
