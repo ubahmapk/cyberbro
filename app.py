@@ -36,11 +36,13 @@ def perform_analysis(observables, selected_engines):
             result['google_safe_browsing'] = google_safe_browsing.query_google_safe_browsing(observable.strip())
 
         if "reverse_dns" in selected_engines and observable_type in ["IPv4", "IPv6", "FQDN", "URL"]:
-            result['reverse_dns'] = reverse_dns.reverse_dns(observable.strip())
-            if observable_type == "FQDN" and result['reverse_dns'] is not None or observable_type == "URL" and result['reverse_dns'] is not None:
+            reverse_dns_result = reverse_dns.reverse_dns(observable.strip())
+            result['reverse_dns'] = reverse_dns_result
+            if reverse_dns_result:
                 result['reversed_success'] = True
-                observable_type = "IPv4"
-                observable = result["reverse_dns"]["reverse_dns"][-1]
+                if observable_type in ["FQDN", "URL"]:
+                    observable_type = "IPv4"
+                    observable = reverse_dns_result["reverse_dns"][-1]
 
         if "ipinfo" in selected_engines and observable_type in ["IPv4", "IPv6"]:
             result['ipinfo'] = ipinfo.query_ipinfo(observable.strip())
@@ -121,28 +123,48 @@ def export():
     # Prepare data for DataFrame
     data = []
     for result in results:
+        rev_dns_data = result.get("reverse_dns", {})
         ipinfo_data = result.get("ipinfo", {})
-        spur_data = result.get("spur", {})
         abuseipdb_data = result.get("abuseipdb", {})
-        virustotal_data = result.get("virustotal", {})
-        google_safe_browsing_data = result.get("google_safe_browsing", {})
 
         row = {
             "observable": result.get("observable"),
             "type": result.get("type"),
             "rev_dns": result.get("reversed_success"),
-            "ipinfo_cn": ipinfo_data.get("country"),
+            "dns_lookup": rev_dns_data.get("reverse_dns") if rev_dns_data else None,
+            "ipinfo_cn": ipinfo_data.get("country_code"),
+            "ipinfo_country": ipinfo_data.get("country_name"),
             "ipinfo_geo": ipinfo_data.get("geolocation"),
             "ipinfo_asn": ipinfo_data.get("asn").split(' ', 1)[0] if ipinfo_data.get("asn") else None,
             "ipinfo_org": ipinfo_data.get("asn").split(' ', 1)[1] if ipinfo_data.get("asn") else None,
-            "spur_us_anon": spur_data.get("tunnels"),
             "a_ipdb_reports": abuseipdb_data.get("reports"),
-            "a_ipdb_risk": abuseipdb_data.get("risk_score"),
-            "vt_detect": virustotal_data.get("detection_ratio"),
-            "vt_nb_detect": virustotal_data.get("total_malicious"),
-            "vt_community": virustotal_data.get("community_score"),
-            "gsb_threat": google_safe_browsing_data.get("threat_found")
+            "a_ipdb_risk": abuseipdb_data.get("risk_score")
         }
+
+        if "virustotal" in analysis_metadata["selected_engines"]:
+            virustotal_data = result.get("virustotal", {})
+            row["vt_detect"] = virustotal_data.get("detection_ratio")
+            row["vt_nb_detect"] = virustotal_data.get("total_malicious")
+            row["vt_community"] = virustotal_data.get("community_score")
+
+        if "ip_quality_score" in analysis_metadata["selected_engines"]:
+            ip_quality_score_data = result.get("ip_quality_score", {})
+            row["ipqs_score"] = ip_quality_score_data.get("fraud_score")
+            row["ipqs_proxy"] = ip_quality_score_data.get("proxy")
+            row["ipqs_vpn"] = ip_quality_score_data.get("vpn")
+            row["ipqs_tor"] = ip_quality_score_data.get("tor")
+            row["ipqs_isp"] = ip_quality_score_data.get("ISP")
+            row["ipqs_organization"] = ip_quality_score_data.get("organization")
+
+        if "spur" in analysis_metadata["selected_engines"]:
+            spur_data = result.get("spur", {})
+            row["spur_us_anon"] = spur_data.get("tunnels")
+
+        if "google_safe_browsing" in analysis_metadata["selected_engines"]:
+            google_safe_browsing_data = result.get("google_safe_browsing", {})
+            row["gsb_threat"] = google_safe_browsing_data.get("threat_found")
+
+        # Add all selected engines to the DataFrame
         data.append(row)
     
     df = pd.DataFrame(data)  # Convert results to DataFrame

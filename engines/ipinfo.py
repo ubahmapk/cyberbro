@@ -1,5 +1,6 @@
 import requests
 import json
+import pycountry
 
 # Disable SSL warnings in case of proxies like Zscaler which break SSL...
 requests.packages.urllib3.disable_warnings()
@@ -45,10 +46,11 @@ def query_ipinfo(ip):
         city = data.get("city", "Unknown")
         region = data.get("region", "Unknown")
         asn = data.get("org", "Unknown")
-        country = data.get("country", "Unknown")
+        country_code = data.get("country", "Unknown")
+        country_name = pycountry.countries.get(alpha_2=country_code).name
         
         # Return the extracted information in a dictionary
-        return {"ip": ip, "geolocation": f"{city}, {region}", "country": country, "hostname": hostname, "asn": asn, "link": f"https://ipinfo.io/{ip}"}
+        return {"ip": ip, "geolocation": f"{city}, {region}", "country_code": country_code, "country_name": country_name, "hostname": hostname, "asn": asn, "link": f"https://ipinfo.io/{ip}"}
     
     # Return None if 'ip' key is not in the response
     return None
