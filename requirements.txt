@@ -8,3 +8,4 @@ dnspython
 pycountry
 fake_useragent
 bs4
+stem
