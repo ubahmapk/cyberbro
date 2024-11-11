@@ -45,6 +45,7 @@ def get_spur(ip):
             else:
                 content = "Not Anonymous"
         else:
+            time.sleep(5)
             get_new_identity()
             get_spur(ip)
         return {"link": f"https://spur.us/context/{ip}", "tunnels": content}
