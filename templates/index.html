@@ -353,7 +353,7 @@ d41d8cd98f00b204e9800998ecf8427e
                         {% endif %}
                     </td>
                     <td>
-                        {% if result.ipinfo and result.reversed_success %}
+                        {% if result.ipinfo and result.reversed_success and result.type in ["URL", "FQDN"] %}
                         Reverse DNS applied<br>
                         {% endif %}
                         {% if result.ipinfo %}
@@ -367,7 +367,7 @@ d41d8cd98f00b204e9800998ecf8427e
                         {% endif %}
                     </td>
                     <td>
-                        {% if result.abuseipdb and result.reversed_success %}
+                        {% if result.abuseipdb and result.reversed_success and result.type in ["URL", "FQDN"] %}
                         Reverse DNS applied<br>
                         {% endif %}
                         {% if result.abuseipdb %}
@@ -405,7 +405,7 @@ d41d8cd98f00b204e9800998ecf8427e
                     {% endif %}
                     {% if "spur" in analysis_metadata.selected_engines %}
                     <td>
-                        {% if result.spur and result.reversed_success %}
+                        {% if result.spur and result.reversed_success and result.type in ["URL", "FQDN"] %}
                         Reverse DNS applied<br>
                         {% endif %}
                         {% if result.spur %}
