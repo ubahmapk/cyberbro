@@ -37,8 +37,6 @@ cp secrets-sample.json secrets.json
     "ipinfo": "token_here",
     "google_safe_browsing": "token_here",
     "proxy_url": "",
-    "spur_email": "spur_email_here",
-    "spur_password": "spur_password_here",
     "mde_tenant_id": "tenant_here",
     "mde_client_id": "client_id_here",
     "mde_client_secret": "client_secret_here",
