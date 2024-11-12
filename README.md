@@ -1,6 +1,6 @@
 # Cyberbro
 
-A good alternative for CyberGordon
+A good private alternative for Cybergordon (custom API).
 
 # Features
 
