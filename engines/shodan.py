@@ -15,7 +15,19 @@ with open("secrets.json") as f:
     PROXIES = {'http': proxy, 'https': proxy}
 
 def query_shodan(observable):
-    time.sleep(3)
+    """
+    Queries the Shodan API for information about a given observable.
+
+    Args:
+        observable (str): The observable (e.g., IP address) to query in Shodan.
+
+    Returns:
+        dict: A dictionary containing the Shodan data for the observable, including a link to the Shodan host page.
+        None: If the request was unsuccessful or an exception occurred.
+
+    Raises:
+        Exception: If an error occurs during the request.
+    """
     headers = {
         'Accept': 'application/json',
         'Authorization': 'Bearer ' + API_KEY
