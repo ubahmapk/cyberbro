@@ -4,7 +4,7 @@ A good private alternative for Cybergordon (custom API).
 
 # Features
 
-* Check if an observable (IP, hash, domain, URL) is malicious using VirusTotal, AbuseIPDB, IPInfo, Spur.us, IP Quality Score, MDE and Google Safe Browsing.
+* Check if an observable (IP, hash, domain, URL) is malicious using VirusTotal, AbuseIPDB, IPInfo, Spur.us, IP Quality Score, MDE, Google Safe Browsing, Shodan...
 * Comprehensive report with search and filter features (type, country, risk, detection, proxy/VPN).
 * Uses multithreading to speed up the process (articially limited with `time.sleep()` because of free API usage).
 * Performs a reverse DNS lookup.
@@ -40,7 +40,8 @@ cp secrets-sample.json secrets.json
     "mde_tenant_id": "tenant_here",
     "mde_client_id": "client_id_here",
     "mde_client_secret": "client_secret_here",
-    "ip_quality_score": "token_here"
+    "ip_quality_score": "token_here",
+    "shodan": "token_here"
 }
 ```
 
@@ -86,6 +87,17 @@ docker compose up -d
 
 Disclaimer: this is a development server, not intended for production.
 
+# API and third-party services
+
+* [VirusTotal](https://developers.virustotal.com/v3.0/reference)
+* [AbuseIPDB](https://docs.abuseipdb.com/)
+* [IPInfo](https://ipinfo.io/developers)
+* [Google Safe Browsing](https://developers.google.com/safe-browsing)
+* [IP Quality Score](https://www.ipqualityscore.com/)
+* [Microsoft Defender for Endpoint](https://docs.microsoft.com/en-us/windows/security/threat-protection/microsoft-defender-atp/microsoft-defender-for-endpoint-api)
+* [Shodan](https://developer.shodan.io/)
+* [Spur.us](https://spur.us/)
+
 # License
 
 ```
@@ -103,3 +115,4 @@ Disclaimer: this is a development server, not intended for production.
 
   0. You just DO WHAT THE FUCK YOU WANT TO.
 ```
+
