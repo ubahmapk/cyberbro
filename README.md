@@ -77,11 +77,14 @@ docker compose up -d
 
 # Screenshots
 
-![image](https://github.com/user-attachments/assets/b0243594-2d22-4505-810c-9e3df09dc617)
-![image](https://github.com/user-attachments/assets/f6658546-ef5d-4c47-9367-b1443eab4b6b)
+![Capture d’écran_14-11-2024_93625_cyberbro stan local](https://github.com/user-attachments/assets/8b5962ae-df66-437d-9aa7-43c17062b3d6)
 
-![image](https://github.com/user-attachments/assets/d68d82e7-f1ab-45c1-b0a2-ad9a7e4681bc)
-![image](https://github.com/user-attachments/assets/9c0648bc-c475-4df6-81c4-17be068aa26a)
+![Capture d’écran_14-11-2024_93636_cyberbro stan local](https://github.com/user-attachments/assets/77f3e9fb-6f80-44bb-a8db-abc5c1c376b1)
+
+![Capture d’écran_14-11-2024_93554_cyberbro stan local](https://github.com/user-attachments/assets/eced18ef-cab1-4056-9f59-323cf91bef3c)
+
+![Capture d’écran_14-11-2024_93537_cyberbro stan local](https://github.com/user-attachments/assets/3afe3b1f-a7c3-4c7b-bb32-42ebf6a3f1a6)
+
 
 # Security
 
