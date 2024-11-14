@@ -170,7 +170,7 @@ def export():
         
         if "shodan" in analysis_metadata["selected_engines"]:
             shodan_data = result.get("shodan", {})
-            row["shodan_ports"] = shodan_data.get("ports")
+            row["shodan_ports"] = shodan_data.get("ports") if shodan_data else None
 
         # Add all selected engines to the DataFrame
         data.append(row)
