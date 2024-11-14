@@ -162,11 +162,11 @@ def export():
 
         if "spur" in analysis_metadata["selected_engines"]:
             spur_data = result.get("spur", {})
-            row["spur_us_anon"] = spur_data.get("tunnels")
+            row["spur_us_anon"] = spur_data.get("tunnels") if spur_data else None
 
         if "google_safe_browsing" in analysis_metadata["selected_engines"]:
             google_safe_browsing_data = result.get("google_safe_browsing", {})
-            row["gsb_threat"] = google_safe_browsing_data.get("threat_found")
+            row["gsb_threat"] = google_safe_browsing_data.get("threat_found") if google_safe_browsing_data else None
         
         if "shodan" in analysis_metadata["selected_engines"]:
             shodan_data = result.get("shodan", {})
