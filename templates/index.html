@@ -472,6 +472,8 @@ d41d8cd98f00b204e9800998ecf8427e
                     <td>
                         {% if result.shodan %}
                         Ports: <a href="{{ result.shodan.link }}" target="_blank"> {{ result.shodan.ports }}</a><br>
+                        {% elif result.shodan.tags %}
+                        Tags: {{ result.shodan.tags }}<br>
                         {% else %}
                         Not applicable
                         {% endif %}
