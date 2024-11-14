@@ -1,4 +1,4 @@
-from engines import abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing, microsoft_defender_for_endpoint, ip_quality_score, spur_us_free
+from engines import abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing, microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan
 from utils import *
 from flask import Flask, request, render_template, send_file, jsonify, send_from_directory
 import pandas as pd
@@ -56,6 +56,9 @@ def perform_analysis(observables, selected_engines):
 
         if "ip_quality_score" in selected_engines and observable_type in ["IPv4", "IPv6"]:
             result['ip_quality_score'] = ip_quality_score.query_ip_quality_score(observable.strip())
+        
+        if "shodan" in selected_engines and observable_type in ["IPv4", "IPv6"]:
+            result['shodan'] = shodan.query_shodan(observable.strip())
 
         result_queue.put((index, result))
 
@@ -164,6 +167,10 @@ def export():
         if "google_safe_browsing" in analysis_metadata["selected_engines"]:
             google_safe_browsing_data = result.get("google_safe_browsing", {})
             row["gsb_threat"] = google_safe_browsing_data.get("threat_found")
+        
+        if "shodan" in analysis_metadata["selected_engines"]:
+            shodan_data = result.get("shodan", {})
+            row["shodan_ports"] = shodan_data.get("ports")
 
         # Add all selected engines to the DataFrame
         data.append(row)
