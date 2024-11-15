@@ -225,11 +225,11 @@
             <h1>Cyberbro - Observable Analysis</h1>
 
             <form id="analyzeForm" method="POST" action="/analyze">
-                <label for="observables">Paste your observables here, line by line:</label><br><br>
+                <label for="observables">Paste your observables here</label><br><br>
                 <textarea name="observables" placeholder="1.2.3.4
 example.com
 d41d8cd98f00b204e9800998ecf8427e
-" required></textarea>
+Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fanged data [.] [dot] hxxp, etc.)" required></textarea>
                 <br>
 
                 <div>
@@ -472,7 +472,7 @@ d41d8cd98f00b204e9800998ecf8427e
                     <td>
                         {% if result.shodan %}
                         Ports: <a href="{{ result.shodan.link }}" target="_blank"> {{ result.shodan.ports }}</a><br>
-                        {% elif result.shodan.tags %}
+                        {% elif result.shodan and result.shodan.tags %}
                         Tags: {{ result.shodan.tags }}<br>
                         {% else %}
                         Not applicable
