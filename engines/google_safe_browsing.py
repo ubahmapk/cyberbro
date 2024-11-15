@@ -1,5 +1,3 @@
-from utils import *
-
 import requests
 import json
 
@@ -13,7 +11,7 @@ with open("secrets.json") as f:
     proxy = data.get("proxy_url")
     PROXIES = { 'http': proxy, 'https': proxy }
 
-def query_google_safe_browsing(observable):
+def query_google_safe_browsing(observable, observable_type):
     """
     Queries the Google Safe Browsing API to check if the given observable is associated with any threats.
     Args:
@@ -32,15 +30,15 @@ def query_google_safe_browsing(observable):
     threat_entries = []
     
     # Check if the observable is a URL
-    if identify_observable_type(observable) == "URL":
+    if observable_type == "URL":
         threat_entries.append({"url": observable})
     
     # Check if the observable is a Fully Qualified Domain Name (FQDN)
-    elif identify_observable_type(observable) == "FQDN":
+    elif observable_type == "FQDN":
         threat_entries.append({"url": f"http://{observable}"})  # Or https depending on your need
     
     # Check if the observable is an IP address
-    elif identify_observable_type(observable) in ["IPv4", "IPv6"]:
+    elif observable_type in ["IPv4", "IPv6"]:
         threat_entries.append({"url": f"http://{observable}"})  # Treat as a URL
 
     # Create the request body

@@ -1,5 +1,3 @@
-from utils import *
-
 import requests
 import json
 import time
@@ -14,7 +12,7 @@ with open("secrets.json") as f:
     proxy = data.get("proxy_url")
     PROXIES = {'http': proxy, 'https': proxy}
 
-def query_virustotal(observable):
+def query_virustotal(observable, observable_type):
     """
     Queries the VirusTotal API for information about a given observable.
     Args:
@@ -34,8 +32,7 @@ def query_virustotal(observable):
     time.sleep(3)
     headers = {"x-apikey": API_KEY}
 
-    # Detect the observable type and adjust the API URL
-    observable_type = identify_observable_type(observable)
+    # Adjust the URL based on the observable type
     if observable_type in ["IPv4", "IPv6"]:
         url = f"https://www.virustotal.com/api/v3/ip_addresses/{observable}"
         link = f"https://www.virustotal.com/gui/ip-address/{observable}/detection"
