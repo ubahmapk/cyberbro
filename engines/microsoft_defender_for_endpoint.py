@@ -1,5 +1,3 @@
-from utils import *
-
 import json
 import requests
 import jwt
@@ -64,7 +62,7 @@ def get_token():
         aad_token = "invalid"
     return aad_token
 
-def query_microsoft_defender_for_endpoint(observable):
+def query_microsoft_defender_for_endpoint(observable, observable_type):
     """
     Queries Microsoft Defender for Endpoint for information about a given observable.
     Parameters:
@@ -81,8 +79,7 @@ def query_microsoft_defender_for_endpoint(observable):
 
     headers = {"Authorization": "Bearer " + jwt_token}
 
-    # Detect the observable type and adjust the API URL
-    observable_type = identify_observable_type(observable)
+    # Adjust the URL based on the observable type
     file_info_url = None
     if observable_type in ["MD5", "SHA1", "SHA256"]:
         url = f"https://api.securitycenter.microsoft.com/api/files/{observable}/stats"
