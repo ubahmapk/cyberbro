@@ -1,11 +1,17 @@
 # Cyberbro
 
-A good private alternative for Cybergordon (custom API).
+A good private alternative for Cybergordon (custom API) that extracts your IoCs from garbage input.
 
-![cyberbro](https://github.com/user-attachments/assets/7ff5adbd-5cf1-4e17-845e-d3382ca52239)
+![GitHub stars](https://img.shields.io/github/stars/stanfrbd/cyberbro?style=social)
+![GitHub issues](https://img.shields.io/github/issues/stanfrbd/cyberbro)
+![License](https://img.shields.io/github/license/stanfrbd/cyberbro)
+[![Documentation](https://img.shields.io/badge/docs-available-brightgreen)]([https://github.com/stanfrbd/cyberbro/](https://github.com/stanfrbd/cyberbro/blob/main/README.md))
+
+![cyberbro_extended](https://github.com/user-attachments/assets/0485e283-2d79-4c62-85eb-304ed0b1550d)
 
 # Features
 
+* **Supports garbage input**: paste your raw logs, IoC, fanged IoC... and they will be parsed using regex.
 * Check if an observable (IP, hash, domain, URL) is malicious using VirusTotal, AbuseIPDB, IPInfo, Spur.us, IP Quality Score, MDE, Google Safe Browsing, Shodan...
 * Comprehensive report with search and filter features (type, country, risk, detection, proxy/VPN).
 * Uses multithreading to speed up the process (articially limited with `time.sleep()` because of free API usage).
@@ -79,9 +85,9 @@ docker compose up -d
 
 # Screenshots
 
-![Capture d’écran_14-11-2024_93625_cyberbro stan local](https://github.com/user-attachments/assets/8b5962ae-df66-437d-9aa7-43c17062b3d6)
+![image](https://github.com/user-attachments/assets/72af5afe-d738-4b73-9c14-ee8db4713356)
 
-![Capture d’écran_14-11-2024_93636_cyberbro stan local](https://github.com/user-attachments/assets/77f3e9fb-6f80-44bb-a8db-abc5c1c376b1)
+![image](https://github.com/user-attachments/assets/e3dd9d26-8bd2-42df-b5b7-1b828e62f6c3)
 
 ![Capture d’écran_14-11-2024_93554_cyberbro stan local](https://github.com/user-attachments/assets/eced18ef-cab1-4056-9f59-323cf91bef3c)
 
