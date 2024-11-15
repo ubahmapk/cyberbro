@@ -22,50 +22,50 @@ def perform_analysis(observables, selected_engines):
 
     result_queue = queue.Queue()
 
-    def analyze_observable(observable, observable_type, index):
-        result = {"observable": observable.strip(), "type": observable_type}
+    def analyze_observable(observable, index):
+        result = {"observable": observable["value"], "type": observable["type"]}
         result['reversed_success'] = False
 
-        if "mde" in selected_engines and observable_type in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
-            result['mde'] = microsoft_defender_for_endpoint.query_microsoft_defender_for_endpoint(observable.strip())
+        if "mde" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+            result['mde'] = microsoft_defender_for_endpoint.query_microsoft_defender_for_endpoint(observable["value"], observable["type"])
 
-        if "virustotal" in selected_engines and observable_type in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
-            result['virustotal'] = virustotal.query_virustotal(observable.strip())
+        if "virustotal" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+            result['virustotal'] = virustotal.query_virustotal(observable["value"], observable["type"])
 
-        if "google_safe_browsing" in selected_engines and observable_type in ["URL", "FQDN", "IPv4", "IPv6"]:
-            result['google_safe_browsing'] = google_safe_browsing.query_google_safe_browsing(observable.strip())
+        if "google_safe_browsing" in selected_engines and observable["type"] in ["URL", "FQDN", "IPv4", "IPv6"]:
+            result['google_safe_browsing'] = google_safe_browsing.query_google_safe_browsing(observable["value"], observable["type"])
 
-        if "reverse_dns" in selected_engines and observable_type in ["IPv4", "IPv6", "FQDN", "URL"]:
-            reverse_dns_result = reverse_dns.reverse_dns(observable.strip())
+        if "reverse_dns" in selected_engines and observable["type"] in ["IPv4", "IPv6", "FQDN", "URL"]:
+            reverse_dns_result = reverse_dns.reverse_dns(observable["value"], observable["type"])
             result['reverse_dns'] = reverse_dns_result
             if reverse_dns_result:
                 result['reversed_success'] = True
-                if observable_type in ["FQDN", "URL"]:
-                    observable_type = "IPv4"
-                    observable = reverse_dns_result["reverse_dns"][-1]
+                if observable["type"] in ["FQDN", "URL"]:
+                    observable["type"] = "IPv4"
+                    observable["value"] = reverse_dns_result["reverse_dns"][-1]
 
-        if "ipinfo" in selected_engines and observable_type in ["IPv4", "IPv6"]:
-            result['ipinfo'] = ipinfo.query_ipinfo(observable.strip())
+        if "ipinfo" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
+            result['ipinfo'] = ipinfo.query_ipinfo(observable["value"])
 
-        if "abuseipdb" in selected_engines and observable_type in ["IPv4", "IPv6"]:
-            result['abuseipdb'] = abuseipdb.query_abuseipdb(observable.strip())
+        if "abuseipdb" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
+            result['abuseipdb'] = abuseipdb.query_abuseipdb(observable["value"])
 
-        if "spur" in selected_engines and observable_type in ["IPv4", "IPv6"]:
+        if "spur" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
             #result['spur'] = spur_us.process_ip_with_spur(observable.strip())
-            result['spur'] = spur_us_free.get_spur(observable.strip())
+            result['spur'] = spur_us_free.get_spur(observable["value"])
 
-        if "ip_quality_score" in selected_engines and observable_type in ["IPv4", "IPv6"]:
-            result['ip_quality_score'] = ip_quality_score.query_ip_quality_score(observable.strip())
+        if "ip_quality_score" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
+            result['ip_quality_score'] = ip_quality_score.query_ip_quality_score(observable["value"])
         
-        if "shodan" in selected_engines and observable_type in ["IPv4", "IPv6"]:
-            result['shodan'] = shodan.query_shodan(observable.strip())
+        if "shodan" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
+            result['shodan'] = shodan.query_shodan(observable["value"])
 
         result_queue.put((index, result))
 
     threads = []
     for index, observable in enumerate(observables):
-        observable_type = identify_observable_type(observable.strip())
-        thread = threading.Thread(target=analyze_observable, args=(observable, observable_type, index))
+        #observable_type = identify_observable_type(observable.strip())
+        thread = threading.Thread(target=analyze_observable, args=(observable, index))
         threads.append(thread)
         thread.start()
 
@@ -101,7 +101,9 @@ def index():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    observables = [obs for obs in request.form.get("observables", "").splitlines() if obs.strip()]
+    form_data = refang_text(request.form.get("observables", ""))
+    observables = extract_observables(form_data)
+    #observables = [obs for obs in request.form.get("observables", "").splitlines() if obs.strip()]
     selected_engines = request.form.getlist("engines")
 
     # Start analysis in a thread to avoid blocking
