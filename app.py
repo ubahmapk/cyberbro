@@ -136,15 +136,15 @@ def export():
         row = {
             "observable": result.get("observable"),
             "type": result.get("type"),
-            "rev_dns": result.get("reversed_success"),
+            "rev_dns": result.get("reversed_success") if rev_dns_data else None,
             "dns_lookup": rev_dns_data.get("reverse_dns") if rev_dns_data else None,
-            "ipinfo_cn": ipinfo_data.get("country_code"),
-            "ipinfo_country": ipinfo_data.get("country_name"),
-            "ipinfo_geo": ipinfo_data.get("geolocation"),
+            "ipinfo_cn": ipinfo_data.get("country_code") if ipinfo_data else None,
+            "ipinfo_country": ipinfo_data.get("country_name") if ipinfo_data else None,
+            "ipinfo_geo": ipinfo_data.get("geolocation") if ipinfo_data else None,
             "ipinfo_asn": ipinfo_data.get("asn").split(' ', 1)[0] if ipinfo_data.get("asn") else None,
             "ipinfo_org": ipinfo_data.get("asn").split(' ', 1)[1] if ipinfo_data.get("asn") else None,
-            "a_ipdb_reports": abuseipdb_data.get("reports"),
-            "a_ipdb_risk": abuseipdb_data.get("risk_score")
+            "a_ipdb_reports": abuseipdb_data.get("reports") if abuseipdb_data else None,
+            "a_ipdb_risk": abuseipdb_data.get("risk_score") if abuseipdb_data else None
         }
 
         if "virustotal" in analysis_metadata["selected_engines"]:
