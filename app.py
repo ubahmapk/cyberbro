@@ -47,7 +47,8 @@ def perform_analysis(observables, selected_engines):
                 result['reversed_success'] = True
                 if observable["type"] in ["FQDN", "URL"]:
                     observable["type"] = "IPv4"
-                    observable["value"] = reverse_dns_result["reverse_dns"][-1]
+                    # Update the observable value to the resolved IP address, first entry in the list
+                    observable["value"] = reverse_dns_result["reverse_dns"][0]
 
         # Recheck IPinfo only if reverse DNS lookup was successful
         if "ipinfo" in selected_engines and observable["type"] in ["IPv4", "IPv6"] and result['reversed_success'] == True:
