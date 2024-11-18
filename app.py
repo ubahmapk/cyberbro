@@ -49,6 +49,10 @@ def perform_analysis(observables, selected_engines):
                     observable["type"] = "IPv4"
                     observable["value"] = reverse_dns_result["reverse_dns"][-1]
 
+        # Recheck IPinfo only if reverse DNS lookup was successful
+        if "ipinfo" in selected_engines and observable["type"] in ["IPv4", "IPv6"] and result['reversed_success'] == True:
+            result['ipinfo'] = ipinfo.query_ipinfo(observable["value"])
+
         if "abuseipdb" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
             result['abuseipdb'] = abuseipdb.query_abuseipdb(observable["value"])
 
