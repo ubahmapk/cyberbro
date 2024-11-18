@@ -1,5 +1,5 @@
 from engines import abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing, microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan
-from utils import *
+from utils.utils import extract_observables, refang_text
 from flask import Flask, request, render_template, send_file, jsonify, send_from_directory
 import pandas as pd
 import threading
@@ -26,7 +26,12 @@ def perform_analysis(observables, selected_engines):
         result = {"observable": observable["value"], "type": observable["type"]}
         result['reversed_success'] = False
 
-        if "mde" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+        if "ipinfo" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
+            result['ipinfo'] = ipinfo.query_ipinfo(observable["value"])
+            if result['ipinfo']['asn'] == "BOGON":
+                observable["type"] = "BOGON"
+
+        if "mde" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6", "BOGON"]:
             result['mde'] = microsoft_defender_for_endpoint.query_microsoft_defender_for_endpoint(observable["value"], observable["type"])
 
         if "virustotal" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
@@ -35,7 +40,7 @@ def perform_analysis(observables, selected_engines):
         if "google_safe_browsing" in selected_engines and observable["type"] in ["URL", "FQDN", "IPv4", "IPv6"]:
             result['google_safe_browsing'] = google_safe_browsing.query_google_safe_browsing(observable["value"], observable["type"])
 
-        if "reverse_dns" in selected_engines and observable["type"] in ["IPv4", "IPv6", "FQDN", "URL"]:
+        if "reverse_dns" in selected_engines and observable["type"] in ["IPv4", "IPv6", "FQDN", "URL", "BOGON"]:
             reverse_dns_result = reverse_dns.reverse_dns(observable["value"], observable["type"])
             result['reverse_dns'] = reverse_dns_result
             if reverse_dns_result:
@@ -43,9 +48,6 @@ def perform_analysis(observables, selected_engines):
                 if observable["type"] in ["FQDN", "URL"]:
                     observable["type"] = "IPv4"
                     observable["value"] = reverse_dns_result["reverse_dns"][-1]
-
-        if "ipinfo" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
-            result['ipinfo'] = ipinfo.query_ipinfo(observable["value"])
 
         if "abuseipdb" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
             result['abuseipdb'] = abuseipdb.query_abuseipdb(observable["value"])
