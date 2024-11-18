@@ -85,7 +85,7 @@ def query_microsoft_defender_for_endpoint(observable, observable_type):
         url = f"https://api.securitycenter.microsoft.com/api/files/{observable}/stats"
         file_info_url = f"https://api.securitycenter.microsoft.com/api/files/{observable}"
         link = f"https://securitycenter.microsoft.com/file/{observable}"
-    elif observable_type in ["IPv4", "IPv6"]:
+    elif observable_type in ["IPv4", "IPv6", "BOGON"]:
         url = f"https://api.securitycenter.microsoft.com/api/ips/{observable}/stats"
         link = f"https://securitycenter.microsoft.com/ip/{observable}/overview"
     elif observable_type == "FQDN":

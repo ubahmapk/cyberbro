@@ -37,6 +37,9 @@ def query_ipinfo(ip):
     
     # Parse the JSON response
     data = response.json()
+
+    if "bogon" in data:
+        return {"ip": ip, "geolocation": "", "country_code": "", "country_name": "", "hostname": "Private IP", "asn": "BOGON", "link": f"https://ipinfo.io/{ip}"}
     
     # Check if the response contains 'ip' key
     if 'ip' in data:

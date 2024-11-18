@@ -1,4 +1,4 @@
-from utils import identify_observable_type, is_really_ipv6
+from utils.utils import is_really_ipv6, identify_observable_type
 
 import dns.resolver
 import dns.reversename
@@ -18,7 +18,7 @@ def reverse_dns(observable, observable_type):
         None: If an error occurs during the lookup or if the observable type is not recognized.
     """
     try:
-        if observable_type in ["IPv4", "IPv6"]:
+        if observable_type in ["IPv4", "IPv6", "BOGON"]:
             reverse_name = dns.reversename.from_address(observable)
             return {'reverse_dns': str(dns.resolver.resolve(reverse_name, "PTR")[0])}
         elif observable_type == "FQDN":
