@@ -6,19 +6,20 @@ import threading
 import time
 import queue
 import os
+import uuid
 
 app = Flask(__name__)
 
-# Global variable to store analysis results
-results = []
-analysis_in_progress = False  # Variable to track the state of the analysis
-analysis_metadata = {}
+# Global dictionaries to store analysis results and metadata
+results_dict = {}
+analysis_metadata_dict = {}
+analysis_in_progress_dict = {}
 
-def perform_analysis(observables, selected_engines):
+def perform_analysis(observables, selected_engines, analysis_id):
     start_time = time.time()
-    global results, analysis_in_progress, analysis_metadata
-    results = []  # Reset results for each analysis
-    analysis_in_progress = True
+    global results_dict, analysis_metadata_dict, analysis_in_progress_dict
+    results_dict[analysis_id] = []  # Reset results for each analysis
+    analysis_in_progress_dict[analysis_id] = True
 
     result_queue = queue.Queue()
 
@@ -58,7 +59,6 @@ def perform_analysis(observables, selected_engines):
             result['abuseipdb'] = abuseipdb.query_abuseipdb(observable["value"])
 
         if "spur" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
-            #result['spur'] = spur_us.process_ip_with_spur(observable.strip())
             result['spur'] = spur_us_free.get_spur(observable["value"])
 
         if "ip_quality_score" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
@@ -71,7 +71,6 @@ def perform_analysis(observables, selected_engines):
 
     threads = []
     for index, observable in enumerate(observables):
-        #observable_type = identify_observable_type(observable.strip())
         thread = threading.Thread(target=analyze_observable, args=(observable, index))
         threads.append(thread)
         thread.start()
@@ -91,17 +90,16 @@ def perform_analysis(observables, selected_engines):
     end_time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
 
     analysis_duration = end_time - start_time
-    # convert analysis duration to minutes and seconds
     analysis_duration_string = f"{int(analysis_duration // 60)} minutes, {analysis_duration % 60:.2f} seconds"
     
-    analysis_metadata = {"start_time": start_time, "end_time": end_time, "start_time_string": start_time_string, "end_time_string": end_time_string ,"analysis_duration_string": analysis_duration_string, "analysis_duration": analysis_duration, "selected_engines": selected_engines}
-    analysis_in_progress = False  # End of analysis
-    # Existing code to perform analysis
-    print("Analysis results:", results)
-    print("Analysis metadata:", analysis_metadata)
-    print(f"Analysis took {analysis_metadata['analysis_duration_string']}")
+    analysis_metadata_dict[analysis_id] = {
+        "start_time": start_time, "end_time": end_time, "start_time_string": start_time_string,
+        "end_time_string": end_time_string, "analysis_duration_string": analysis_duration_string,
+        "analysis_duration": analysis_duration, "selected_engines": selected_engines
+    }
+    results_dict[analysis_id] = results
+    analysis_in_progress_dict[analysis_id] = False  # End of analysis
 
-# Main route for analysis
 @app.route('/')
 def index():
     return render_template('index.html', results=[])
@@ -110,29 +108,35 @@ def index():
 def analyze():
     form_data = refang_text(request.form.get("observables", ""))
     observables = extract_observables(form_data)
-    #observables = [obs for obs in request.form.get("observables", "").splitlines() if obs.strip()]
     selected_engines = request.form.getlist("engines")
 
+    # Generate a unique ID for this analysis
+    analysis_id = str(uuid.uuid4())
+
     # Start analysis in a thread to avoid blocking
-    analysis_thread = threading.Thread(target=perform_analysis, args=(observables, selected_engines))
+    analysis_thread = threading.Thread(target=perform_analysis, args=(observables, selected_engines, analysis_id))
     analysis_thread.start()
 
-    # Display the waiting page
-    return render_template('waiting.html'), 200  # Return 200 status for loading
+    # Redirect to the waiting page with the analysis ID
+    return render_template('waiting.html', analysis_id=analysis_id), 200
 
-@app.route('/results', methods=['GET'])
-def show_results():
-    return render_template('index.html', results=results, analysis_metadata=analysis_metadata)
+@app.route('/results/<analysis_id>', methods=['GET'])
+def show_results(analysis_id):
+    results = results_dict.get(analysis_id, [])
+    analysis_metadata = analysis_metadata_dict.get(analysis_id, {})
+    return render_template('index.html', results=results, analysis_metadata=analysis_metadata, analysis_id=analysis_id)
 
-@app.route('/is_analysis_complete', methods=['GET'])
-def is_analysis_complete():
-    return jsonify({'complete': not analysis_in_progress})
+@app.route('/is_analysis_complete/<analysis_id>', methods=['GET'])
+def is_analysis_complete(analysis_id):
+    complete = not analysis_in_progress_dict.get(analysis_id, False)
+    return jsonify({'complete': complete})
 
-# Route to export results in CSV or Excel
-@app.route('/export')
-def export():
+@app.route('/export/<analysis_id>')
+def export(analysis_id):
     format = request.args.get('format')
-    
+    results = results_dict.get(analysis_id, [])
+    analysis_metadata = analysis_metadata_dict.get(analysis_id, {})
+
     # Prepare data for DataFrame
     data = []
     for result in results:
@@ -181,7 +185,6 @@ def export():
             shodan_data = result.get("shodan", {})
             row["shodan_ports"] = shodan_data.get("ports") if shodan_data else None
 
-        # Add all selected engines to the DataFrame
         data.append(row)
     
     df = pd.DataFrame(data)  # Convert results to DataFrame
@@ -191,7 +194,6 @@ def export():
         csv_path = f'{timestamp}_analysis_result.csv'
         df.to_csv(csv_path, index=False, sep=';')
         response = send_file(csv_path, as_attachment=True)
-        # Delete the file after 10 seconds
         threading.Thread(target=lambda path: (time.sleep(10), os.remove(path)), args=(csv_path,)).start()
         return response
 
@@ -201,14 +203,11 @@ def export():
             df.to_excel(writer, index=False, sheet_name='Results')
             workbook  = writer.book
             worksheet = writer.sheets['Results']
-            # Get the dimensions of the dataframe.
             (max_row, max_col) = df.shape
-            # Apply autofilter to the worksheet.
             worksheet.auto_filter.ref = worksheet.dimensions
-            # Adjust column widths based on the length of the longest entry in each column
             for col in worksheet.columns:
                 max_length = 0
-                column = col[0].column_letter # Get the column name
+                column = col[0].column_letter
                 for cell in col:
                     try:
                         if len(str(cell.value)) > max_length:
@@ -218,7 +217,6 @@ def export():
                 adjusted_width = (max_length + 2)
                 worksheet.column_dimensions[column].width = adjusted_width
         response = send_file(excel_path, as_attachment=True)
-        # Delete the file after 10 seconds
         threading.Thread(target=lambda path: (time.sleep(10), os.remove(path)), args=(excel_path,)).start()
         return response
 
