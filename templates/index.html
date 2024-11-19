@@ -260,7 +260,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
         <h1>Cyberbro - Analysis Results</h1>
 
         <button class="btn" onclick="location.href='/'">New Analysis</button>
-        <form method="GET" action="/export">
+        <form method="GET" action="/export/{{ analysis_id }}">
             <button type="submit" name="format" value="csv" class="btn">Export to CSV</button>
             <button type="submit" name="format" value="excel" class="btn">Export to Excel</button>
         </form>

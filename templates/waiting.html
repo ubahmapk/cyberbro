@@ -60,11 +60,11 @@
     <script>
         // Function to check if the analysis is complete
         function checkResults() {
-            fetch('/is_analysis_complete')
+            fetch('/is_analysis_complete/{{ analysis_id }}') // Check if analysis is complete
                 .then(response => response.json())
                 .then(data => {
                     if (data.complete) {
-                        window.location.href = '/results'; // Redirect to results page if complete
+                        window.location.href = '/results/{{ analysis_id }}'; // Redirect to results page if complete
                     } else {
                         setTimeout(checkResults, 1000); // Check again in 1 seconds if not complete
                     }
