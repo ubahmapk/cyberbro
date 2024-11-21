@@ -79,7 +79,7 @@ def test_identify_observable_type():
 
 def test_extract_observables():
     # Test extracting observables from a text containing a URL and an IPv4 address
-    text = "http://example.com oui non pas vraiment 1.1.1.1"
-    expected = [{'value': 'http://example.com', 'type': 'URL'}, {'value': '1.1.1.1', 'type': 'IPv4'}]
+    text = "http://example.com oui non pas vraiment 1.1.1.1 192.168.1.0"
+    expected = [{'value': 'http://example.com', 'type': 'URL'}, {'value': '1.1.1.1', 'type': 'IPv4'}, {'value': '192.168.1.0', 'type': 'IPv4'}]
     result = extract_observables(text)
     assert all(any(item == expected_item for item in result) for expected_item in expected)
