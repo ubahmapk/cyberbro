@@ -1,5 +1,9 @@
 import pytest
 
+import sys
+
+sys.path.append('utils')
+
 from utils.utils import refang_text, is_really_ipv6, identify_observable_type, extract_observables
 
 def test_refang_text():
