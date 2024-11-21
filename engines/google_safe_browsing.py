@@ -1,17 +1,9 @@
 import requests
-import json
 
 # Disable SSL warning
 requests.packages.urllib3.disable_warnings()
 
-# Load API key and proxy settings from secrets.json
-with open("secrets.json") as f:
-    data = json.load(f)
-    API_KEY = data.get("google_safe_browsing")
-    proxy = data.get("proxy_url")
-    PROXIES = { 'http': proxy, 'https': proxy }
-
-def query_google_safe_browsing(observable, observable_type):
+def query_google_safe_browsing(observable, observable_type, API_KEY, PROXIES):
     """
     Queries the Google Safe Browsing API to check if the given observable is associated with any threats.
     Args:

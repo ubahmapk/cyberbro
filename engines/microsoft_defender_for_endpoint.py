@@ -2,17 +2,8 @@ import json
 import requests
 import jwt
 
-
 # disable ssl warning in case of proxy like Zscaler which breaks ssl...
 requests.packages.urllib3.disable_warnings()
-
-with open("secrets.json") as f:
-    data = json.load(f)
-    tenant_id = data.get("mde_tenant_id")
-    client_id = data.get("mde_client_id")
-    client_secret = data.get("mde_client_secret")
-    proxy = data.get("proxy_url")
-    PROXIES = { 'http': proxy, 'https': proxy }
 
 def check_token_validity(token):
     try:
@@ -35,7 +26,7 @@ def read_token():
     except Exception:
         return None
 
-def get_token():
+def get_token(tenant_id, client_id, client_secret, PROXIES):
 
     url = "https://login.microsoftonline.com/{}/oauth2/token".format(tenant_id)
 
@@ -62,7 +53,7 @@ def get_token():
         aad_token = "invalid"
     return aad_token
 
-def query_microsoft_defender_for_endpoint(observable, observable_type):
+def query_microsoft_defender_for_endpoint(observable, observable_type, tenant_id, client_id, client_secret, PROXIES):
     """
     Queries Microsoft Defender for Endpoint for information about a given observable.
     Parameters:
@@ -75,7 +66,7 @@ def query_microsoft_defender_for_endpoint(observable, observable_type):
           fileProductName, determinationType, determinationValue). Returns None if the request fails.
     """
 
-    jwt_token = read_token() or get_token()
+    jwt_token = read_token() or get_token(tenant_id, client_id, client_secret, PROXIES)
 
     headers = {"Authorization": "Bearer " + jwt_token}
 

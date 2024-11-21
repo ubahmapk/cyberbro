@@ -1,17 +1,9 @@
 import requests
-import json
 
 # Disable SSL warnings in case of proxies like Zscaler which break SSL...
 requests.packages.urllib3.disable_warnings()
 
-# Load API key and proxy URL from secrets.json file
-with open("secrets.json") as f:
-    data = json.load(f)
-    API_KEY = data.get("abuseipdb")
-    proxy = data.get("proxy_url")
-    PROXIES = {'http': proxy, 'https': proxy}
-
-def query_abuseipdb(ip):
+def query_abuseipdb(ip, API_KEY, PROXIES):
     """
     Queries the AbuseIPDB API for information about a given IP address.
     Args:

@@ -4,44 +4,18 @@ import requests
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 import time
-import json
-import socket
 
 ua = UserAgent()
 
 # Disable SSL warning in case of proxy like Zscaler which breaks SSL...
 requests.packages.urllib3.disable_warnings()
 
-# Load API key and proxy URL from secrets.json file
-with open("secrets.json") as f:
-    data = json.load(f)
-    proxy = data.get("proxy_url")
-    PROXIES = {'http': proxy, 'https': proxy}
-
-def is_tor_running():
-    try:
-        with socket.create_connection(("127.0.0.1", 9051), timeout=2):
-            return True
-    except socket.error:
-        return False
-
-TOR_RUNNING = is_tor_running()
-
-if TOR_RUNNING:
-    proxies = {
-        'http': 'socks5h://127.0.0.1:9050',
-        'https': 'socks5h://127.0.0.1:9050'
-    }
-else:
-    proxies = PROXIES
-
 def get_new_identity():
-    if TOR_RUNNING:
-        with Controller.from_port(port=9051) as controller:
-            controller.authenticate()  # Authentication using cookie
-            controller.signal(Signal.NEWNYM)
+    with Controller.from_port(port=9051) as controller:
+        controller.authenticate()  # Authentication using cookie
+        controller.signal(Signal.NEWNYM)
 
-def get_spur(ip):
+def get_spur(ip, PROXIES):
     """
     Retrieves information about the given IP address from the spur.us website.
 
@@ -62,11 +36,13 @@ def get_spur(ip):
         None: If an error occurs during the request or parsing process.
     """
     try:
-        if TOR_RUNNING:
+        TOR_RUNNING = False
+        if PROXIES["http"] == "socks5h://127.0.0.1:9050":
+            TOR_RUNNING = True
             #get_new_identity()
             time.sleep(1)
         spur_url = f"https://spur.us/context/{ip}"
-        spur_data = requests.get(spur_url, proxies=proxies, verify=False, headers={"User-Agent": ua.random})
+        spur_data = requests.get(spur_url, proxies=PROXIES, verify=False, headers={"User-Agent": ua.random})
         # print(spur_data.text)
 
         soup = BeautifulSoup(spur_data.text, 'html.parser')
