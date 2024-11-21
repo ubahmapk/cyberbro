@@ -9,3 +9,4 @@ pycountry
 fake_useragent
 bs4
 stem
+pytest
