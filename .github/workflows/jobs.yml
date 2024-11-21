@@ -1,22 +1,29 @@
-# This is a basic workflow to help you get started with Actions
-name: Build
+name: Build and Test
 
 on:
   push:
-    branches:
-      - main
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    - uses: actions/checkout@v2
-    - name: Run tests
-      run: tests/run_tests.sh
+      # Step 1: clone the repo
+      - uses: actions/checkout@v2
+
+      # Step 2: configure Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 'latest'
+
+      # Step 3: install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 4: run tests
+      - name: Run tests
+        run: bash tests/run_tests.sh
