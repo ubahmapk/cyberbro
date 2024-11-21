@@ -1,17 +1,9 @@
 import requests
-import json
 
 # Disable SSL warnings in case of proxies like Zscaler which break SSL...
 requests.packages.urllib3.disable_warnings()
 
-# Load API key and proxy URL from secrets.json file
-with open("secrets.json") as f:
-    data = json.load(f)
-    API_KEY = data.get("ip_quality_score")
-    proxy = data.get("proxy_url")
-    PROXIES = {'http': proxy, 'https': proxy}
-
-def query_ip_quality_score(ip):
+def query_ip_quality_score(ip, API_KEY, PROXIES):
     """
     Queries the IP Quality Score API for information about the given IP address.
     

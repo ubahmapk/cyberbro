@@ -1,20 +1,9 @@
-from utils import *
-
 import requests
-import json
-import time
-import base64
 
 # disable ssl warning in case of proxy like Zscaler which breaks ssl...
 requests.packages.urllib3.disable_warnings()
 
-with open("secrets.json") as f:
-    data = json.load(f)
-    API_KEY = data.get("shodan")
-    proxy = data.get("proxy_url")
-    PROXIES = {'http': proxy, 'https': proxy}
-
-def query_shodan(observable):
+def query_shodan(observable, API_KEY, PROXIES):
     """
     Queries the Shodan API for information about a given observable.
 

@@ -1,18 +1,10 @@
 import requests
-import json
 import pycountry
 
 # Disable SSL warnings in case of proxies like Zscaler which break SSL...
 requests.packages.urllib3.disable_warnings()
 
-# Load API key and proxy URL from secrets.json file
-with open("secrets.json") as f:
-    data = json.load(f)
-    API_KEY = data.get("ipinfo")
-    proxy = data.get("proxy_url")
-    PROXIES = { 'http': proxy, 'https': proxy }
-
-def query_ipinfo(ip):
+def query_ipinfo(ip, API_KEY, PROXIES):
     """
     Queries the IP information from the ipinfo.io API.
     Args:

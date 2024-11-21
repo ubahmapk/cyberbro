@@ -1,18 +1,11 @@
 import requests
-import json
 import time
 import base64
 
 # Disable SSL warning in case of proxies that break SSL
 requests.packages.urllib3.disable_warnings()
 
-with open("secrets.json") as f:
-    data = json.load(f)
-    API_KEY = data.get("virustotal")
-    proxy = data.get("proxy_url")
-    PROXIES = {'http': proxy, 'https': proxy}
-
-def query_virustotal(observable, observable_type):
+def query_virustotal(observable, observable_type, API_KEY, PROXIES):
     """
     Queries the VirusTotal API for information about a given observable.
     Args:
