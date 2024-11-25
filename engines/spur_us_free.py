@@ -54,7 +54,7 @@ def get_spur(ip, PROXIES):
             if "(" in title_text and ")" in title_text:
                 content = title_text.split("(")[1].split(")")[0].strip()
             else:
-                content = "Not Anonymous"
+                content = "Not anonymous"
         else:
             if TOR_RUNNING:
                 time.sleep(5)
