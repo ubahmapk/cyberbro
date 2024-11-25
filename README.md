@@ -5,7 +5,7 @@ A good private alternative for Cybergordon (custom API) that extracts your IoCs 
 ![GitHub stars](https://img.shields.io/github/stars/stanfrbd/cyberbro?style=social)
 ![GitHub issues](https://img.shields.io/github/issues/stanfrbd/cyberbro)
 ![License](https://img.shields.io/github/license/stanfrbd/cyberbro)
-[![Documentation](https://img.shields.io/badge/docs-available-brightgreen)]([https://github.com/stanfrbd/cyberbro/](https://github.com/stanfrbd/cyberbro/blob/main/README.md))
+![example branch parameter](https://github.com/stanfrbd/cyberbro/actions/workflows/jobs.yml/badge.svg)
 
 ![cyberbro_extended](https://github.com/user-attachments/assets/0485e283-2d79-4c62-85eb-304ed0b1550d)
 
