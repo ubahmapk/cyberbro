@@ -10,7 +10,7 @@ from flask import Flask, request, render_template, send_file, jsonify, send_from
 
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
-    microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan
+    microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan, phishtank
 )
 from utils.utils import extract_observables, refang_text
 from utils.export import prepare_data_for_export, export_to_csv, export_to_excel
@@ -119,6 +119,9 @@ def perform_engine_queries(observable, selected_engines, result):
 
     if "shodan" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
         result['shodan'] = shodan.query_shodan(observable["value"], secrets["shodan"], PROXIES)
+
+    if "phishtank" in selected_engines and observable["type"] in ["FQDN", "URL"]:
+        result['phishtank'] = phishtank.query_phishtank(observable["value"], observable["type"], PROXIES)
 
     return result
 
