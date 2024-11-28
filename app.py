@@ -96,6 +96,9 @@ def perform_engine_queries(observable, selected_engines, result):
     if "google_safe_browsing" in selected_engines and observable["type"] in ["URL", "FQDN", "IPv4", "IPv6"]:
         result['google_safe_browsing'] = google_safe_browsing.query_google_safe_browsing(observable["value"], observable["type"], secrets["google_safe_browsing"], PROXIES)
 
+    if "phishtank" in selected_engines and observable["type"] in ["FQDN", "URL"]:
+        result['phishtank'] = phishtank.query_phishtank(observable["value"], observable["type"], PROXIES)
+    
     if "reverse_dns" in selected_engines and observable["type"] in ["IPv4", "IPv6", "FQDN", "URL", "BOGON"]:
         reverse_dns_result = reverse_dns.reverse_dns(observable["value"], observable["type"])
         result['reverse_dns'] = reverse_dns_result
@@ -119,9 +122,6 @@ def perform_engine_queries(observable, selected_engines, result):
 
     if "shodan" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
         result['shodan'] = shodan.query_shodan(observable["value"], secrets["shodan"], PROXIES)
-
-    if "phishtank" in selected_engines and observable["type"] in ["FQDN", "URL"]:
-        result['phishtank'] = phishtank.query_phishtank(observable["value"], observable["type"], PROXIES)
 
     return result
 
