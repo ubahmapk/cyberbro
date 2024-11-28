@@ -50,6 +50,12 @@ def prepare_row(result, analysis_metadata):
         shodan_data = result.get("shodan", {})
         row["shodan_ports"] = shodan_data.get("ports") if shodan_data else None
 
+    if "phishtank" in analysis_metadata["selected_engines"]:
+        phishtank_data = result.get("phishtank", {})
+        row["phishtank_in_db"] = phishtank_data.get("in_database") if phishtank_data else None
+        row["phishtank_verified"] = phishtank_data.get("verified") if phishtank_data else None
+        row["phishtank_valid"] = phishtank_data.get("valid") if phishtank_data else None
+
     return row
 
 def prepare_data_for_export(results, analysis_metadata):

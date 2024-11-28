@@ -242,7 +242,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <label><input type="checkbox" name="engines" value="spur"> Spur.us</label><br>
                     <label><input type="checkbox" name="engines" value="mde"> Microsoft Defender for Endpoint</label><br>
                     <label><input type="checkbox" name="engines" value="google_safe_browsing"> Google Safe Browsing</label><br>
-                    <label><input type="checkbox" name="engines" value="shodan"> Shodan</label>
+                    <label><input type="checkbox" name="engines" value="shodan"> Shodan</label><br>
+                    <label><input type="checkbox" name="engines" value="phishtank"> Phishtank</label>
                 </div>
 
                 <button type="submit" class="btn">Start Analysis</button>
@@ -340,6 +341,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% endif %}
                     {% if "shodan" in analysis_metadata.selected_engines %}
                     <th>Shodan</th>
+                    {% endif %}
+                    {% if "phishtank" in analysis_metadata.selected_engines %}
+                    <th>Phishtank</th>
                     {% endif %}
                 </tr>
             </thead>
@@ -474,6 +478,21 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         Ports: <a href="{{ result.shodan.link }}" target="_blank"> {{ result.shodan.ports }}</a><br>
                         {% elif result.shodan and result.shodan.tags %}
                         Tags: {{ result.shodan.tags }}<br>
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if "phishtank" in analysis_metadata.selected_engines %}
+                    <td>
+                        {% if result.phishtank and result.phishtank.in_database == True and result.phishtank.valid == True and result.phishtank.verified == True %}
+                        <a href="{{ result.phishtank.phish_detail_page }}" target="_blank">Found (valid and verified)</a>
+                        {% elif result.phishtank and result.phishtank.in_database == True and result.phishtank.valid == False %}
+                        <a href="{{ result.phishtank.phish_detail_page }}" target="_blank">Found (invalid)</a>
+                        {% elif result.phishtank and result.phishtank.in_database == True and result.phishtank.verified == False %}
+                        <a href="{{ result.phishtank.phish_detail_page }}" target="_blank">Found (not verified)</a>
+                        {% elif result.phishtank and result.phishtank.in_database == False %}
+                        Not Found
                         {% else %}
                         Not applicable
                         {% endif %}
