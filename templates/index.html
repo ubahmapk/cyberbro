@@ -505,7 +505,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if "abusix" in analysis_metadata.selected_engines %}
                     <td>
                         {% if result.abusix %}
-                        Abuse contact: {{ result.abusix.abuse }}
+                        Abuse contact: <a href="mailto:{{ result.abusix.abuse }}?subject=Report of abuse concerning {{ result.observable }}&body=Hello,%0D%0A%0D%0AOur team found out that your {{ result.type }} {{ result.observable }} does malicious activity.%0D%0A%0D%0APlease take actions.">{{ result.abusix.abuse }}</a>
                         {% else %}
                         Not applicable
                         {% endif %}
