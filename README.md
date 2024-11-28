@@ -1,6 +1,10 @@
 # Cyberbro
 
-A good private alternative for Cybergordon (custom API) that extracts your IoCs from garbage input.
+A simple application that extracts your IoCs from garbage input and checks their reputation using multiple services.
+Inspired by [Cybergordon](https://cybergordon.com/) and [IntelOwl](https://github.com/intelowlproject/IntelOwl).
+
+This project aims to provide a simple and efficient way to check the reputation of your observables using multiple services, 
+without having to deploy a **complex** solution.
 
 ![GitHub stars](https://img.shields.io/github/stars/stanfrbd/cyberbro?style=social)
 ![GitHub issues](https://img.shields.io/github/issues/stanfrbd/cyberbro)
@@ -12,10 +16,11 @@ A good private alternative for Cybergordon (custom API) that extracts your IoCs 
 # Features
 
 * **Supports garbage input**: paste your raw logs, IoC, fanged IoC... and they will be parsed using regex.
-* Check if an observable (IP, hash, domain, URL) is malicious using VirusTotal, AbuseIPDB, IPInfo, Spur.us, IP Quality Score, MDE, Google Safe Browsing, Shodan...
+* Check if an observable (IP, hash, domain, URL) is malicious using VirusTotal, AbuseIPDB, IPInfo, Spur.us, IP Quality Score, MDE, Google Safe Browsing, Shodan, Abusix, Phishtank (and more to come)...
 * Comprehensive report with search and filter features (type, country, risk, detection, proxy/VPN).
 * Uses multithreading to speed up the process (articially limited with `time.sleep()` because of free API usage).
 * Performs a reverse DNS lookup.
+* Checks abuse contacts for a IP / URL / domain (Abusix).
 * Provides the ability to export the results to a CSV file and an Excel file.
 * Checks if the observable has been seen on the Microsoft Defender for Endpoint (MDE) platform (your tenant).
 * Uses a proxy if needed.
@@ -108,6 +113,8 @@ Disclaimer: this is a development server, not intended for production.
 * [Microsoft Defender for Endpoint](https://docs.microsoft.com/en-us/windows/security/threat-protection/microsoft-defender-atp/microsoft-defender-for-endpoint-api)
 * [Shodan](https://developer.shodan.io/)
 * [Spur.us](https://spur.us/)
+* [Abusix](https://abusix.com/)
+* [Phishtank](https://www.phishtank.com/)
 
 # License
 
