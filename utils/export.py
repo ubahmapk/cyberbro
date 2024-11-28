@@ -23,6 +23,10 @@ def prepare_row(result, analysis_metadata):
         "a_ipdb_risk": abuseipdb_data.get("risk_score") if abuseipdb_data else None
     }
 
+    if "abusix" in analysis_metadata["selected_engines"]:
+        abusix_data = result.get("abusix", {})
+        row["abusix_abuse"] = abusix_data.get("abuse") if abusix_data else None
+
     if "virustotal" in analysis_metadata["selected_engines"]:
         virustotal_data = result.get("virustotal", {})
         row["vt_detect"] = virustotal_data.get("detection_ratio") if virustotal_data else None
