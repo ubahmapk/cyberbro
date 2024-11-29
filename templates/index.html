@@ -48,6 +48,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            margin-bottom: 20px;
         }
 
         th,
@@ -206,6 +207,38 @@
     }
 
     a:hover {
+        color: var(--primary-hover-color);
+    }
+    .footer {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background-color: var(--primary-color);
+        color: white;
+        text-align: center;
+        padding: 10px 0;
+    }
+
+    .footer nav ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .footer nav ul li {
+        display: inline;
+    }
+
+    .footer nav ul li a {
+        color: white;
+        text-decoration: none;
+        font-size: 1rem;
+    }
+
+    .footer nav ul li a:hover {
         color: var(--primary-hover-color);
     }
     </style>
@@ -519,6 +552,16 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
     </div>
 
 </body>
+<footer class="footer">
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/history">History</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="https://github.com/stanfrbd/cyberbro" target="_blank">GitHub</a></li>
+        </ul>
+    </nav>
+</footer>
 
 </html>
 <script>
