@@ -209,5 +209,11 @@ def internal_server_error(e):
     """Handle 500 errors."""
     return render_template('500.html'), 500
 
+# add a history page showing analysis results links
+@app.route('/history')
+def history():
+    """Render the history page."""
+    return render_template('history.html', analysis_metadata_dict=analysis_metadata_dict, results_dict=results_dict)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
