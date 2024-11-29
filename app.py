@@ -215,5 +215,11 @@ def history():
     """Render the history page."""
     return render_template('history.html', analysis_metadata_dict=analysis_metadata_dict, results_dict=results_dict)
 
+# add about page
+@app.route('/about')
+def about():
+    """Render the about page."""
+    return render_template('about.html')
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
