@@ -27,7 +27,7 @@ def query_shodan(observable, API_KEY, PROXIES):
         if response.status_code == 200:
             data = response.json()
             data["link"] = "https://www.shodan.io/host/" + observable
-            return data
+            return {"ports": data["ports"], "tags": data["tags"],"link": data["link"]}
         else:
             return None
     except Exception as e:
