@@ -4,7 +4,15 @@ import time
 import os
 from flask import send_file
 
-def prepare_row(result, analysis_metadata):
+def prepare_row(result, selected_engines):
+    """
+    Prepares a dictionary (row) with data extracted from the result dictionary based on the selected engines.
+    Args:
+        result (dict): A dictionary containing various data sources and their respective information.
+        selected_engines (list): A list of strings representing the selected engines to include in the row.
+    Returns:
+        dict: A dictionary containing the prepared row with data from the result dictionary based on the selected engines.
+    """
     rev_dns_data = result.get("reverse_dns", {})
     ipinfo_data = result.get("ipinfo", {})
     abuseipdb_data = result.get("abuseipdb", {})
@@ -23,17 +31,17 @@ def prepare_row(result, analysis_metadata):
         "a_ipdb_risk": abuseipdb_data.get("risk_score") if abuseipdb_data else None
     }
 
-    if "abusix" in analysis_metadata["selected_engines"]:
+    if "abusix" in selected_engines:
         abusix_data = result.get("abusix", {})
         row["abusix_abuse"] = abusix_data.get("abuse") if abusix_data else None
 
-    if "virustotal" in analysis_metadata["selected_engines"]:
+    if "virustotal" in selected_engines:
         virustotal_data = result.get("virustotal", {})
         row["vt_detect"] = virustotal_data.get("detection_ratio") if virustotal_data else None
         row["vt_nb_detect"] = virustotal_data.get("total_malicious") if virustotal_data else None
         row["vt_community"] = virustotal_data.get("community_score") if virustotal_data else None
 
-    if "ip_quality_score" in analysis_metadata["selected_engines"]:
+    if "ip_quality_score" in selected_engines:
         ip_quality_score_data = result.get("ip_quality_score", {})
         row["ipqs_score"] = ip_quality_score_data.get("fraud_score") if ip_quality_score_data else None
         row["ipqs_proxy"] = ip_quality_score_data.get("proxy") if ip_quality_score_data else None
@@ -42,19 +50,19 @@ def prepare_row(result, analysis_metadata):
         row["ipqs_isp"] = ip_quality_score_data.get("ISP") if ip_quality_score_data else None
         row["ipqs_organization"] = ip_quality_score_data.get("organization") if ip_quality_score_data else None
 
-    if "spur" in analysis_metadata["selected_engines"]:
+    if "spur" in selected_engines:
         spur_data = result.get("spur", {})
         row["spur_us_anon"] = spur_data.get("tunnels") if spur_data else None
 
-    if "google_safe_browsing" in analysis_metadata["selected_engines"]:
+    if "google_safe_browsing" in selected_engines:
         google_safe_browsing_data = result.get("google_safe_browsing", {})
         row["gsb_threat"] = google_safe_browsing_data.get("threat_found") if google_safe_browsing_data else None
 
-    if "shodan" in analysis_metadata["selected_engines"]:
+    if "shodan" in selected_engines:
         shodan_data = result.get("shodan", {})
         row["shodan_ports"] = shodan_data.get("ports") if shodan_data else None
 
-    if "phishtank" in analysis_metadata["selected_engines"]:
+    if "phishtank" in selected_engines:
         phishtank_data = result.get("phishtank", {})
         row["phishtank_in_db"] = phishtank_data.get("in_database") if phishtank_data else None
         row["phishtank_verified"] = phishtank_data.get("verified") if phishtank_data else None
@@ -62,14 +70,35 @@ def prepare_row(result, analysis_metadata):
 
     return row
 
-def prepare_data_for_export(results, analysis_metadata):
+def prepare_data_for_export(analysis_results):
+    """
+    Prepares data for export based on the analysis results.
+
+    Args:
+        analysis_results (AnalysisResults): An object containing the results of the analysis and the selected engines.
+
+    Returns:
+        list: A list of rows, where each row is prepared based on the analysis results and selected engines.
+    """
     data = []
-    for result in results:
-        row = prepare_row(result, analysis_metadata)
+    for result in analysis_results.results:
+        row = prepare_row(result, analysis_results.selected_engines)
         data.append(row)
     return data
 
 def export_to_csv(data, timestamp):
+    """
+    Exports the given data to a CSV file and sends it as an attachment.
+
+    Args:
+        data (list or dict): The data to be exported to CSV. It should be in a format that can be converted to a pandas DataFrame.
+        timestamp (str): A timestamp string to be used in the CSV file name.
+
+    Returns:
+        Response: A Flask response object that sends the CSV file as an attachment.
+
+    The CSV file is named using the provided timestamp and is deleted 10 seconds after being sent.
+    """
     df = pd.DataFrame(data)
     csv_path = f'{timestamp}_analysis_result.csv'
     df.to_csv(csv_path, index=False, sep=';')
@@ -78,6 +107,28 @@ def export_to_csv(data, timestamp):
     return response
 
 def export_to_excel(data, timestamp):
+    """
+    Exports the given data to an Excel file with a timestamp in the filename.
+
+    Args:
+        data (list of dict): The data to be exported, where each dictionary represents a row.
+        timestamp (str): A string representing the timestamp to be included in the filename.
+
+    Returns:
+        Response: A Flask response object to send the file as an attachment.
+
+    The function performs the following steps:
+    1. Converts the data into a pandas DataFrame.
+    2. Creates an Excel file with the given timestamp in the filename.
+    3. Writes the DataFrame to the Excel file with the sheet name 'Results'.
+    4. Applies auto-filter to the worksheet.
+    5. Adjusts the width of each column based on the maximum length of the values in that column.
+    6. Sends the file as an attachment in the response.
+    7. Starts a background thread to delete the file after 10 seconds.
+
+    Note:
+        This function requires the 'pandas', 'openpyxl', 'flask', 'threading', 'time', and 'os' modules.
+    """
     df = pd.DataFrame(data)
     excel_path = f'{timestamp}_analysis_result.xlsx'
     with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:

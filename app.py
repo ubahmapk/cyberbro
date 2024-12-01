@@ -7,6 +7,8 @@ import socket
 import threading
 import pandas as pd
 from flask import Flask, request, render_template, send_file, jsonify, send_from_directory
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
 
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
@@ -16,6 +18,37 @@ from utils.utils import extract_observables, refang_text
 from utils.export import prepare_data_for_export, export_to_csv, export_to_excel
 
 app = Flask(__name__)
+
+# Configure database
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+# Ensure the data directory exists
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR)
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Update the database URI to use the data directory
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(DATA_DIR, 'results.db')}"
+
+db = SQLAlchemy(app)
+
+# Define the AnalysisResult model
+class AnalysisResult(db.Model):
+    id = db.Column(db.String, primary_key=True)
+    results = db.Column(db.JSON, nullable=False)
+    start_time = db.Column(db.Float, nullable=False)
+    end_time = db.Column(db.Float, nullable=False)
+    start_time_string = db.Column(db.String, nullable=False)
+    end_time_string = db.Column(db.String, nullable=False)
+    analysis_duration_string = db.Column(db.String, nullable=False)
+    analysis_duration = db.Column(db.Float, nullable=False)
+    selected_engines = db.Column(db.JSON, nullable=False)
+
+# Create the database tables if they do not exist
+with app.app_context():
+    db.create_all()
 
 # Constants
 SECRETS_FILE = 'secrets.json'
@@ -149,6 +182,37 @@ def update_analysis_metadata(analysis_id, start_time, selected_engines):
         "selected_engines": selected_engines
     }
 
+def handle_analysis_completion(analysis_id):
+    """Handle the completion of an analysis."""
+    save_analysis_result_to_db(analysis_id)
+    cleanup_analysis_data(analysis_id)
+
+def cleanup_analysis_data(analysis_id):
+    """Clean up the analysis data from memory."""
+    results_dict.pop(analysis_id, None)
+    analysis_metadata_dict.pop(analysis_id, None)
+    analysis_in_progress_dict.pop(analysis_id, None)
+
+def save_analysis_result_to_db(analysis_id):
+    """Save the analysis result to the database."""
+    analysis_result = create_analysis_result(analysis_id)
+    db.session.add(analysis_result)
+    db.session.commit()
+
+def create_analysis_result(analysis_id):
+    """Create an AnalysisResult object from the analysis data."""
+    return AnalysisResult(
+        id=analysis_id,
+        results=results_dict.get(analysis_id, []),
+        start_time=analysis_metadata_dict[analysis_id]["start_time"],
+        end_time=analysis_metadata_dict[analysis_id]["end_time"],
+        start_time_string=analysis_metadata_dict[analysis_id]["start_time_string"],
+        end_time_string=analysis_metadata_dict[analysis_id]["end_time_string"],
+        analysis_duration_string=analysis_metadata_dict[analysis_id]["analysis_duration_string"],
+        analysis_duration=analysis_metadata_dict[analysis_id]["analysis_duration"],
+        selected_engines=analysis_metadata_dict[analysis_id]["selected_engines"]
+    )
+
 @app.route('/')
 def index():
     """Render the index page."""
@@ -169,24 +233,26 @@ def analyze():
 @app.route('/results/<analysis_id>', methods=['GET'])
 def show_results(analysis_id):
     """Show the results of the analysis."""
-    results = results_dict.get(analysis_id, [])
-    analysis_metadata = analysis_metadata_dict.get(analysis_id, {})
-    return render_template('index.html', results=results, analysis_metadata=analysis_metadata, analysis_id=analysis_id)
+    analysis_results = db.session.get(AnalysisResult, analysis_id)
+    if analysis_results:
+        return render_template('index.html', analysis_results=analysis_results)
+    else:
+        return render_template('404.html'), 404
 
 @app.route('/is_analysis_complete/<analysis_id>', methods=['GET'])
 def is_analysis_complete(analysis_id):
     """Check if the analysis is complete."""
     complete = not analysis_in_progress_dict.get(analysis_id, False)
+    if complete:
+        handle_analysis_completion(analysis_id)
     return jsonify({'complete': complete})
 
 @app.route('/export/<analysis_id>')
 def export(analysis_id):
     """Export the analysis results."""
     format = request.args.get('format')
-    results = results_dict.get(analysis_id, [])
-    analysis_metadata = analysis_metadata_dict.get(analysis_id, {})
-
-    data = prepare_data_for_export(results, analysis_metadata)
+    analysis_results = db.session.get(AnalysisResult, analysis_id)
+    data = prepare_data_for_export(analysis_results)
     timestamp = time.strftime("%Y-%m-%d_%H_%M_%S", time.localtime())
 
     if format == 'csv':
@@ -213,7 +279,8 @@ def internal_server_error(e):
 @app.route('/history')
 def history():
     """Render the history page."""
-    return render_template('history.html', analysis_metadata_dict=analysis_metadata_dict, results_dict=results_dict)
+    analysis_results = AnalysisResult.query.order_by(AnalysisResult.end_time.desc()).all()
+    return render_template('history.html', analysis_results=analysis_results)
 
 # add about page
 @app.route('/about')
@@ -222,4 +289,4 @@ def about():
     return render_template('about.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
