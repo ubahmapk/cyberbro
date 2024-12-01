@@ -9,3 +9,5 @@ services:
     environment:
       - FLASK_ENV=development
     restart: always
+    volumes:
+      - ./data:/app/data

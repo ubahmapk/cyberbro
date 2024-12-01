@@ -284,7 +284,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
             </form>
         </div>
 
-        {% if results %}
+        {% if analysis_results %}
         <script>
             function hideForm() {
                 document.getElementById("startForm").style.display = "none";
@@ -295,13 +295,13 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
         <h1>Cyberbro - Analysis Results</h1>
 
         <button class="btn" onclick="location.href='/'">New Analysis</button>
-        <form method="GET" action="/export/{{ analysis_id }}">
+        <form method="GET" action="/export/{{ analysis_results.id }}">
             <button type="submit" name="format" value="csv" class="btn">Export to CSV</button>
             <button type="submit" name="format" value="excel" class="btn">Export to Excel</button>
         </form>
 
-        <p>Analysis start time: {{ analysis_metadata.start_time_string }}</p>
-        <p>Analysis duration: {{ analysis_metadata.analysis_duration_string }}</p>
+        <p>Analysis start time: {{ analysis_results.start_time_string }}</p>
+        <p>Analysis duration: {{ analysis_results.analysis_duration_string }}</p>
 
         <div class="filters-container">
             <input type="text" id="searchInput" class="filter-input" onkeyup="filterTable()" placeholder="Search...">
@@ -309,7 +309,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
             <select id="typeFilter" class="filter-select" onchange="filterTable()">
                 <option value="all">All observables types</option>
                 {% set types = [] %}
-                {% for result in results %}
+                {% for result in analysis_results.results %}
                 {% if result.type not in types %}
                 {% set _ = types.append(result.type) %}
                 <option value="{{ result.type }}">{{ result.type }}</option>
@@ -320,7 +320,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
             <select id="countryFilter" class="filter-select" onchange="filterTable()">
                 <option value="all">All Countries</option>
                 {% set countries = [] %}
-                {% for result in results %}
+                {% for result in analysis_results.results %}
                 {% if result.ipinfo and result.ipinfo.country_name not in countries %}
                 {% set _ = countries.append(result.ipinfo.country_name) %}
                 <option value="{{ result.ipinfo.country_name | lower }}">{{ result.ipinfo.country_name }}</option>
@@ -358,34 +358,34 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <th>DNS Lookup</th>
                     <th>IPinfo</th>
                     <th>AbuseIPDB</th>
-                    {% if "ip_quality_score" in analysis_metadata.selected_engines %}
+                    {% if "ip_quality_score" in analysis_results.selected_engines %}
                     <th>IP Quality Score</th>
                     {% endif %}
-                    {% if "spur" in analysis_metadata.selected_engines %}
+                    {% if "spur" in analysis_results.selected_engines %}
                     <th>Spur.us</th>
                     {% endif %}
-                    {% if "virustotal" in analysis_metadata.selected_engines %}
+                    {% if "virustotal" in analysis_results.selected_engines %}
                     <th>VirusTotal</th>
                     {% endif %}
-                    {% if "mde" in analysis_metadata.selected_engines %}
+                    {% if "mde" in analysis_results.selected_engines %}
                     <th>Microsoft Defender for Endpoint</th>
                     {% endif %}
-                    {% if "google_safe_browsing" in analysis_metadata.selected_engines %}
+                    {% if "google_safe_browsing" in analysis_results.selected_engines %}
                     <th>Google Safe Browsing</th>
                     {% endif %}
-                    {% if "shodan" in analysis_metadata.selected_engines %}
+                    {% if "shodan" in analysis_results.selected_engines %}
                     <th>Shodan</th>
                     {% endif %}
-                    {% if "phishtank" in analysis_metadata.selected_engines %}
+                    {% if "phishtank" in analysis_results.selected_engines %}
                     <th>Phishtank</th>
                     {% endif %}
-                    {% if "abusix" in analysis_metadata.selected_engines %}
+                    {% if "abusix" in analysis_results.selected_engines %}
                     <th>Abusix</th>
                     {% endif %}
                 </tr>
             </thead>
             <tbody>
-                {% for result in results %}
+                {% for result in analysis_results.results %}
                 <tr
                     class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% elif result.virustotal and result.virustotal.total_malicious > 10 or result.virustotal and result.virustotal.community_score < -10 %}high-detection{% elif result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% endif %}">
                     <td>{{ result.observable }}</td>
@@ -423,7 +423,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         Not applicable
                         {% endif %}
                     </td>
-                    {% if "ip_quality_score" in analysis_metadata.selected_engines %}
+                    {% if "ip_quality_score" in analysis_results.selected_engines %}
                     <td>
                         {% if result.ip_quality_score %}
                         Score: <a href="{{ result.ip_quality_score.link }}" target="_blank">{{ result.ip_quality_score.fraud_score }}</a><br>
@@ -448,7 +448,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% endif %}
                     </td>
                     {% endif %}
-                    {% if "spur" in analysis_metadata.selected_engines %}
+                    {% if "spur" in analysis_results.selected_engines %}
                     <td>
                         {% if result.spur and result.reversed_success and result.type in ["URL", "FQDN"] %}
                         Reverse DNS applied<br>
@@ -460,7 +460,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% endif %}
                     </td>
                     {% endif %}
-                    {% if "virustotal" in analysis_metadata.selected_engines %}
+                    {% if "virustotal" in analysis_results.selected_engines %}
                     <td>
                         {% if result.virustotal %}
                         Ratio:
@@ -472,7 +472,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% endif %}
                     </td>
                     {% endif %}
-                    {% if "mde" in analysis_metadata.selected_engines %}
+                    {% if "mde" in analysis_results.selected_engines %}
                     <td>
                         {% if result.mde and result.mde.ipAddress %}
                         Devices: <a href="{{ result.mde.link }}" target="_blank">{{ result.mde.orgPrevalence }}</a><br>
@@ -499,7 +499,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% endif %}
                     </td>
                     {% endif %}
-                    {% if "google_safe_browsing" in analysis_metadata.selected_engines %}
+                    {% if "google_safe_browsing" in analysis_results.selected_engines %}
                     <td>
                         {% if result.google_safe_browsing %}
                         Threat: {{ result.google_safe_browsing.threat_found }} <br>
@@ -509,7 +509,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% endif %}
                     </td>
                     {% endif %}
-                    {% if "shodan" in analysis_metadata.selected_engines %}
+                    {% if "shodan" in analysis_results.selected_engines %}
                     <td>
                         {% if result.shodan %}
                         Ports: <a href="{{ result.shodan.link }}" target="_blank"> {{ result.shodan.ports }}</a><br>
@@ -520,7 +520,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% endif %}
                     </td>
                     {% endif %}
-                    {% if "phishtank" in analysis_metadata.selected_engines %}
+                    {% if "phishtank" in analysis_results.selected_engines %}
                     <td>
                         {% if result.phishtank and result.phishtank.in_database == True and result.phishtank.valid == True and result.phishtank.verified == True %}
                         <a href="{{ result.phishtank.phish_detail_page }}" target="_blank">Found (valid and verified)</a>
@@ -535,7 +535,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% endif %}
                     </td>
                     {% endif %}
-                    {% if "abusix" in analysis_metadata.selected_engines %}
+                    {% if "abusix" in analysis_results.selected_engines %}
                     <td>
                         {% if result.abusix %}
                         Abuse contact: <a href="mailto:{{ result.abusix.abuse }}?subject=Report of abuse concerning {{ result.observable }}&body=Hello,%0D%0A%0D%0AOur team found out that your {{ result.type }} {{ result.observable }} does malicious activity.%0D%0A%0D%0APlease take actions.">{{ result.abusix.abuse }}</a>

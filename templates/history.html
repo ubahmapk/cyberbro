@@ -266,19 +266,27 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for analysis_id, analysis_data in analysis_metadata_dict.items() %}
+                    {% for analysis in analysis_results %}
                         <tr>
-                            <td>{{ analysis_data.end_time_string }}</td>
-                            <td><a href="/results/{{ analysis_id }}">{{ analysis_id }}</a></td>
+                            <td>{{ analysis.end_time_string }}</td>
+                            <td><a href="/results/{{ analysis.id }}">{{ analysis.id }}</a></td>
                             <td>
-                                {% for result in results_dict[analysis_id][:5] %}
+                                <p title="{{ analysis.results|map(attribute='observable')|join(', ') }}">
+                                {% for result in analysis.results[:3] %}
                                     {{ result.observable }}{% if not loop.last %}, {% endif %}
                                 {% endfor %}
-                                {% if results_dict[analysis_id]|length > 5 %}...{% endif %}
-
+                                {% if analysis.results|length > 3 %}...{% endif %}
+                                </p>
                             </td>
-                            <td>{{ results_dict[analysis_id]|length }}</td>
-                            <td>{{ analysis_data.selected_engines }}</td>
+                            <td>{{ analysis.results|length }}</td>
+                            <td>
+                                <p title="{{ analysis.selected_engines|join(', ') }}">
+                                {% for engine in analysis.selected_engines[:3] %}
+                                    {{ engine }}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                                {% if analysis.selected_engines|length > 3 %}...{% endif %}
+                                </p>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
