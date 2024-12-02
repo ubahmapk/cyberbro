@@ -213,6 +213,52 @@ def create_analysis_result(analysis_id):
         selected_engines=analysis_metadata_dict[analysis_id]["selected_engines"]
     )
 
+def get_analysis_stats():
+    """Get analysis statistics from the database."""
+    analyses = AnalysisResult.query.all()
+    num_analyses = len(analyses)
+    
+    unique_observables = set()
+    unique_engines = set()
+    observable_type_count = {}
+    engine_count = {}
+    observable_count = {}
+
+    for analysis in analyses:
+        for result in analysis.results:
+            observable = result["observable"]
+            observable_type = result["type"]
+            unique_observables.add(observable)
+            if observable_type in observable_type_count:
+                observable_type_count[observable_type] += 1
+            else:
+                observable_type_count[observable_type] = 1
+
+            if observable in observable_count:
+                observable_count[observable] += 1
+            else:
+                observable_count[observable] = 1
+
+        for engine in analysis.selected_engines:
+            unique_engines.add(engine)
+            if engine in engine_count:
+                engine_count[engine] += 1
+            else:
+                engine_count[engine] = 1
+
+    stats = {
+        "num_analyses": num_analyses,
+        "num_unique_observables": len(unique_observables),
+        "unique_observables": list(unique_observables),
+        "num_unique_engines": len(unique_engines),
+        "unique_engines": list(unique_engines),
+        "observable_type_count": observable_type_count,
+        "engine_count": engine_count,
+        "observable_count": observable_count
+    }
+
+    return stats
+
 @app.route('/')
 def index():
     """Render the index page."""
@@ -282,6 +328,12 @@ def history():
     analysis_results = AnalysisResult.query.order_by(AnalysisResult.end_time.desc()).all()
     return render_template('history.html', analysis_results=analysis_results)
 
+@app.route('/stats')
+def stats():
+    """Render the stats page."""
+    stats = get_analysis_stats()
+    return render_template('stats.html', stats=stats)
+
 # add about page
 @app.route('/about')
 def about():
@@ -289,4 +341,4 @@ def about():
     return render_template('about.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=True)
