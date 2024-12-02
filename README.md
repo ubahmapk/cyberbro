@@ -24,6 +24,8 @@ without having to deploy a **complex** solution.
 * Provides the ability to export the results to a CSV file and an Excel file.
 * Checks if the observable has been seen on the Microsoft Defender for Endpoint (MDE) platform (your tenant).
 * Uses a proxy if needed.
+* Stores the results in a SQLite database.
+* Provides a history of the analysis.
 
 # Getting Started
 
