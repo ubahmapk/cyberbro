@@ -272,7 +272,7 @@
                             <td>{{ analysis.end_time_string }}</td>
                             <td><a href="/results/{{ analysis.id }}">{{ analysis.id }}</a></td>
                             <td>
-                                <p title="{{ analysis.results|map(attribute='observable')|join(', ') }}">
+                                <p id="observables-in-analysis" title="{{ analysis.results|map(attribute='observable')|join(', ') }}">
                                 {% for result in analysis.results[:3] %}
                                     {{ result.observable }}{% if not loop.last %}, {% endif %}
                                 {% endfor %}
@@ -281,7 +281,7 @@
                             </td>
                             <td>{{ analysis.results|length }}</td>
                             <td>
-                                <p title="{{ analysis.selected_engines|join(', ') }}">
+                                <p id="engines-in-analysis" title="{{ analysis.selected_engines|join(', ') }}">
                                 {% for engine in analysis.selected_engines[:3] %}
                                     {{ engine }}{% if not loop.last %}, {% endif %}
                                 {% endfor %}
@@ -308,11 +308,30 @@
             let td = tr[i].getElementsByTagName("td");
             let showRow = true;
 
+            const observablesInAnalysis = tr[i].querySelector("#observables-in-analysis");
+            if (observablesInAnalysis) {
+                observablesInAnalysis.innerText = observablesInAnalysis.title;
+            }
+
+            const enginesInAnalysis = tr[i].querySelector("#engines-in-analysis");
+            if (enginesInAnalysis) {
+                enginesInAnalysis.innerText = enginesInAnalysis.title;
+            }
+
             if (searchInput) {
             showRow = Array.from(td).some(cell => 
                 cell.innerText.toLowerCase().includes(searchInput) || 
                 (cell.querySelector('p') && cell.querySelector('p').title.toLowerCase().includes(searchInput))
             );
+            }
+
+            // replace the text matching the search input with a highlighted version, just with a replacement, not a regexp search, and just for p, not other elements
+            if (searchInput) {
+            Array.from(td).forEach(cell => {
+                if (cell.querySelector('p')) {
+                cell.querySelector('p').innerHTML = cell.querySelector('p').title.replace(new RegExp(searchInput, 'gi'), match => `<span style="background-color: yellow;">${match}</span>`);
+                }
+            });
             }
 
             tr[i].style.display = showRow ? "" : "none";
