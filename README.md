@@ -26,6 +26,7 @@ without having to deploy a **complex** solution.
 * Uses a proxy if needed.
 * Stores the results in a SQLite database.
 * Provides a history of the analysis.
+* Easily retrieve observable in analysis with the search function in history.
 
 # Getting Started
 
