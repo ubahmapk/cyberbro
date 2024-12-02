@@ -255,7 +255,8 @@
             <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo" width="40" height="40" class="github-logo-dark" style="filter: invert(1);">
         </a>
             <h1>Cyberbro - Previous Analyses</h1>
-            <table>
+            <input type="text" id="searchInput" class="filter-input" onkeyup="filterTable()" placeholder="Search...">
+            <table id="historyTable">
                 <thead>
                     <tr>
                         <th>Date</th>
@@ -296,6 +297,27 @@
     <script>
         const moonIcon = "https://img.icons8.com/ios-filled/50/ffffff/moon-symbol.png";
         const sunIcon = "https://img.icons8.com/ios-filled/50/ffffff/sun.png";
+
+        function filterTable() {
+        const searchInput = document.getElementById("searchInput").value.toLowerCase();
+
+        const table = document.getElementById("historyTable");
+        const tr = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < tr.length; i++) {
+            let td = tr[i].getElementsByTagName("td");
+            let showRow = true;
+
+            if (searchInput) {
+            showRow = Array.from(td).some(cell => 
+                cell.innerText.toLowerCase().includes(searchInput) || 
+                (cell.querySelector('p') && cell.querySelector('p').title.toLowerCase().includes(searchInput))
+            );
+            }
+
+            tr[i].style.display = showRow ? "" : "none";
+        }
+        }
 
         function toggleDarkMode() {
             document.body.classList.toggle("dark-mode");
