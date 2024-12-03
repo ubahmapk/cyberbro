@@ -64,6 +64,8 @@ cp secrets-sample.json secrets.json
 * To get API keys, refer to the official documentation of the services.
 * MDE is NOT free, you can skip it if you don't have an account (unchecked by default).
 
+> **Warning:** It is possible to change the config from the GUI using [http://127.0.0.1:5000/config](http://127.0.0.1:5000/config), but this endpoint is disabled by default because it is not protected. This endpoint is useful if you want to change the config without restarting the app. To activate it, set `app.config['CONFIG_PAGE_ENABLED'] = True` at the beginning of `app.py`. **This is not recommended for public or team use, because they will be able to see your API keys.**
+
 # Launch the app
 
 ```
