@@ -17,6 +17,8 @@ from engines import (
 from utils.utils import extract_observables, refang_text
 from utils.export import prepare_data_for_export, export_to_csv, export_to_excel
 from models.analysis_result import AnalysisResult, db
+from utils.stats import get_analysis_stats
+from utils.database import save_analysis_result_to_db
 
 app = Flask(__name__)
 
@@ -176,7 +178,7 @@ def update_analysis_metadata(analysis_id, start_time, selected_engines):
 
 def handle_analysis_completion(analysis_id):
     """Handle the completion of an analysis."""
-    save_analysis_result_to_db(analysis_id)
+    save_analysis_result_to_db(analysis_id, analysis_metadata_dict, results_dict)
     cleanup_analysis_data(analysis_id)
 
 def cleanup_analysis_data(analysis_id):
@@ -185,71 +187,7 @@ def cleanup_analysis_data(analysis_id):
     analysis_metadata_dict.pop(analysis_id, None)
     analysis_in_progress_dict.pop(analysis_id, None)
 
-def save_analysis_result_to_db(analysis_id):
-    """Save the analysis result to the database."""
-    analysis_result = create_analysis_result(analysis_id)
-    db.session.add(analysis_result)
-    db.session.commit()
 
-def create_analysis_result(analysis_id):
-    """Create an AnalysisResult object from the analysis data."""
-    return AnalysisResult(
-        id=analysis_id,
-        results=results_dict.get(analysis_id, []),
-        start_time=analysis_metadata_dict[analysis_id]["start_time"],
-        end_time=analysis_metadata_dict[analysis_id]["end_time"],
-        start_time_string=analysis_metadata_dict[analysis_id]["start_time_string"],
-        end_time_string=analysis_metadata_dict[analysis_id]["end_time_string"],
-        analysis_duration_string=analysis_metadata_dict[analysis_id]["analysis_duration_string"],
-        analysis_duration=analysis_metadata_dict[analysis_id]["analysis_duration"],
-        selected_engines=analysis_metadata_dict[analysis_id]["selected_engines"]
-    )
-
-def get_analysis_stats():
-    """Get analysis statistics from the database."""
-    analyses = AnalysisResult.query.all()
-    num_analyses = len(analyses)
-    
-    unique_observables = set()
-    unique_engines = set()
-    observable_type_count = {}
-    engine_count = {}
-    observable_count = {}
-
-    for analysis in analyses:
-        for result in analysis.results:
-            observable = result["observable"]
-            observable_type = result["type"]
-            unique_observables.add(observable)
-            if observable_type in observable_type_count:
-                observable_type_count[observable_type] += 1
-            else:
-                observable_type_count[observable_type] = 1
-
-            if observable in observable_count:
-                observable_count[observable] += 1
-            else:
-                observable_count[observable] = 1
-
-        for engine in analysis.selected_engines:
-            unique_engines.add(engine)
-            if engine in engine_count:
-                engine_count[engine] += 1
-            else:
-                engine_count[engine] = 1
-
-    stats = {
-        "num_analyses": num_analyses,
-        "num_unique_observables": len(unique_observables),
-        "unique_observables": list(unique_observables),
-        "num_unique_engines": len(unique_engines),
-        "unique_engines": list(unique_engines),
-        "observable_type_count": observable_type_count,
-        "engine_count": engine_count,
-        "observable_count": observable_count
-    }
-
-    return stats
 
 @app.route('/')
 def index():
