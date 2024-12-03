@@ -29,6 +29,9 @@ if not os.path.exists(DATA_DIR):
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# Enable the config page - not intended for public use since authentication is not implemented
+app.config['CONFIG_PAGE_ENABLED'] = False
+
 # Update the database URI to use the data directory
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(DATA_DIR, 'results.db')}"
 
@@ -339,6 +342,37 @@ def stats():
 def about():
     """Render the about page."""
     return render_template('about.html')
+
+# add config page
+@app.route('/config')
+def config():
+    """Render the config page."""
+    if not app.config.get('CONFIG_PAGE_ENABLED', False):
+        return render_template('404.html'), 404
+    return render_template('config.html', secrets=secrets)
+
+# add update_config endpoint
+@app.route('/update_config', methods=['POST'])
+def update_config():
+    """Update config from the form data"""
+    if not app.config.get('CONFIG_PAGE_ENABLED', False):
+        return jsonify({'message': 'Configuration update is disabled.'}), 403
+    try:
+        secrets["proxy_url"] = request.form.get("proxy_url")
+        secrets["ipinfo"] = request.form.get("ipinfo")
+        secrets["mde_tenant_id"] = request.form.get("mde_tenant_id")
+        secrets["mde_client_id"] = request.form.get("mde_client_id")
+        secrets["mde_client_secret"] = request.form.get("mde_client_secret")
+        secrets["virustotal"] = request.form.get("virustotal")
+        secrets["google_safe_browsing"] = request.form.get("google_safe_browsing")
+        secrets["ip_quality_score"] = request.form.get("ip_quality_score")
+        secrets["shodan"] = request.form.get("shodan")
+        with open(SECRETS_FILE, 'w') as f:
+            json.dump(secrets, f, indent=4)
+        message = "Configuration updated successfully."
+    except Exception as e:
+        message = "An error occurred while updating the configuration."
+    return jsonify({'message': message})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
