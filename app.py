@@ -21,7 +21,14 @@ DATA_DIR = os.path.join(BASE_DIR, 'data')
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
+# Disable modification tracking to save memory
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Set the size of the database connection pool
+app.config['SQLALCHEMY_POOL_SIZE'] = 10
+
+# Set the maximum overflow size of the connection pool
+app.config['SQLALCHEMY_MAX_OVERFLOW'] = 20
 
 # Enable the config page - not intended for public use since authentication is not implemented
 app.config['CONFIG_PAGE_ENABLED'] = False

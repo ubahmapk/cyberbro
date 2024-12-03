@@ -1,40 +1,28 @@
-# Use a base Python image
+# Use the official Python image from the Docker Hub, version 3.11-slim
 FROM python:3.11-slim
 
-# Set the working directory in the container
+# Set the working directory inside the container to /app
 WORKDIR /app
 
-# -----------------------------------------------------------------------------
-# Install system dependencies for Tor - Use only if you know what you are doing!
-# RUN apt-get update && \
-#    apt-get install -y tor && \
-#    rm -rf /var/lib/apt/lists/*
-
-# Configure Tor to allow control with cookie authentication
-# RUN echo "ControlPort 9051\nCookieAuthentication 1" >> /etc/tor/torrc
-# -----------------------------------------------------------------------------
-
-# Copy the requirements.txt file into the container
+# Copy the requirements.txt file from the host to the container
 COPY requirements.txt .
 
-# Install Python dependencies
+# Install the Python dependencies specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of your project files into the container
+# Update the package list and install Supervisor, then clean up the apt cache
+RUN apt-get update && \
+    apt-get install -y supervisor && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy the rest of the application code from the host to the container
 COPY . .
 
-# Expose port 5000 for Flask
+# Expose port 5000 to allow external access to the application
 EXPOSE 5000
 
-# -----------------------------------------------------------------------------
-# Tor control port
-# EXPOSE 9051
-# -----------------------------------------------------------------------------
+# Copy the Supervisor configuration file to the appropriate directory
+COPY prod/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# -----------------------------------------------------------------------------
-# Start Tor in the background and then the Flask application - Disabled by default
-# CMD tor & python app.py
-# -----------------------------------------------------------------------------
-
-# Start the Flask application
-CMD python app.py
+# Start Supervisor using the specified configuration file
+CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
