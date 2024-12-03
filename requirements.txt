@@ -12,3 +12,4 @@ stem
 pytest
 querycontacts
 flask_sqlalchemy
+gunicorn
