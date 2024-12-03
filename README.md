@@ -95,6 +95,9 @@ docker compose up -d
 
 # Screenshots
 
+<details>
+<summary>See all screenshots</summary>
+
 ![image](https://github.com/user-attachments/assets/72af5afe-d738-4b73-9c14-ee8db4713356)
 
 ![image](https://github.com/user-attachments/assets/e3dd9d26-8bd2-42df-b5b7-1b828e62f6c3)
@@ -102,6 +105,10 @@ docker compose up -d
 ![Capture d’écran_14-11-2024_93554_cyberbro stan local](https://github.com/user-attachments/assets/eced18ef-cab1-4056-9f59-323cf91bef3c)
 
 ![Capture d’écran_14-11-2024_93537_cyberbro stan local](https://github.com/user-attachments/assets/3afe3b1f-a7c3-4c7b-bb32-42ebf6a3f1a6)
+
+</details>
+
+![image](https://github.com/user-attachments/assets/fdb97410-6a35-48ff-a49e-31c7bca9a0b7)
 
 
 # Security
