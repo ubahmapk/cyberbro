@@ -16,6 +16,7 @@ from engines import (
 )
 from utils.utils import extract_observables, refang_text
 from utils.export import prepare_data_for_export, export_to_csv, export_to_excel
+from models.analysis_result import AnalysisResult, db
 
 app = Flask(__name__)
 
@@ -35,19 +36,7 @@ app.config['CONFIG_PAGE_ENABLED'] = False
 # Update the database URI to use the data directory
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(DATA_DIR, 'results.db')}"
 
-db = SQLAlchemy(app)
-
-# Define the AnalysisResult model
-class AnalysisResult(db.Model):
-    id = db.Column(db.String, primary_key=True)
-    results = db.Column(db.JSON, nullable=False)
-    start_time = db.Column(db.Float, nullable=False)
-    end_time = db.Column(db.Float, nullable=False)
-    start_time_string = db.Column(db.String, nullable=False)
-    end_time_string = db.Column(db.String, nullable=False)
-    analysis_duration_string = db.Column(db.String, nullable=False)
-    analysis_duration = db.Column(db.Float, nullable=False)
-    selected_engines = db.Column(db.JSON, nullable=False)
+db.init_app(app)
 
 # Create the database tables if they do not exist
 with app.app_context():
