@@ -30,15 +30,14 @@ without having to deploy a **complex** solution.
 
 # Getting Started
 
-* To get started, clone the repository and install the requirements.
-
-You might want to create a [`venv`](https://docs.python.org/3/library/venv.html) before installing the dependencies.
+* To get started, clone the repository
 
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/stanfrbd/cyberbro
+cd cyberbro
 ```
 
-## Edit the config file
+## Edit the config file (mandatory)
 
 ```
 cp secrets-sample.json secrets.json
@@ -68,30 +67,37 @@ cp secrets-sample.json secrets.json
 
 # Launch the app
 
-```
-python3 app.py
-```
+## Lazy and easy - use docker
 
-```
-* Serving Flask app 'app'
- * Debug mode: on
-WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
- * Running on http://127.0.0.1:5000
-Press CTRL+C to quit
- * Restarting with watchdog (windowsapi)
- * Debugger is active!
- * Debugger PIN: 820-969-550
+```bash
+docker compose up # use -d to run in background and use --build to rebuild the image
 ```
 
 * Go to http://127.0.0.1:5000 and Enjoy.
 
-# Use docker
+> Don't forget to edit the `secrets.json` before building the image.
+
+## The old way
+
+* Clone the repository and install the requirements.
+
+You might want to create a [`venv`](https://docs.python.org/3/library/venv.html) before installing the dependencies.
 
 ```bash
-docker compose up -d
+pip install -r requirements.txt
 ```
 
-> Don't forget to edit the `secrets.json` before building the image.
+* Run the app with `gunicorn` (clean mode).
+
+```bash
+gunicorn -w 1 -b 0.0.0.0:5000 app:app
+```
+
+* Run the app with in development mode.
+
+```bash
+python3 app.py
+```
 
 # Screenshots
 
@@ -113,7 +119,8 @@ docker compose up -d
 
 # Security
 
-Disclaimer: this is a development server, not intended for production.
+**Disclaimer**: this is still a development server, not intended for production. \
+Some misconfigurations may lead to **security issues**.
 
 # API and third-party services
 
