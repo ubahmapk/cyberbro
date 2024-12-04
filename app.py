@@ -9,7 +9,7 @@ from utils.utils import extract_observables, refang_text
 from utils.export import prepare_data_for_export, export_to_csv, export_to_excel
 from models.analysis_result import AnalysisResult, db
 from utils.stats import get_analysis_stats
-from utils.analysis import perform_analysis, handle_analysis_completion, check_analysis_in_progress
+from utils.analysis import perform_analysis, check_analysis_in_progress
 
 app = Flask(__name__)
 
@@ -64,7 +64,7 @@ def analyze():
     selected_engines = request.form.getlist("engines")
 
     analysis_id = str(uuid.uuid4())
-    threading.Thread(target=perform_analysis, args=(observables, selected_engines, analysis_id)).start()
+    threading.Thread(target=perform_analysis, args=(app, observables, selected_engines, analysis_id)).start()
 
     return render_template('waiting.html', analysis_id=analysis_id), 200
 
@@ -81,8 +81,6 @@ def show_results(analysis_id):
 def is_analysis_complete(analysis_id):
     """Check if the analysis is complete."""
     complete = not check_analysis_in_progress(analysis_id)
-    if complete:
-        handle_analysis_completion(analysis_id)
     return jsonify({'complete': complete})
 
 @app.route('/export/<analysis_id>')
