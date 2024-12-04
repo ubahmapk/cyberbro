@@ -1,5 +1,4 @@
 import requests
-import time
 import base64
 
 # Disable SSL warning in case of proxies that break SSL
