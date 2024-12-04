@@ -21,8 +21,6 @@ def query_virustotal(observable, observable_type, API_KEY, PROXIES):
         requests.exceptions.RequestException: If there is an issue with the HTTP request.
         KeyError: If the expected data is not found in the API response.
     """
-    # API rate limiting
-    time.sleep(3)
     headers = {"x-apikey": API_KEY}
 
     # Adjust the URL based on the observable type
