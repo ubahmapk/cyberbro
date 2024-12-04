@@ -13,8 +13,8 @@ def get_analysis_stats():
 
     for analysis in analyses:
         for result in analysis.results:
-            observable = result["observable"]
-            observable_type = result["type"]
+            observable = result.get("observable") if result else "Unknown"
+            observable_type = result.get("type") if result else "Unknown"
             unique_observables.add(observable)
             if observable_type in observable_type_count:
                 observable_type_count[observable_type] += 1
