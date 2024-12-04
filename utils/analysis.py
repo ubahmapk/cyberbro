@@ -9,17 +9,13 @@ from engines import (
     microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan, phishtank, abusix
 )
 
-from utils.database import save_analysis_result_to_db
+from models.analysis_result import db, AnalysisResult
+import sys
 
 # Constants
 SECRETS_FILE = 'secrets.json'
 TOR_PROXY = 'socks5h://127.0.0.1:9050'
 TOR_PORT = 9051
-
-# Global variables
-results_dict = {}
-analysis_metadata_dict = {}
-analysis_in_progress_dict = {}
 
 def read_secrets():
     """Read secrets from the secrets.json file."""
@@ -40,27 +36,41 @@ def is_tor_running():
 TOR_RUNNING = is_tor_running()
 SPUR_PROXIES = {'http': TOR_PROXY, 'https': TOR_PROXY} if TOR_RUNNING else PROXIES
 
-def perform_analysis(observables, selected_engines, analysis_id):
+def perform_analysis(app, observables, selected_engines, analysis_id):
     """Perform analysis on the given observables using the selected engines."""
-    start_time = time.time()
-    results_dict[analysis_id] = []
-    analysis_in_progress_dict[analysis_id] = True
+    with app.app_context():
+        start_time = time.time()
 
-    result_queue = queue.Queue()
-    threads = [
-        threading.Thread(target=analyze_observable, args=(observable, index, selected_engines, result_queue))
-        for index, observable in enumerate(observables)
-    ]
+        # Store analysis metadata in the database
+        analysis_result = AnalysisResult(
+            id=analysis_id,
+            results=[],
+            start_time=start_time,
+            end_time=None,
+            start_time_string=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time)),
+            end_time_string="",
+            analysis_duration_string="",
+            analysis_duration=0,
+            selected_engines=selected_engines,
+            in_progress=True
+        )
+        db.session.add(analysis_result)
+        db.session.commit()
 
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
+        result_queue = queue.Queue()
+        threads = [
+            threading.Thread(target=analyze_observable, args=(observable, index, selected_engines, result_queue))
+            for index, observable in enumerate(observables)
+        ]
 
-    results = collect_results_from_queue(result_queue, len(observables))
-    update_analysis_metadata(analysis_id, start_time, selected_engines)
-    results_dict[analysis_id] = results
-    analysis_in_progress_dict[analysis_id] = False
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        results = collect_results_from_queue(result_queue, len(observables))
+        print("Results supposed to be processed: ", results, file=sys.stderr)
+        update_analysis_metadata(analysis_id, start_time, selected_engines, results)
 
 def analyze_observable(observable, index, selected_engines, result_queue):
     """Analyze a single observable."""
@@ -120,6 +130,7 @@ def perform_engine_queries(observable, selected_engines, result):
     if "abusix" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
         result['abusix'] = abusix.query_abusix(observable["value"])
 
+    print("Results: ", result, file=sys.stderr)
     return result
 
 def collect_results_from_queue(result_queue, num_observables):
@@ -132,28 +143,21 @@ def collect_results_from_queue(result_queue, num_observables):
 
 def check_analysis_in_progress(analysis_id):
     """Check if the analysis is in progress."""
-    return analysis_in_progress_dict.get(analysis_id, False)
+    analysis_result = AnalysisResult.query.filter_by(id=analysis_id).first()
+    return analysis_result.in_progress if analysis_result else False
 
-def update_analysis_metadata(analysis_id, start_time, selected_engines):
-    """Update metadata for the analysis."""
-    end_time = time.time()
-    analysis_metadata_dict[analysis_id] = {
-        "start_time": start_time,
-        "end_time": end_time,
-        "start_time_string": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time)),
-        "end_time_string": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time)),
-        "analysis_duration_string": f"{int((end_time - start_time) // 60)} minutes, {(end_time - start_time) % 60:.2f} seconds",
-        "analysis_duration": end_time - start_time,
-        "selected_engines": selected_engines
-    }
-
-def handle_analysis_completion(analysis_id):
-    """Handle the completion of an analysis."""
-    save_analysis_result_to_db(analysis_id, analysis_metadata_dict, results_dict)
-    cleanup_analysis_data(analysis_id)
-
-def cleanup_analysis_data(analysis_id):
-    """Clean up the analysis data from memory."""
-    results_dict.pop(analysis_id, None)
-    analysis_metadata_dict.pop(analysis_id, None)
-    analysis_in_progress_dict.pop(analysis_id, None)
+def update_analysis_metadata(analysis_id, start_time, selected_engines, results):
+    """Update the analysis metadata."""
+    print("Results supposed to be written: ", results, file=sys.stderr)
+    analysis_result = AnalysisResult.query.filter_by(id=analysis_id).first()
+    if analysis_result:
+        start_time = analysis_result.start_time
+        end_time = time.time()
+        analysis_result.end_time = end_time
+        analysis_result.end_time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
+        analysis_result.analysis_duration = end_time - start_time
+        analysis_result.analysis_duration_string = f"{int((end_time - start_time) // 60)} minutes, {(end_time - start_time) % 60:.2f} seconds"
+        analysis_result.results = results
+        analysis_result.in_progress = False
+        db.session.add(analysis_result)
+        db.session.commit()
