@@ -1,4 +1,4 @@
-# Use the official Python image from the Docker Hub, version 3.11-slim
+# Use the official Python image from the Docker Hub, version 3.13-slim
 FROM python:3.13-slim
 
 # Set the working directory inside the container to /app
