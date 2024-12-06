@@ -267,7 +267,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
 
                 <div>
                     <h3>Select the engines to use</h3>
-                    <label title="Performs a reverse DNS lookup (on your machine)"><input type="checkbox" name="engines" value="reverse_dns" checked> Reverse DNS </label><br>
+                    <label title="Performs a reverse DNS lookup for IP, domain, URL (on your machine)"><input type="checkbox" name="engines" value="reverse_dns" checked> Reverse DNS </label><br>
+                    <label title="Checks RDAP (ex Whois) record for domain, URL, no API key needed"><input type="checkbox" name="engines" value="rdap" checked> RDAP (ex Whois)</label><br>
                     <label title="Checks IPinfo, free API key needed"><input type="checkbox" name="engines" value="ipinfo" checked> IPinfo</label><br>
                     <label title="Checks AbuseIPDB, free API key needed"><input type="checkbox" name="engines" value="abuseipdb" checked> AbuseIPDB</label><br>
                     <label title="Checks IP Quality Score, free API key needed"><input type="checkbox" name="engines" value="ip_quality_score"> IP Quality Score</label><br>
@@ -277,7 +278,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <label title="Checks Google Safe Browsing, free API key needed"><input type="checkbox" name="engines" value="google_safe_browsing"> Google Safe Browsing</label><br>
                     <label title="Checks Shodan, free API key needed"><input type="checkbox" name="engines" value="shodan"> Shodan</label><br>
                     <label title="Checks Phishtank, free, no API key"><input type="checkbox" name="engines" value="phishtank"> Phishtank</label><br>
-                    <label title="Checks abuse contact with Abusix, free, no API key"><input type="checkbox" name="engines" value="abusix"> Abusix</label>
+                    <label title="Checks abuse contact with Abusix for IP, free, no API key"><input type="checkbox" name="engines" value="abusix"> Abusix</label>
                 </div>
 
                 <button type="submit" class="btn">Start Analysis</button>
@@ -381,6 +382,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% endif %}
                     {% if "abusix" in analysis_results.selected_engines %}
                     <th>Abusix</th>
+                    {% endif %}
+                    {% if "rdap" in analysis_results.selected_engines %}
+                    <th>RDAP</th>
                     {% endif %}
                 </tr>
             </thead>
@@ -539,6 +543,20 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <td>
                         {% if result.abusix %}
                         Abuse contact: <a href="mailto:{{ result.abusix.abuse }}?subject=Report of abuse concerning {{ result.observable }}&body=Hello,%0D%0A%0D%0AOur team found out that your {{ result.type }} {{ result.observable }} does malicious activity.%0D%0A%0D%0APlease take actions.">{{ result.abusix.abuse }}</a>
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if "rdap" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.rdap %}
+                        Registrar: <a href="{{ result.rdap.link }}" target="_blank">{{ result.rdap.registrar }}</a><br>
+                        Abuse contact: <a href="mailto:{{ result.rdap.abuse_contact }}?subject=Report of abuse concerning {{ result.observable }}&body=Hello,%0D%0A%0D%0AOur team found out that your {{ result.type }} {{ result.observable }} does malicious activity.%0D%0A%0D%0APlease take actions.">{{ result.rdap.abuse_contact }}</a><br>
+                        Creation: {{ result.rdap.creation_date }}<br>
+                        Expiration: {{ result.rdap.expiration_date }}<br>
+                        Updated: {{ result.rdap.update_date }}<br>
+                        Name servers: {{ result.rdap.name_servers }}
                         {% else %}
                         Not applicable
                         {% endif %}
