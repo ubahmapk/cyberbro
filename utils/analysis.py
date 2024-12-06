@@ -3,14 +3,15 @@ import socket
 import json
 import threading
 import time
+import sys
 
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
     microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan, phishtank, abusix, rdap
 )
 
-from models.analysis_result import db, AnalysisResult
-import sys
+from models.analysis_result import AnalysisResult
+from utils.database import save_analysis_result, get_analysis_result
 
 # Constants
 SECRETS_FILE = 'secrets.json'
@@ -54,8 +55,7 @@ def perform_analysis(app, observables, selected_engines, analysis_id):
             selected_engines=selected_engines,
             in_progress=True
         )
-        db.session.add(analysis_result)
-        db.session.commit()
+        save_analysis_result(analysis_result)
 
         result_queue = queue.Queue()
         threads = [
@@ -146,15 +146,14 @@ def collect_results_from_queue(result_queue, num_observables):
 
 def check_analysis_in_progress(analysis_id):
     """Check if the analysis is in progress."""
-    analysis_result = AnalysisResult.query.filter_by(id=analysis_id).first()
+    analysis_result = get_analysis_result(analysis_id)
     return analysis_result.in_progress if analysis_result else False
 
 def update_analysis_metadata(analysis_id, start_time, selected_engines, results):
     """Update the analysis metadata."""
     print("Results supposed to be written: ", results, file=sys.stderr)
-    analysis_result = AnalysisResult.query.filter_by(id=analysis_id).first()
+    analysis_result = get_analysis_result(analysis_id)
     if analysis_result:
-        start_time = analysis_result.start_time
         end_time = time.time()
         analysis_result.end_time = end_time
         analysis_result.end_time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
@@ -162,5 +161,4 @@ def update_analysis_metadata(analysis_id, start_time, selected_engines, results)
         analysis_result.analysis_duration_string = f"{int((end_time - start_time) // 60)} minutes, {(end_time - start_time) % 60:.2f} seconds"
         analysis_result.results = results
         analysis_result.in_progress = False
-        db.session.add(analysis_result)
-        db.session.commit()
+        save_analysis_result(analysis_result)
