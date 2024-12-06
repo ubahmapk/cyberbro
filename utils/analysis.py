@@ -6,7 +6,7 @@ import time
 
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
-    microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan, phishtank, abusix
+    microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan, phishtank, abusix, rdap
 )
 
 from utils.database import save_analysis_result_to_db
@@ -78,6 +78,9 @@ def perform_engine_queries(observable, selected_engines, result):
         result['ipinfo'] = ipinfo.query_ipinfo(observable["value"], secrets["ipinfo"], PROXIES)
         if result['ipinfo']['asn'] == "BOGON":
             observable["type"] = "BOGON"
+
+    if "rdap" in selected_engines and observable["type"] in ["FQDN", "URL"]:
+        result['rdap'] = rdap.query_openrdap(observable["value"], observable["type"], PROXIES)
 
     if "mde" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6", "BOGON"]:
         result['mde'] = microsoft_defender_for_endpoint.query_microsoft_defender_for_endpoint(
