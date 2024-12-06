@@ -104,6 +104,11 @@ def query_microsoft_defender_for_endpoint(observable, observable_type, tenant_id
             data["fileProductName"] = file_info.get("fileProductName", "Unknown")
             data["determinationType"] = file_info.get("determinationType", "Unknown")
             data["determinationValue"] = file_info.get("determinationValue", "Unknown")
+        
+        # Do not include hours, minutes, and seconds in the date
+        if data["orgFirstSeen"] and data["orgLastSeen"]:
+            data["orgFirstSeen"] = data["orgFirstSeen"].split("T")[0]
+            data["orgLastSeen"] = data["orgLastSeen"].split("T")[0]
         # print(data)
         return data
     else:

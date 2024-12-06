@@ -31,6 +31,18 @@ def prepare_row(result, selected_engines):
         "a_ipdb_risk": abuseipdb_data.get("risk_score") if abuseipdb_data else None
     }
 
+    if "rdap" in selected_engines:
+        rdap_data = result.get("rdap", {})
+        row["rdap_abuse"] = rdap_data.get("abuse_contact") if rdap_data else None
+        row["rdap_registrar"] = rdap_data.get("registrar") if rdap_data else None
+        row["rdap_org"] = rdap_data.get("organization") if rdap_data else None
+        row["rdap_registrant"] = rdap_data.get("registrant") if rdap_data else None
+        row["rdap_registrant_email"] = rdap_data.get("registrant_email") if rdap_data else None
+        row["rdap_ns"] = rdap_data.get("name_servers") if rdap_data else None
+        row["rdap_creation"] = rdap_data.get("creation_date") if rdap_data else None
+        row["rdap_expiration"] = rdap_data.get("expiration_date") if rdap_data else None
+        row["rdap_update"] = rdap_data.get("update_date") if rdap_data else None
+
     if "abusix" in selected_engines:
         abusix_data = result.get("abusix", {})
         row["abusix_abuse"] = abusix_data.get("abuse") if abusix_data else None

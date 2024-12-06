@@ -20,6 +20,7 @@ without having to deploy a **complex** solution.
 * Comprehensive report with search and filter features (type, country, risk, detection, proxy/VPN).
 * Uses multithreading to speed up the process (articially limited with `time.sleep()` because of free API usage).
 * Performs a reverse DNS lookup.
+* Checks ICANN RDAP for domain information.
 * Checks abuse contacts for a IP / URL / domain (Abusix).
 * Provides the ability to export the results to a CSV file and an Excel file.
 * Checks if the observable has been seen on the Microsoft Defender for Endpoint (MDE) platform (your tenant).
@@ -114,8 +115,7 @@ python3 app.py
 
 </details>
 
-![image](https://github.com/user-attachments/assets/fdb97410-6a35-48ff-a49e-31c7bca9a0b7)
-
+![image](https://github.com/user-attachments/assets/479f1fc6-65df-41fe-93a6-4bf54c19a435)
 
 # Security
 
@@ -134,6 +134,8 @@ Some misconfigurations may lead to **security issues**.
 * [Spur.us](https://spur.us/)
 * [Abusix](https://abusix.com/)
 * [Phishtank](https://www.phishtank.com/)
+* [OpenRDAP](https://openrdap.org/api)
+* [ICANN](https://lookup.icann.org/)
 
 # License
 
