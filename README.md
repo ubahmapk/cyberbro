@@ -115,8 +115,7 @@ python3 app.py
 
 </details>
 
-![image](https://github.com/user-attachments/assets/fdb97410-6a35-48ff-a49e-31c7bca9a0b7)
-
+![image](https://github.com/user-attachments/assets/479f1fc6-65df-41fe-93a6-4bf54c19a435)
 
 # Security
 
