@@ -267,7 +267,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
 
                 <div>
                     <h3>Select the engines to use</h3>
-                    <label title="Performs a reverse DNS lookup (on your machine)"><input type="checkbox" name="engines" value="reverse_dns" checked> Reverse DNS </label><br>
+                    <label title="Performs a reverse DNS lookup for IP, domain, URL (on your machine)"><input type="checkbox" name="engines" value="reverse_dns" checked> Reverse DNS </label><br>
+                    <label title="Checks RDAP (ex Whois) record for domain, URL, no API key needed"><input type="checkbox" name="engines" value="rdap" checked> RDAP (ex Whois)</label><br>
                     <label title="Checks IPinfo, free API key needed"><input type="checkbox" name="engines" value="ipinfo" checked> IPinfo</label><br>
                     <label title="Checks AbuseIPDB, free API key needed"><input type="checkbox" name="engines" value="abuseipdb" checked> AbuseIPDB</label><br>
                     <label title="Checks IP Quality Score, free API key needed"><input type="checkbox" name="engines" value="ip_quality_score"> IP Quality Score</label><br>
@@ -277,7 +278,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <label title="Checks Google Safe Browsing, free API key needed"><input type="checkbox" name="engines" value="google_safe_browsing"> Google Safe Browsing</label><br>
                     <label title="Checks Shodan, free API key needed"><input type="checkbox" name="engines" value="shodan"> Shodan</label><br>
                     <label title="Checks Phishtank, free, no API key"><input type="checkbox" name="engines" value="phishtank"> Phishtank</label><br>
-                    <label title="Checks abuse contact with Abusix, free, no API key"><input type="checkbox" name="engines" value="abusix"> Abusix</label>
+                    <label title="Checks abuse contact with Abusix for IP, free, no API key"><input type="checkbox" name="engines" value="abusix"> Abusix</label>
                 </div>
 
                 <button type="submit" class="btn">Start Analysis</button>
@@ -382,6 +383,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if "abusix" in analysis_results.selected_engines %}
                     <th>Abusix</th>
                     {% endif %}
+                    {% if "rdap" in analysis_results.selected_engines %}
+                    <th>RDAP</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -392,7 +396,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <td>{{ result.type }}</td>
                     <td>
                         {% if result.reverse_dns %}
-                        {{ result.reverse_dns.reverse_dns }}
+                        {% for dns in result.reverse_dns.reverse_dns %}
+                            {{ dns }}<br>
+                        {% endfor %}
                         {% else %}
                         Not applicable
                         {% endif %}
@@ -402,11 +408,11 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         Reverse DNS applied<br>
                         {% endif %}
                         {% if result.ipinfo %}
-                        IP: <a href="{{ result.ipinfo.link }}" target="_blank">{{ result.ipinfo.ip }}</a><br>
-                        Geoloc: {{ result.ipinfo.geolocation }}<br>
-                        Country: <span class="country country-{{result.ipinfo.country_name | lower}}">{{result.ipinfo.country_name}}</span> <span class="fi fi-{{ result.ipinfo.country_code | lower }}"></span><br>
-                        Hostname: {{ result.ipinfo.hostname }}<br>
-                        ASN: {{ result.ipinfo.asn }}
+                        <strong>IP: </strong><a href="{{ result.ipinfo.link }}" target="_blank">{{ result.ipinfo.ip }}</a><br>
+                        <strong>Geoloc: </strong>{{ result.ipinfo.geolocation }}<br>
+                        <strong>Country: </strong><span class="country country-{{result.ipinfo.country_name | lower}}">{{result.ipinfo.country_name}}</span> <span class="fi fi-{{ result.ipinfo.country_code | lower }}"></span><br>
+                        <strong>Hostname: </strong>{{ result.ipinfo.hostname }}<br>
+                        <strong>ASN: </strong>{{ result.ipinfo.asn }}
                         {% else %}
                         Not applicable
                         {% endif %}
@@ -416,9 +422,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         Reverse DNS applied<br>
                         {% endif %}
                         {% if result.abuseipdb %}
-                        Reports:
+                        <strong>Reports: </strong>
                         <a href="{{ result.abuseipdb.link }}" target="_blank">{{ result.abuseipdb.reports }}</a><br>
-                        Risk: {{ result.abuseipdb.risk_score }}%<br>
+                        <strong>Risk: </strong>{{ result.abuseipdb.risk_score }}%<br>
                         {% else %}
                         Not applicable
                         {% endif %}
@@ -426,23 +432,23 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if "ip_quality_score" in analysis_results.selected_engines %}
                     <td>
                         {% if result.ip_quality_score %}
-                        Score: <a href="{{ result.ip_quality_score.link }}" target="_blank">{{ result.ip_quality_score.fraud_score }}</a><br>
+                        <strong>Score: </strong><a href="{{ result.ip_quality_score.link }}" target="_blank">{{ result.ip_quality_score.fraud_score }}</a><br>
                         
                         {% if result.ip_quality_score.proxy == True %}
-                        Proxy: {{ result.ip_quality_score.proxy }}<br>
+                        <strong>Proxy: </strong>{{ result.ip_quality_score.proxy }}<br>
                         {% endif %}
 
                         {% if result.ip_quality_score.vpn == True %}
-                        VPN: {{ result.ip_quality_score.vpn }}<br>
+                        <strong>VPN: </strong>{{ result.ip_quality_score.vpn }}<br>
                         {% endif %}
                         {% if result.ip_quality_score.tor == True %}
-                        Tor: {{ result.ip_quality_score.tor }}<br>
+                        <strong>Tor: </strong>{{ result.ip_quality_score.tor }}<br>
                         {% endif %}
                         {% if result.ip_quality_score.tor == False and result.ip_quality_score.vpn == False and result.ip_quality_score.proxy == False %}
                         Not anonymous<br>
                         {% endif %}
-                        ISP: {{ result.ip_quality_score.ISP }}<br>
-                        Organization: {{ result.ip_quality_score.organization }}<br>
+                        <strong>ISP: </strong>{{ result.ip_quality_score.ISP }}<br>
+                        <strong>Organization: </strong>{{ result.ip_quality_score.organization }}<br>
                         {% else %}
                         Not applicable
                         {% endif %}
@@ -463,10 +469,10 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if "virustotal" in analysis_results.selected_engines %}
                     <td>
                         {% if result.virustotal %}
-                        Ratio:
+                        <strong>Ratio: </strong>
                         <a href="{{ result.virustotal.link }}" target="_blank">{{ result.virustotal.detection_ratio
                             }}</a><br>
-                        Community: {{ result.virustotal.community_score }}
+                        <strong>Community: </strong>{{ result.virustotal.community_score }}
                         {% else %}
                         Not applicable
                         {% endif %}
@@ -475,25 +481,25 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if "mde" in analysis_results.selected_engines %}
                     <td>
                         {% if result.mde and result.mde.ipAddress %}
-                        Devices: <a href="{{ result.mde.link }}" target="_blank">{{ result.mde.orgPrevalence }}</a><br>
-                        First seen: {{ result.mde.orgFirstSeen }} <br>
-                        Last seen: {{ result.mde.orgLastSeen }} <br>
+                        <strong>Devices: </strong><a href="{{ result.mde.link }}" target="_blank">{{ result.mde.orgPrevalence }}</a><br>
+                        <strong>First seen: </strong>{{ result.mde.orgFirstSeen }} <br>
+                        <strong>Last seen: </strong>{{ result.mde.orgLastSeen }} <br>
                         {% elif result.mde and result.mde.sha1 %}
-                        Devices: <a href="{{ result.mde.link }}" target="_blank">{{ result.mde.organizationPrevalence }}</a><br>
-                        First seen: {{ result.mde.orgFirstSeen }} <br>
-                        Last seen: {{ result.mde.orgLastSeen }} <br>
-                        Top filenames: {{ result.mde.topFileNames }} <br>
-                        File product name: {{ result.mde.fileProductName }} <br>
-                        File publisher: {{ result.mde.filePublisher }} <br>
-                        Signer : {{ result.mde.signer }} <br>
-                        Issuer: {{ result.mde.issuer }} <br>
-                        IsValidCertificate: {{ result.mde.isValidCertificate }} <br>
-                        Determination: {{ result.mde.determinationType }} <br>
-                        Determination value: {{ result.mde.determinationValue }}
+                        <strong>Devices: </strong><a href="{{ result.mde.link }}" target="_blank">{{ result.mde.organizationPrevalence }}</a><br>
+                        <strong>First seen: </strong>{{ result.mde.orgFirstSeen }} <br>
+                        <strong>Last seen: </strong>{{ result.mde.orgLastSeen }} <br>
+                        <strong>Top filenames: </strong>{{ result.mde.topFileNames }} <br>
+                        <strong>File product name: </strong>{{ result.mde.fileProductName }} <br>
+                        <strong>File publisher: </strong>{{ result.mde.filePublisher }} <br>
+                        <strong>Signer : </strong>{{ result.mde.signer }} <br>
+                        <strong>Issuer: </strong>{{ result.mde.issuer }} <br>
+                        <strong>IsValidCertificate: </strong>{{ result.mde.isValidCertificate }} <br>
+                        <strong>Determination: </strong>{{ result.mde.determinationType }} <br>
+                        <strong>Determination value: </strong>{{ result.mde.determinationValue }}
                         {% elif result.mde and result.mde.host %}
-                        Devices: <a href="{{ result.mde.link }}" target="_blank">{{ result.mde.orgPrevalence }}</a><br>
-                        First seen: {{ result.mde.orgFirstSeen }} <br>
-                        Last seen: {{ result.mde.orgLastSeen }} <br>
+                        </strong>Devices: </strong><a href="{{ result.mde.link }}" target="_blank">{{ result.mde.orgPrevalence }}</a><br>
+                        </strong>First seen: </strong>{{ result.mde.orgFirstSeen }} <br>
+                        </strong>Last seen: </strong>{{ result.mde.orgLastSeen }} <br>
                         {% else %}
                         Not applicable
                         {% endif %}
@@ -502,8 +508,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if "google_safe_browsing" in analysis_results.selected_engines %}
                     <td>
                         {% if result.google_safe_browsing %}
-                        Threat: {{ result.google_safe_browsing.threat_found }} <br>
-                        Details: {{ result.google_safe_browsing.details }}
+                        <strong>Threat: </strong>{{ result.google_safe_browsing.threat_found }} <br>
+                        <strong>Details: </strong>{{ result.google_safe_browsing.details }}
                         {% else %}
                         Not applicable
                         {% endif %}
@@ -512,9 +518,14 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if "shodan" in analysis_results.selected_engines %}
                     <td>
                         {% if result.shodan %}
-                        Ports: <a href="{{ result.shodan.link }}" target="_blank"> {{ result.shodan.ports }}</a><br>
+                        <strong>Ports:</strong><br>
+                        <a href="{{ result.shodan.link }}" target="_blank">
+                        {% for port in result.shodan.ports %}
+                        {{ port }}<br>
+                        {% endfor %}
+                        </a>
                         {% elif result.shodan and result.shodan.tags %}
-                        Tags: {{ result.shodan.tags }}<br>
+                        <strong>Tags: </strong>{{ result.shodan.tags }}<br>
                         {% else %}
                         Not applicable
                         {% endif %}
@@ -538,7 +549,35 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if "abusix" in analysis_results.selected_engines %}
                     <td>
                         {% if result.abusix %}
-                        Abuse contact: <a href="mailto:{{ result.abusix.abuse }}?subject=Report of abuse concerning {{ result.observable }}&body=Hello,%0D%0A%0D%0AOur team found out that your {{ result.type }} {{ result.observable }} does malicious activity.%0D%0A%0D%0APlease take actions.">{{ result.abusix.abuse }}</a>
+                        <strong>Abuse contact: </strong><a href="mailto:{{ result.abusix.abuse }}?subject=Report of abuse concerning {{ result.observable }}&body=Hello,%0D%0A%0D%0AOur team found out that your {{ result.type }} {{ result.observable }} does malicious activity.%0D%0A%0D%0APlease take actions.">{{ result.abusix.abuse }}</a>
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if "rdap" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.rdap %}
+                        <strong>Registrar: </strong><a href="{{ result.rdap.link }}" target="_blank">{{ result.rdap.registrar }}</a><br>
+                        {% if result.rdap.abuse_contact and result.rdap.abuse_contact != "" %}
+                        <strong>Abuse contact: </strong><a href="mailto:{{ result.rdap.abuse_contact }}?subject=Report of abuse concerning {{ result.observable }}&body=Hello,%0D%0A%0D%0AOur team found out that your {{ result.type }} {{ result.observable }} does malicious activity.%0D%0A%0D%0APlease take actions.">{{ result.rdap.abuse_contact }}</a><br>
+                        {% endif %}
+                        {% if result.rdap.registrant and result.rdap.registrant != "" %}
+                        <strong>Registrant: </strong> {{ result.rdap.registrant }}<br>
+                        {% endif %}
+                        {% if result.rdap.organization and result.rdap.organization != "" %}
+                        <strong>Organization: </strong>{{ result.rdap.organization }}<br>
+                        {% endif %}
+                        {% if result.rdap.registrant_email and result.rdap.registrant_email != "" %}
+                        <strong>Registrant email: </strong><a href="mailto:{{ result.rdap.registrant_email }}?subject=Report of abuse concerning {{ result.observable }}&body=Hello,%0D%0A%0D%0AOur team found out that your {{ result.type }} {{ result.observable }} does malicious activity.%0D%0A%0D%0APlease take actions.">{{ result.rdap.registrant_email }}</a><br>
+                        {% endif %}
+                        <strong>Creation: </strong>{{ result.rdap.creation_date }}<br>
+                        <strong>Expiration: </strong>{{ result.rdap.expiration_date }}<br>
+                        <strong>Updated: </strong>{{ result.rdap.update_date }}<br>
+                        <strong>Name servers: </strong><br>
+                        {% for ns in result.rdap.name_servers %}
+                        {{ ns }}<br>
+                        {% endfor %}
                         {% else %}
                         Not applicable
                         {% endif %}
