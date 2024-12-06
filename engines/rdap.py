@@ -30,13 +30,16 @@ def query_openrdap(observable, observable_type, PROXIES):
         
         data = response.json()
         
-        abuse_contact = "Unknown"
-        registrar = "Unknown"
+        abuse_contact = ""
+        registrar = ""
+        organization = ""
+        registrant = ""
+        registrant_email = ""
         name_servers = []
-        creation_date = "Unknown"
-        expiration_date = "Unknown"
-        update_date = "Unknown"
-        link = "Unknown"
+        creation_date = ""
+        expiration_date = ""
+        update_date = ""
+        link = ""
 
         for entity in data.get('entities', []):
             roles = entity.get('roles', [])
@@ -53,6 +56,22 @@ def query_openrdap(observable, observable_type, PROXIES):
                     for vcard in sub_entity.get('vcardArray', [])[1]:
                         if vcard[0] == 'email':
                             abuse_contact = vcard[3]
+            # add registrant if exists
+            if 'registrant' in roles:
+                for vcard in entity.get('vcardArray', [])[1]:
+                    if vcard[0] == 'fn':
+                        registrant = vcard[3]
+            # add registrant email if exists
+            if 'registrant' in roles:
+                for vcard in entity.get('vcardArray', [])[1]:
+                    if vcard[0] == 'email':
+                        registrant_email = vcard[3]
+
+            # add organization if exists
+            if 'registrant' in roles:
+                for vcard in entity.get('vcardArray', [])[1]:
+                    if vcard[0] == 'org':
+                        organization = vcard[3]
         
         for ns in data.get('nameservers', []):
             name_servers.append(ns.get('ldhName').lower())
@@ -72,6 +91,9 @@ def query_openrdap(observable, observable_type, PROXIES):
         return {
             'abuse_contact': abuse_contact,
             'registrar': registrar,
+            'organization': organization,
+            'registrant': registrant,
+            'registrant_email': registrant_email,
             'name_servers': name_servers,
             'creation_date': creation_date,
             'expiration_date': expiration_date,
