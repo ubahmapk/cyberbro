@@ -35,6 +35,10 @@
             padding: 20px;
         }
 
+        .container input[type="checkbox"] {
+            accent-color: var(--primary-color);
+        }
+
         textarea {
             width: 100%;
             height: 100px;
@@ -77,6 +81,56 @@
         .btn:hover {
             background-color: var(--primary-hover-color);
         }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.875rem;
+        }
+
+        .radio-container {
+            background: #fff;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            display: inline-block;
+            padding: 5px;
+            font-size: 0.875rem;
+            color: var(--text-color);
+        }
+
+        .radio-container label {
+            
+            border: 1px solid transparent;
+            border-radius: var(--border-radius);
+            display: inline-block;
+            height: 26px;
+            line-height: 26px;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            transition: .2s all ease-in-out;
+            width: 100px;
+    }
+
+        .radio-container input[type="radio"] {
+            display: none;
+        }
+
+        .radio-container label:hover {
+            background: var(--primary-hover-color);
+            color: white;
+        }
+
+        .radio-container input[type="radio"]:checked + label:hover {
+            background: var(--primary-hover-color);
+            color: white;
+        }
+
+        .radio-container input[type="radio"]:checked + label {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        
 
         .high-risk {
             background-color: #dc3545;
@@ -267,19 +321,68 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
 
                 <div>
                     <h3>Select the engines to use</h3>
-                    <label title="Performs a reverse DNS lookup for IP, domain, URL (on your machine)"><input type="checkbox" name="engines" value="reverse_dns" checked> Reverse DNS </label><br>
-                    <label title="Checks RDAP (ex Whois) record for domain, URL, no API key needed"><input type="checkbox" name="engines" value="rdap" checked> RDAP (ex Whois)</label><br>
-                    <label title="Checks IPinfo, free API key needed"><input type="checkbox" name="engines" value="ipinfo" checked> IPinfo</label><br>
-                    <label title="Checks AbuseIPDB, free API key needed"><input type="checkbox" name="engines" value="abuseipdb" checked> AbuseIPDB</label><br>
-                    <label title="Checks IP Quality Score, free API key needed"><input type="checkbox" name="engines" value="ip_quality_score"> IP Quality Score</label><br>
-                    <label title="Checks VirusTotal, free API key needed"><input type="checkbox" name="engines" value="virustotal"> VirusTotal</label><br>
-                    <label title="Checks Spur.us, free, no API key"><input type="checkbox" name="engines" value="spur"> Spur.us</label><br>
-                    <label title="Checks Microsoft Defender for Endpoint, paid API info on Azure needed"><input type="checkbox" name="engines" value="mde"> Microsoft Defender for Endpoint</label><br>
-                    <label title="Checks Google Safe Browsing, free API key needed"><input type="checkbox" name="engines" value="google_safe_browsing"> Google Safe Browsing</label><br>
-                    <label title="Checks Shodan, free API key needed"><input type="checkbox" name="engines" value="shodan"> Shodan</label><br>
-                    <label title="Checks Phishtank, free, no API key"><input type="checkbox" name="engines" value="phishtank"> Phishtank</label><br>
-                    <label title="Checks abuse contact with Abusix for IP, free, no API key"><input type="checkbox" name="engines" value="abusix"> Abusix</label>
+
+                    <div>
+                    <label title="Performs a reverse DNS lookup for IP, domain, URL (on your machine)"><input type="checkbox" name="engines" value="reverse_dns" data-supports="default domain ip abuse" checked> Reverse DNS </label><br>
+                    <label title="Checks RDAP (ex Whois) record for domain, URL, no API key needed"><input type="checkbox" name="engines" value="rdap" data-supports="default abuse domain" checked> RDAP (ex Whois)</label><br>
+                    <label title="Checks IPinfo, free API key needed"><input type="checkbox" name="engines" value="ipinfo" data-supports="default ip" checked> IPinfo</label><br>
+                    <label title="Checks AbuseIPDB, free API key needed"><input type="checkbox" name="engines" value="abuseipdb" data-supports="default risk" checked> AbuseIPDB</label><br>
+                    <label title="Checks IP Quality Score, free API key needed"><input type="checkbox" name="engines" value="ip_quality_score" data-supports="vpn proxy risk"> IP Quality Score</label><br>
+                    <label title="Checks VirusTotal, free API key needed"><input type="checkbox" name="engines" value="virustotal" data-supports="hash risk ip domain url"> VirusTotal</label><br>
+                    <label title="Checks Spur.us, free, no API key"><input type="checkbox" name="engines" value="spur" data-supports="vpn proxy"> Spur.us</label><br>
+                    <label title="Checks Microsoft Defender for Endpoint, paid API info on Azure needed"><input type="checkbox" name="engines" value="mde" data-supports="hash ip domain url"> Microsoft Defender for Endpoint</label><br>
+                    <label title="Checks Google Safe Browsing, free API key needed"><input type="checkbox" name="engines" value="google_safe_browsing" data-supports="risk domain ip"> Google Safe Browsing</label><br>
+                    <label title="Checks Shodan, free API key needed"><input type="checkbox" name="engines" value="shodan" data-supports="ports ip"> Shodan</label><br>
+                    <label title="Checks Phishtank, free, no API key"><input type="checkbox" name="engines" value="phishtank" data-supports="risk domain url"> Phishtank</label><br>
+                    <label title="Checks abuse contact with Abusix for IP, free, no API key"><input type="checkbox" name="engines" value="abusix" data-supports="abuse"> Abusix</label><br><br>
+                    </div>
                 </div>
+
+                <div>
+                    <div class="radio-container">
+                        <input type="radio" id="selectAll" name="engineSelection">
+                        <label for="selectAll" onclick="selectAllEngines()">All</label>
+                        <input type="radio" id="selectAbuseChecker" name="engineSelection">
+                        <label title="Only IP, domain, URL" for="selectAbuseChecker" onclick="selectAbuseChecker()">Abuse mail</label>
+                        <input type="radio" id="selectHash" name="engineSelection">
+                        <label for="selectHash" onclick="selectHash()">Hash</label>
+                        <input type="radio" id="selectVpn" name="engineSelection">
+                        <label title="Only IP" for="selectVpn" onclick="selectVpn()">VPN / Proxy</label>
+                        <input type="radio" id="selectDefault" name="engineSelection" checked>
+                        <label for="selectDefault" onclick="selectDefault()">Default</label>
+                    </div>
+                </div>
+                <br>
+
+                <script>
+                    function selectAllEngines() {
+                        document.querySelectorAll('input[name="engines"]').forEach(checkbox => checkbox.checked = true);
+                    }
+
+                    function selectAbuseChecker() {
+                        document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                            checkbox.checked = checkbox.dataset.supports.includes('abuse');
+                        });
+                    }
+
+                    function selectHash() {
+                        document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                            checkbox.checked = checkbox.dataset.supports.includes('hash');
+                        });
+                    }
+
+                    function selectVpn() {
+                        document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                            checkbox.checked = checkbox.dataset.supports.includes('vpn');
+                        });
+                    }
+
+                    function selectDefault() {
+                        document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                            checkbox.checked = checkbox.dataset.supports.includes('default');
+                        });
+                    }
+                </script>
 
                 <button type="submit" class="btn">Start Analysis</button>
             </form>
