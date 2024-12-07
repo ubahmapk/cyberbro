@@ -1,6 +1,6 @@
 # Cyberbro
 
-A simple application that extracts your IoCs from garbage input and checks their reputation using multiple services.
+A simple application that extracts your IoCs from garbage input and checks their reputation using multiple services. \
 Inspired by [Cybergordon](https://cybergordon.com/) and [IntelOwl](https://github.com/intelowlproject/IntelOwl).
 
 This project aims to provide a simple and efficient way to check the reputation of your observables using multiple services, 
@@ -15,19 +15,18 @@ without having to deploy a **complex** solution.
 
 # Features
 
-* **Supports garbage input**: paste your raw logs, IoC, fanged IoC... and they will be parsed using regex.
-* Check if an observable (IP, hash, domain, URL) is malicious using VirusTotal, AbuseIPDB, IPInfo, Spur.us, IP Quality Score, MDE, Google Safe Browsing, Shodan, Abusix, Phishtank (and more to come)...
-* Comprehensive report with search and filter features (type, country, risk, detection, proxy/VPN).
-* Uses multithreading to speed up the process (articially limited with `time.sleep()` because of free API usage).
-* Performs a reverse DNS lookup.
-* Checks ICANN RDAP for domain information.
-* Checks abuse contacts for a IP / URL / domain (Abusix).
-* Provides the ability to export the results to a CSV file and an Excel file.
-* Checks if the observable has been seen on the Microsoft Defender for Endpoint (MDE) platform (your tenant).
-* Uses a proxy if needed.
-* Stores the results in a SQLite database.
-* Provides a history of the analysis.
-* Easily retrieve observable in analysis with the search function in history (highlighted results).
+* **Effortless Input Handling**: Paste raw logs, IoCs, or fanged IoCs, and let our regex parser do the rest.
+* **Multi-Service Reputation Checks**: Verify observables (IP, hash, domain, URL) across multiple services like VirusTotal, AbuseIPDB, IPInfo, Spur.us, IP Quality Score, MDE, Google Safe Browsing, Shodan, Abusix, Phishtank, and more.
+* **Detailed Reports**: Generate comprehensive reports with advanced search and filter options.
+* **High Performance**: Leverage multithreading for faster processing.
+* **Automated Observable Pivoting**: Automatically pivot on domains, URL and IP addresses using reverse DNS and RDAP.
+* **Accurate Domain Info**: Retrieve precise domain information from ICANN RDAP (next generation whois).
+* **Abuse Contact Lookup**: Accurately find abuse contacts for IPs, URLs, and domains.
+* **Export Options**: Export results to CSV and **autofiltered well formatted** Excel files.
+* **MDE Integration**: Check if observables are flagged on your Microsoft Defender for Endpoint (MDE) tenant.
+* **Proxy Support**: Use a proxy if required.
+* **Data Storage**: Store results in a SQLite database.
+* **Analysis History**: Maintain a history of analyses with easy retrieval and search functionality.
 
 # Getting Started
 
@@ -61,10 +60,11 @@ cp secrets-sample.json secrets.json
 }
 ```
 
-* To get API keys, refer to the official documentation of the services.
-* MDE is NOT free, you can skip it if you don't have an account (unchecked by default).
+* Obtain API keys from the official documentation of each service.
+* Note: Microsoft Defender for Endpoint (MDE) is a paid service and can be skipped if you don't have an account (unchecked by default).
 
-> **Warning:** It is possible to change the config from the GUI using [http://127.0.0.1:5000/config](http://127.0.0.1:5000/config), but this endpoint is disabled by default because it is not protected. This endpoint is useful if you want to change the config without restarting the app. To activate it, set `app.config['CONFIG_PAGE_ENABLED'] = True` at the beginning of `app.py`. **This is not recommended for public or team use, because they will be able to see your API keys.**
+> **Warning:** You can modify the configuration via the GUI at [http://127.0.0.1:5000/config](http://127.0.0.1:5000/config). This endpoint is disabled by default for security reasons, as it is not protected. To enable it, set `app.config['CONFIG_PAGE_ENABLED'] = True` at the beginning of `app.py`. 
+> **This is not recommended for public or team use, as it exposes your API keys.**
 
 # Launch the app
 
@@ -115,7 +115,7 @@ python3 app.py
 
 </details>
 
-![image](https://github.com/user-attachments/assets/479f1fc6-65df-41fe-93a6-4bf54c19a435)
+![image](https://github.com/user-attachments/assets/6842cfda-f8e6-4e85-9704-255508a7f38f)
 
 # Security
 
