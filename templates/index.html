@@ -335,6 +335,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <label title="Checks Shodan, free API key needed"><input type="checkbox" name="engines" value="shodan" data-supports="ports ip"> Shodan</label><br>
                     <label title="Checks Phishtank, free, no API key"><input type="checkbox" name="engines" value="phishtank" data-supports="risk domain url"> Phishtank</label><br>
                     <label title="Checks ThreatFox by Abuse.ch, free, no API key"><input type="checkbox" name="engines" value="threatfox" data-supports="ip domain url"> ThreatFox</label><br>
+                    <label title="Checks Google search results, free, no API key"><input type="checkbox" name="engines" value="google" data-supports="domain url ip hash"> Google</label><br>
+                    <label title="Checks Github search results, free, no API key"><input type="checkbox" name="engines" value="github" data-supports="domain url ip hash"> Github</label><br>
                     <label title="Checks abuse contact with Abusix for IP, free, no API key"><input type="checkbox" name="engines" value="abusix" data-supports="abuse"> Abusix</label><br><br>
                     </div>
                 </div>
@@ -492,6 +494,12 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% endif %}
                     {% if "threatfox" in analysis_results.selected_engines %}
                     <th>ThreatFox</th>
+                    {% endif %}
+                    {% if "google" in analysis_results.selected_engines %}
+                    <th>Google</th>
+                    {% endif %}
+                    {% if "github" in analysis_results.selected_engines %}
+                    <th>Github</th>
                     {% endif %}
                 </tr>
             </thead>
@@ -699,6 +707,34 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {{ malware }}<br>
                         {% endfor %}
                         {% elif result.threatfox and result.threatfox.count == 0 %}
+                        Not Found
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if "google" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.google and result.google.results | length > 0 %}
+                        <strong>Search results: </strong><br>
+                        {% for search_result in result.google.results %}
+                        <a href="{{ search_result.url }}" target="_blank" title="{{ search_result.description }}">{{ search_result.title }}</a><br>
+                        {% endfor %}
+                        {% elif result.google and result.google.results | length == 0 %}
+                        Not Found
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if "github" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.github and result.github.results | length > 0 %}
+                        <strong>Search results: </strong><br>
+                        {% for search_result in result.github.results %}
+                        <a href="{{ search_result.url }}" target="_blank" title="{{ search_result.description }}">{{ search_result.title }}</a><br>
+                        {% endfor %}
+                        {% elif result.github and result.github.results | length == 0 %}
                         Not Found
                         {% else %}
                         Not applicable
