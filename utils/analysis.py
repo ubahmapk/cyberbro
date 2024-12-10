@@ -6,7 +6,7 @@ import time
 
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
-    microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan, phishtank, abusix, rdap
+    microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan, phishtank, abusix, rdap, threatfox
 )
 
 from utils.database import save_analysis_result_to_db
@@ -86,6 +86,9 @@ def perform_engine_queries(observable, selected_engines, result):
         result['mde'] = microsoft_defender_for_endpoint.query_microsoft_defender_for_endpoint(
             observable["value"], observable["type"], secrets["mde_tenant_id"], secrets["mde_client_id"], secrets["mde_client_secret"], PROXIES
         )
+    
+    if "threatfox" in selected_engines and observable["type"] in ["URL", "FQDN", "IPv4", "IPv6"]:
+        result['threatfox'] = threatfox.query_threatfox(observable["value"], observable["type"], PROXIES)
 
     if "virustotal" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
         result['virustotal'] = virustotal.query_virustotal(observable["value"], observable["type"], secrets["virustotal"], PROXIES)
