@@ -47,6 +47,11 @@ def prepare_row(result, selected_engines):
         abusix_data = result.get("abusix", {})
         row["abusix_abuse"] = abusix_data.get("abuse") if abusix_data else None
 
+    if "threatfox" in selected_engines:
+        threatfox_data = result.get("threatfox", {})
+        row["tf_count"] = threatfox_data.get("count") if threatfox_data else None
+        row["tf_malware"] = threatfox_data.get("malware_printable") if threatfox_data else None
+
     if "virustotal" in selected_engines:
         virustotal_data = result.get("virustotal", {})
         row["vt_detect"] = virustotal_data.get("detection_ratio") if virustotal_data else None
