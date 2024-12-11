@@ -16,7 +16,7 @@ def query_github(observable, PROXIES):
     """
     try:
         # Perform the Google search query
-        search_results = search(f"{observable} site:github.com", num_results=5, proxy=PROXIES["http"], ssl_verify=False, advanced=True)
+        search_results = search(f"\"{observable}\" site:github.com", num_results=5, proxy=PROXIES["http"], ssl_verify=False, advanced=True)
         
         # knowing that search results is a generator containing SearchResults objects with title, description, url
         search_results = [{"title": result.title, "description": result.description, "url": result.url} for result in search_results]
