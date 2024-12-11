@@ -105,17 +105,15 @@ python3 app.py
 <details>
 <summary>See all screenshots</summary>
 
-![image](https://github.com/user-attachments/assets/72af5afe-d738-4b73-9c14-ee8db4713356)
+![image-analysis](https://github.com/user-attachments/assets/7104a3c5-5574-4ccf-8889-891abb746e5d)
 
-![image](https://github.com/user-attachments/assets/e3dd9d26-8bd2-42df-b5b7-1b828e62f6c3)
+![image-history](https://github.com/user-attachments/assets/ccecdbbd-e561-4e04-9b48-0c36fc059e6c)
 
-![Capture d’écran_14-11-2024_93554_cyberbro stan local](https://github.com/user-attachments/assets/eced18ef-cab1-4056-9f59-323cf91bef3c)
-
-![Capture d’écran_14-11-2024_93537_cyberbro stan local](https://github.com/user-attachments/assets/3afe3b1f-a7c3-4c7b-bb32-42ebf6a3f1a6)
+![image-stats](https://github.com/user-attachments/assets/f044d711-50b4-4384-b164-077730f42184)
 
 </details>
 
-![image](https://github.com/user-attachments/assets/6842cfda-f8e6-4e85-9704-255508a7f38f)
+![image-base](https://github.com/user-attachments/assets/9f789edf-ad41-4269-8cee-47331481999b)
 
 # Security
 
