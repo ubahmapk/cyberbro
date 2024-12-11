@@ -91,7 +91,7 @@ pip install -r requirements.txt
 * Run the app with `gunicorn` (clean mode).
 
 ```bash
-gunicorn -w 1 -b 0.0.0.0:5000 app:app
+gunicorn -w 4 -t 4 -b 0.0.0.0:5000 app:app
 ```
 
 * Run the app with in development mode.
