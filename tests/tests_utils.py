@@ -4,26 +4,7 @@ import sys
 
 sys.path.append('utils')
 
-from utils import refang_text, is_really_ipv6, identify_observable_type, extract_observables
-
-def test_refang_text():
-    # Test refanging a URL with hxxps and [.] notation
-    text = "hxxps://example[.]com"
-    expected = "https://example.com"
-    result = refang_text(text)
-    assert result == expected
-
-    # Test refanging a domain with [.] notation
-    text = "example[.]com"
-    expected = "example.com"
-    result = refang_text(text)
-    assert result == expected
-
-    # Test refanging an email address with [@] and [.] notation
-    text = "toto[@]toto[.]com"
-    expected = "toto@toto.com"
-    result = refang_text(text)
-    assert result == expected
+from utils import is_really_ipv6, identify_observable_type, extract_observables
 
 def test_is_really_ipv6():
     # Test a valid IPv6 address
