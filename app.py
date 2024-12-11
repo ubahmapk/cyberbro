@@ -5,7 +5,8 @@ import uuid
 import threading
 from flask import Flask, request, render_template, jsonify, send_from_directory
 
-from utils.utils import extract_observables, refang_text
+import ioc_fanger
+from utils.utils import extract_observables
 from utils.export import prepare_data_for_export, export_to_csv, export_to_excel
 from models.analysis_result import AnalysisResult, db
 from utils.stats import get_analysis_stats
@@ -59,7 +60,7 @@ def index():
 @app.route('/analyze', methods=['POST'])
 def analyze():
     """Handle the analyze request."""
-    form_data = refang_text(request.form.get("observables", ""))
+    form_data = ioc_fanger.fang(request.form.get("observables", ""))
     observables = extract_observables(form_data)
     selected_engines = request.form.getlist("engines")
 
