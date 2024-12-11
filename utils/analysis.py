@@ -69,7 +69,6 @@ def perform_analysis(app, observables, selected_engines, analysis_id):
             thread.join()
 
         results = collect_results_from_queue(result_queue, len(observables))
-        print("Results supposed to be processed: ", results, file=sys.stderr)
         update_analysis_metadata(analysis_id, start_time, selected_engines, results)
 
 def analyze_observable(observable, index, selected_engines, result_queue):
@@ -142,7 +141,7 @@ def perform_engine_queries(observable, selected_engines, result):
     if "abusix" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
         result['abusix'] = abusix.query_abusix(observable["value"])
 
-    print("Results: ", result, file=sys.stderr)
+    # print("Results: ", result, file=sys.stderr)
     return result
 
 def collect_results_from_queue(result_queue, num_observables):
@@ -160,7 +159,6 @@ def check_analysis_in_progress(analysis_id):
 
 def update_analysis_metadata(analysis_id, start_time, selected_engines, results):
     """Update the analysis metadata."""
-    print("Results supposed to be written: ", results, file=sys.stderr)
     analysis_result = get_analysis_result(analysis_id)
     if analysis_result:
         end_time = time.time()
