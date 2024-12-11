@@ -11,7 +11,7 @@ without having to deploy a **complex** solution.
 ![License](https://img.shields.io/github/license/stanfrbd/cyberbro)
 ![example branch parameter](https://github.com/stanfrbd/cyberbro/actions/workflows/jobs.yml/badge.svg)
 
-![cyberbro_extended](https://github.com/user-attachments/assets/0485e283-2d79-4c62-85eb-304ed0b1550d)
+![cyberbro_gh](https://github.com/user-attachments/assets/d82a021c-a199-4f07-ab26-7af8e1b650a0)
 
 # Features
 
