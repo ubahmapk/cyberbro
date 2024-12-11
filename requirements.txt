@@ -13,3 +13,5 @@ pytest
 querycontacts
 flask_sqlalchemy
 gunicorn
+googlesearch-python
+ioc-fanger
