@@ -16,7 +16,7 @@ without having to deploy a **complex** solution.
 # Features
 
 * **Effortless Input Handling**: Paste raw logs, IoCs, or fanged IoCs, and let our regex parser do the rest.
-* **Multi-Service Reputation Checks**: Verify observables (IP, hash, domain, URL) across multiple services like VirusTotal, AbuseIPDB, IPInfo, Spur.us, IP Quality Score, MDE, Google Safe Browsing, Shodan, Abusix, Phishtank, and more.
+* **Multi-Service Reputation Checks**: Verify observables (IP, hash, domain, URL) across multiple services like VirusTotal, AbuseIPDB, IPInfo, Spur.us, IP Quality Score, MDE, Google Safe Browsing, Shodan, Abusix, Phishtank, ThreatFox, Github, Google...
 * **Detailed Reports**: Generate comprehensive reports with advanced search and filter options.
 * **High Performance**: Leverage multithreading for faster processing.
 * **Automated Observable Pivoting**: Automatically pivot on domains, URL and IP addresses using reverse DNS and RDAP.
@@ -136,6 +136,8 @@ Some misconfigurations may lead to **security issues**.
 * [Phishtank](https://www.phishtank.com/)
 * [OpenRDAP](https://openrdap.org/api)
 * [ICANN](https://lookup.icann.org/)
+* [Google](https://google.com/)
+* [Github](https://github.com/)
 
 # License
 
