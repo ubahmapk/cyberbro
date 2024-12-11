@@ -7,7 +7,7 @@ import sys
 
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
-    microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan, phishtank, abusix, rdap
+    microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan, phishtank, abusix, rdap, threatfox, google, github
 )
 
 from models.analysis_result import AnalysisResult
@@ -89,6 +89,12 @@ def perform_engine_queries(observable, selected_engines, result):
         if result['ipinfo']['asn'] == "BOGON":
             observable["type"] = "BOGON"
 
+    if "google" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+        result['google'] = google.query_google(observable["value"], PROXIES)
+
+    if "github" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+        result['github'] = github.query_github(observable["value"], PROXIES)
+
     if "rdap" in selected_engines and observable["type"] in ["FQDN", "URL"]:
         result['rdap'] = rdap.query_openrdap(observable["value"], observable["type"], PROXIES)
 
@@ -96,6 +102,9 @@ def perform_engine_queries(observable, selected_engines, result):
         result['mde'] = microsoft_defender_for_endpoint.query_microsoft_defender_for_endpoint(
             observable["value"], observable["type"], secrets["mde_tenant_id"], secrets["mde_client_id"], secrets["mde_client_secret"], PROXIES
         )
+    
+    if "threatfox" in selected_engines and observable["type"] in ["URL", "FQDN", "IPv4", "IPv6"]:
+        result['threatfox'] = threatfox.query_threatfox(observable["value"], observable["type"], PROXIES)
 
     if "virustotal" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
         result['virustotal'] = virustotal.query_virustotal(observable["value"], observable["type"], secrets["virustotal"], PROXIES)

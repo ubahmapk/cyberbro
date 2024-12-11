@@ -334,6 +334,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <label title="Checks Google Safe Browsing, free API key needed"><input type="checkbox" name="engines" value="google_safe_browsing" data-supports="risk domain ip"> Google Safe Browsing</label><br>
                     <label title="Checks Shodan, free API key needed"><input type="checkbox" name="engines" value="shodan" data-supports="ports ip"> Shodan</label><br>
                     <label title="Checks Phishtank, free, no API key"><input type="checkbox" name="engines" value="phishtank" data-supports="risk domain url"> Phishtank</label><br>
+                    <label title="Checks ThreatFox by Abuse.ch, free, no API key"><input type="checkbox" name="engines" value="threatfox" data-supports="ip domain url"> ThreatFox</label><br>
+                    <label title="Checks Google search results, free, no API key"><input type="checkbox" name="engines" value="google" data-supports="domain url ip hash"> Google</label><br>
+                    <label title="Checks Github search results, free, no API key"><input type="checkbox" name="engines" value="github" data-supports="domain url ip hash"> Github</label><br>
                     <label title="Checks abuse contact with Abusix for IP, free, no API key"><input type="checkbox" name="engines" value="abusix" data-supports="abuse"> Abusix</label><br><br>
                     </div>
                 </div>
@@ -489,12 +492,21 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if "rdap" in analysis_results.selected_engines %}
                     <th>RDAP</th>
                     {% endif %}
+                    {% if "threatfox" in analysis_results.selected_engines %}
+                    <th>ThreatFox</th>
+                    {% endif %}
+                    {% if "google" in analysis_results.selected_engines %}
+                    <th>Google</th>
+                    {% endif %}
+                    {% if "github" in analysis_results.selected_engines %}
+                    <th>Github</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for result in analysis_results.results %}
                 <tr
-                    class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% elif result.virustotal and result.virustotal.total_malicious > 10 or result.virustotal and result.virustotal.community_score < -10 %}high-detection{% elif result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% endif %}">
+                    class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% elif result.virustotal and result.virustotal.total_malicious > 10 or result.virustotal and result.virustotal.community_score < -10 %}high-detection{% elif result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% elif result.threatfox and result.threatfox.count != 0 %}high-risk{% endif %}">
                     <td>{{ result.observable }}</td>
                     <td>{{ result.type }}</td>
                     <td>
@@ -681,6 +693,49 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% for ns in result.rdap.name_servers %}
                         {{ ns }}<br>
                         {% endfor %}
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if "threatfox" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.threatfox and result.threatfox.count != 0 %}
+                        <strong>Count: </strong><a href="{{ result.threatfox.link }}" target="_blank" title="Might not be available in the website itself.">{{ result.threatfox.count }}</a><br>
+                        <strong>Malware: </strong><br>
+                        {% for malware in result.threatfox.malware_printable %}
+                        {{ malware }}<br>
+                        {% endfor %}
+                        {% elif result.threatfox and result.threatfox.count == 0 %}
+                        Not Found
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if "google" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.google and result.google.results | length > 0 %}
+                        <strong>Search results: </strong><br>
+                        {% for search_result in result.google.results %}
+                        <a href="{{ search_result.url }}" target="_blank" title="{{ search_result.description }}">{{ search_result.title }}</a><br>
+                        {% endfor %}
+                        {% elif result.google and result.google.results | length == 0 %}
+                        Not Found
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if "github" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.github and result.github.results | length > 0 %}
+                        <strong>Search results: </strong><br>
+                        {% for search_result in result.github.results %}
+                        <a href="{{ search_result.url }}" target="_blank" title="{{ search_result.description }}">{{ search_result.title }}</a><br>
+                        {% endfor %}
+                        {% elif result.github and result.github.results | length == 0 %}
+                        Not Found
                         {% else %}
                         Not applicable
                         {% endif %}

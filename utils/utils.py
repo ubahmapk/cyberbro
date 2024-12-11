@@ -82,18 +82,6 @@ def extract_observables(text):
 
     return results
 
-def refang_text(text):
-    """Refang the given text"""
-    # refang emails
-    text = text.replace("[at]", "@").replace("[dot]", ".")
-    blacklist = ["[", "]"]
-    for char in blacklist:
-        text = text.replace(char, "")
-    # refang URLs
-    text = text.replace("hxxp://", "http://").replace("hxxps://", "https://")
-    
-    return text
-
 def is_really_ipv6(value):
     try:
         socket.inet_pton(socket.AF_INET6, value)
