@@ -337,6 +337,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <label title="Checks ThreatFox by Abuse.ch, free, no API key"><input type="checkbox" name="engines" value="threatfox" data-supports="ip domain url"> ThreatFox</label><br>
                     <label title="Checks Google search results, free, no API key"><input type="checkbox" name="engines" value="google" data-supports="domain url ip hash"> Google</label><br>
                     <label title="Checks Github search results, free, no API key"><input type="checkbox" name="engines" value="github" data-supports="domain url ip hash"> Github</label><br>
+                    <label title="Checks Ioc.One HTML search results, free, no API key"><input type="checkbox" name="engines" value="ioc_one_html" data-supports="domain url ip hash"> Ioc.One (HTML)</label><br>
+                    <label title="Checks Ioc.One PDF search results, free, no API key"><input type="checkbox" name="engines" value="ioc_one_pdf" data-supports="domain url ip hash"> Ioc.One (PDF)</label><br>
                     <label title="Checks abuse contact with Abusix for IP, free, no API key"><input type="checkbox" name="engines" value="abusix" data-supports="abuse"> Abusix</label><br><br>
                     </div>
                 </div>
@@ -500,6 +502,12 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% endif %}
                     {% if "github" in analysis_results.selected_engines %}
                     <th>Github</th>
+                    {% endif %}
+                    {% if "ioc_one_html" in analysis_results.selected_engines %}
+                    <th>Ioc.One (HTML)</th>
+                    {% endif %}
+                    {% if "ioc_one_pdf" in analysis_results.selected_engines %}
+                    <th>Ioc.One (PDF)</th>
                     {% endif %}
                 </tr>
             </thead>
@@ -735,6 +743,36 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         <a href="{{ search_result.url }}" target="_blank" title="{{ search_result.description }}">{{ search_result.title }}</a><br>
                         {% endfor %}
                         {% elif result.github and result.github.results | length == 0 %}
+                        Not Found
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if "ioc_one_html" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.ioc_one_html and result.ioc_one_html.results | length > 0 %}
+                        <strong>Search results: </strong><a href="{{ result.ioc_one_html.link }}" target="_blank">See on Ioc.One</a><br>
+                        ---<br>
+                        {% for search_result in result.ioc_one_html.results %}
+                        <a href="{{ search_result.source }}" target="_blank" title="{{ search_result.header }}">{{ search_result.title }}</a><br>
+                        {% endfor %}
+                        {% elif result.ioc_one_html and result.ioc_one_html.results | length == 0 %}
+                        Not Found
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if "ioc_one_pdf" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.ioc_one_pdf and result.ioc_one_pdf.results | length > 0 %}
+                        <strong>Search results: </strong><a href="{{ result.ioc_one_pdf.link }}" target="_blank">See on Ioc.One</a><br>
+                        ---<br>
+                        {% for search_result in result.ioc_one_pdf.results %}
+                        <a href="{{ search_result.source }}" target="_blank" title="{{ search_result.header }}">{{ search_result.title }}</a><br>
+                        {% endfor %}
+                        {% elif result.ioc_one_pdf and result.ioc_one_pdf.results | length == 0 %}
                         Not Found
                         {% else %}
                         Not applicable
