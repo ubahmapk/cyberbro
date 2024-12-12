@@ -136,6 +136,8 @@ Some misconfigurations may lead to **security issues**.
 * [ICANN](https://lookup.icann.org/)
 * [Google](https://google.com/)
 * [Github](https://github.com/)
+* [ThreatFox](https://threatfox.abuse.ch/api/)
+* [Ioc.One](https://ioc.one/)
 
 # License
 
