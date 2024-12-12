@@ -464,9 +464,15 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 <tr>
                     <th>Observable</th>
                     <th>Type</th>
+                    {% if "reverse_dns" in analysis_results.selected_engines %}
                     <th>DNS Lookup</th>
+                    {% endif %}
+                    {% if "ipinfo" in analysis_results.selected_engines %}
                     <th>IPinfo</th>
+                    {% endif %}
+                    {% if "abuseipdb" in analysis_results.selected_engines %}
                     <th>AbuseIPDB</th>
+                    {% endif %}
                     {% if "ip_quality_score" in analysis_results.selected_engines %}
                     <th>IP Quality Score</th>
                     {% endif %}
@@ -517,6 +523,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% elif result.virustotal and result.virustotal.total_malicious > 10 or result.virustotal and result.virustotal.community_score < -10 %}high-detection{% elif result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% elif result.threatfox and result.threatfox.count != 0 %}high-risk{% endif %}">
                     <td>{{ result.observable }}</td>
                     <td>{{ result.type }}</td>
+                    {% if "reverse_dns" in analysis_results.selected_engines %}
                     <td>
                         {% if result.reverse_dns %}
                         {% for dns in result.reverse_dns.reverse_dns %}
@@ -526,6 +533,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         Not applicable
                         {% endif %}
                     </td>
+                    {% endif %}
+                    {% if "ipinfo" in analysis_results.selected_engines %}
                     <td>
                         {% if result.ipinfo and result.reversed_success and result.type in ["URL", "FQDN"] %}
                         Reverse DNS applied<br>
@@ -540,6 +549,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         Not applicable
                         {% endif %}
                     </td>
+                    {% endif %}
+                    {% if "abuseipdb" in analysis_results.selected_engines %}
                     <td>
                         {% if result.abuseipdb and result.reversed_success and result.type in ["URL", "FQDN"] %}
                         Reverse DNS applied<br>
@@ -552,6 +563,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         Not applicable
                         {% endif %}
                     </td>
+                    {% endif %}
                     {% if "ip_quality_score" in analysis_results.selected_engines %}
                     <td>
                         {% if result.ip_quality_score %}
@@ -823,7 +835,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
             }
 
             if (showRow && countryFilter !== "all") {
-                const countrySpan = td[3].querySelector(".country");
+
+                const countrySpan = tr[i].querySelector(".country");
                 const country = countrySpan ? countrySpan.className.split("-")[1] : "";
                 showRow = country === countryFilter;
             }
@@ -845,27 +858,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
             // Spur or IP Quality Score
             if (showRow && proxyVpnFilter !== "all") {
                 let anonymousResult = "";
-                for (let j = 5; j <= 8; j++) {
-                    if (td[j]) {
-                        anonymousResult = td[j].innerText.toLowerCase();
-                        if (anonymousResult.includes(proxyVpnFilter)) {
-                            break;
-                        }
-                    }
-                }
-                showRow = anonymousResult.includes(proxyVpnFilter);
-            }
-            // Spur or IP Quality Score (second time to cover all engines)
-            if (showRow && proxyVpnFilter !== "all") {
-                let anonymousResult = "";
-                for (let j = 5; j <= 8; j++) {
-                    if (td[j]) {
-                        anonymousResult = td[j].innerText.toLowerCase();
-                        if (anonymousResult.includes(proxyVpnFilter)) {
-                            break;
-                        }
-                    }
-                }
+                anonymousResult = tr[i].innerText.toLowerCase();
                 showRow = anonymousResult.includes(proxyVpnFilter);
             }
 
