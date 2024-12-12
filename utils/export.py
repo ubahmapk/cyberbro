@@ -19,17 +19,23 @@ def prepare_row(result, selected_engines):
 
     row = {
         "observable": result.get("observable"),
-        "type": result.get("type"),
-        "rev_dns": result.get("reversed_success") if rev_dns_data else None,
-        "dns_lookup": rev_dns_data.get("reverse_dns") if rev_dns_data else None,
-        "ipinfo_cn": ipinfo_data.get("country_code") if ipinfo_data else None,
-        "ipinfo_country": ipinfo_data.get("country_name") if ipinfo_data else None,
-        "ipinfo_geo": ipinfo_data.get("geolocation") if ipinfo_data else None,
-        "ipinfo_asn": ipinfo_data.get("asn").split(' ', 1)[0] if ipinfo_data.get("asn") else None,
-        "ipinfo_org": ipinfo_data.get("asn").split(' ', 1)[1] if ipinfo_data.get("asn") else None,
-        "a_ipdb_reports": abuseipdb_data.get("reports") if abuseipdb_data else None,
-        "a_ipdb_risk": abuseipdb_data.get("risk_score") if abuseipdb_data else None
+        "type": result.get("type")
     }
+
+    if "reverse_dns" in selected_engines:
+        row["rev_dns"] = result.get("reversed_success") if rev_dns_data else None
+        row["dns_lookup"] = rev_dns_data.get("reverse_dns") if rev_dns_data else None
+
+    if "ipinfo" in selected_engines:
+        row["ipinfo_cn"] = ipinfo_data.get("country_code") if ipinfo_data else None
+        row["ipinfo_country"] = ipinfo_data.get("country_name") if ipinfo_data else None
+        row["ipinfo_geo"] = ipinfo_data.get("geolocation") if ipinfo_data else None
+        row["ipinfo_asn"] = ipinfo_data.get("asn").split(' ', 1)[0] if ipinfo_data.get("asn") else None
+        row["ipinfo_org"] = ipinfo_data.get("asn").split(' ', 1)[1] if ipinfo_data.get("asn") else None
+
+    if "abuseipdb" in selected_engines:
+        row["a_ipdb_reports"] = abuseipdb_data.get("reports") if abuseipdb_data else None
+        row["a_ipdb_risk"] = abuseipdb_data.get("risk_score") if abuseipdb_data else None
 
     if "rdap" in selected_engines:
         rdap_data = result.get("rdap", {})
