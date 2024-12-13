@@ -28,6 +28,12 @@ without having to deploy a **complex** solution.
 * **Data Storage**: Store results in a SQLite database.
 * **Analysis History**: Maintain a history of analyses with easy retrieval and search functionality.
 
+# Getting Started - TL;DR
+
+> [!IMPORTANT]
+> If you are lazy, you need Docker. \
+> Do a `git clone` ; copy `secrets-sample.json` to `secrets.json` ; `docker compose up` then go to `localhost:5000`. Yep, that's it!
+
 # Getting Started
 
 * To get started, clone the repository
@@ -42,6 +48,10 @@ cd cyberbro
 ```
 cp secrets-sample.json secrets.json
 ```
+
+> [!NOTE]
+> Don't have API keys? No problem, just copy the `secrets-sample.json` to `secrets.json` and leave all like this. Be careful if a proxy is used. \
+> You will be able to use **all free engines!**
 
 * Fill values (including proxy if needed) in the `secrets.json` file.
 
@@ -61,9 +71,12 @@ cp secrets-sample.json secrets.json
 ```
 
 * Obtain API keys from the official documentation of each service.
-* Note: Microsoft Defender for Endpoint (MDE) is a paid service and can be skipped if you don't have an account (unchecked by default).
+* Microsoft Defender for Endpoint (MDE) is a paid service and can be skipped if you don't have an account (unchecked by default).
 
-> **Warning:** You can modify the configuration via the GUI at [http://127.0.0.1:5000/config](http://127.0.0.1:5000/config). This endpoint is disabled by default for security reasons, as it is not protected. To enable it, set `app.config['CONFIG_PAGE_ENABLED'] = True` at the beginning of `app.py`. 
+> [!IMPORTANT]
+> You can modify the configuration via the GUI at [http://127.0.0.1:5000/config](http://127.0.0.1:5000/config). \
+> This endpoint is disabled by default for security reasons, as it is not protected. \
+> To enable it, set `app.config['CONFIG_PAGE_ENABLED'] = True` at the beginning of `app.py`. \
 > **This is not recommended for public or team use, as it exposes your API keys.**
 
 # Launch the app
