@@ -62,5 +62,6 @@ def get_spur(ip, PROXIES):
                 get_spur(ip)
         return {"link": f"https://spur.us/context/{ip}", "tunnels": content}
     except Exception as e:
-        print(f"Error occurred: {e}")
-        return None
+        print(e)
+    # Always return None in case of failure
+    return None

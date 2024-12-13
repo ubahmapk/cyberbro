@@ -18,32 +18,34 @@ def query_abuseipdb(ip, API_KEY, PROXIES):
         requests.exceptions.RequestException: If there is an issue with the network request.
         ValueError: If the response cannot be parsed as JSON.
     """
-    # URL for the AbuseIPDB API
-    url = f"https://api.abuseipdb.com/api/v2/check"
-    
-    # Headers including the API key
-    headers = {"Key": API_KEY, "Accept": "application/json"}
-    
-    # Parameters including the IP address to check
-    params = {"ipAddress": ip}
-    
-    # Make the GET request to the API
-    response = requests.get(url, headers=headers, params=params, proxies=PROXIES, verify=False)
-    
-    # Parse the JSON response
-    data = response.json()
-    
-    # Check if the response contains 'data'
-    if 'data' in data:
-        # Extract the total number of reports and the abuse confidence score
-        reports = data['data'].get('totalReports', 0)
-        risk_score = data['data'].get('abuseConfidenceScore', 0)
+    try:
+        # URL for the AbuseIPDB API
+        url = f"https://api.abuseipdb.com/api/v2/check"
         
-        # Create a link to the AbuseIPDB page for the IP address
-        link = f"https://www.abuseipdb.com/check/{ip}"
+        # Headers including the API key
+        headers = {"Key": API_KEY, "Accept": "application/json"}
         
-        # Return the extracted information
-        return {"reports": reports, "risk_score": risk_score, "link": link}
-    
-    # Return None if 'data' is not in the response
+        # Parameters including the IP address to check
+        params = {"ipAddress": ip}
+        
+        # Make the GET request to the API
+        response = requests.get(url, headers=headers, params=params, proxies=PROXIES, verify=False)
+        
+        # Parse the JSON response
+        data = response.json()
+        
+        # Check if the response contains 'data'
+        if 'data' in data:
+            # Extract the total number of reports and the abuse confidence score
+            reports = data['data'].get('totalReports', 0)
+            risk_score = data['data'].get('abuseConfidenceScore', 0)
+            
+            # Create a link to the AbuseIPDB page for the IP address
+            link = f"https://www.abuseipdb.com/check/{ip}"
+            
+            # Return the extracted information
+            return {"reports": reports, "risk_score": risk_score, "link": link}
+    except Exception as e:
+        print(e)
+    # Always return None in case of failure
     return None

@@ -33,8 +33,9 @@ def query_ioc_one_html(observable, PROXIES):
 
         return {"results": search_results, "link": url}
     except Exception as e:
-        print(f"An error occurred: {e}")
-        return None
+        print(e)
+    # Always return None in case of failure
+    return None
     
 def query_ioc_one_pdf(observable, PROXIES):
     """
@@ -65,5 +66,6 @@ def query_ioc_one_pdf(observable, PROXIES):
 
         return {"results": search_results, "link": url}
     except Exception as e:
-        print(f"An error occurred: {e}")
-        return None
+        print(e)
+    # Always return None in case of failure
+    return None

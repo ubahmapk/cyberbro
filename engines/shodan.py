@@ -28,8 +28,7 @@ def query_shodan(observable, API_KEY, PROXIES):
             data = response.json()
             data["link"] = "https://www.shodan.io/host/" + observable
             return {"ports": data["ports"], "tags": data["tags"],"link": data["link"]}
-        else:
-            return None
     except Exception as e:
         print(e)
-        return None
+    # Always return None in case of failure
+    return None

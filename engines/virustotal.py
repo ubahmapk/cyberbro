@@ -20,41 +20,47 @@ def query_virustotal(observable, observable_type, API_KEY, PROXIES):
         requests.exceptions.RequestException: If there is an issue with the HTTP request.
         KeyError: If the expected data is not found in the API response.
     """
-    headers = {"x-apikey": API_KEY}
+    try:
+        headers = {"x-apikey": API_KEY}
 
-    # Adjust the URL based on the observable type
-    if observable_type in ["IPv4", "IPv6"]:
-        url = f"https://www.virustotal.com/api/v3/ip_addresses/{observable}"
-        link = f"https://www.virustotal.com/gui/ip-address/{observable}/detection"
-    elif observable_type == "FQDN":
-        url = f"https://www.virustotal.com/api/v3/domains/{observable}"
-        link = f"https://www.virustotal.com/gui/domain/{observable}/detection"
-    elif observable_type == "URL":
-        encoded_url = base64.urlsafe_b64encode(observable.encode()).decode().strip("=")
-        url = f"https://www.virustotal.com/api/v3/urls/{encoded_url}"
-        link = f"https://www.virustotal.com/gui/url/{encoded_url}/detection"
-    else:  # Assume any other observable is a file hash
-        url = f"https://www.virustotal.com/api/v3/files/{observable}"
-        link = f"https://www.virustotal.com/gui/file/{observable}/detection"
+        # Adjust the URL based on the observable type
+        if observable_type in ["IPv4", "IPv6"]:
+            url = f"https://www.virustotal.com/api/v3/ip_addresses/{observable}"
+            link = f"https://www.virustotal.com/gui/ip-address/{observable}/detection"
+        elif observable_type == "FQDN":
+            url = f"https://www.virustotal.com/api/v3/domains/{observable}"
+            link = f"https://www.virustotal.com/gui/domain/{observable}/detection"
+        elif observable_type == "URL":
+            encoded_url = base64.urlsafe_b64encode(observable.encode()).decode().strip("=")
+            url = f"https://www.virustotal.com/api/v3/urls/{encoded_url}"
+            link = f"https://www.virustotal.com/gui/url/{encoded_url}/detection"
+        else:  # Assume any other observable is a file hash
+            url = f"https://www.virustotal.com/api/v3/files/{observable}"
+            link = f"https://www.virustotal.com/gui/file/{observable}/detection"
 
-    response = requests.get(url, headers=headers, proxies=PROXIES, verify=False)
-    data = response.json()
-    # print(data)
+        response = requests.get(url, headers=headers, proxies=PROXIES, verify=False)
+        response.raise_for_status()
+        data = response.json()
 
-    if 'data' in data:
-        attributes = data['data']['attributes']
+        if 'data' in data:
+            attributes = data['data']['attributes']
+            
+            # Use last_analysis_stats for detection ratio
+            last_analysis_stats = attributes.get('last_analysis_stats', {})
+            total_malicious = last_analysis_stats.get('malicious', 0)
+            total_engines = sum(last_analysis_stats.values())
+
+            # Establish the detection ratio
+            detection_ratio = f"{total_malicious}/{total_engines}" if total_engines > 0 else "0/0"
+            
+            # Replace 'verdict' with 'community_score'
+            community_score = attributes.get('reputation', 'Unknown')
+
+            return {"detection_ratio": detection_ratio, "total_malicious": total_malicious, "link": link, "community_score": community_score}
         
-        # Use last_analysis_stats for detection ratio
-        last_analysis_stats = attributes.get('last_analysis_stats', {})
-        total_malicious = last_analysis_stats.get('malicious', 0)
-        total_engines = sum(last_analysis_stats.values())
-
-        # Establish the detection ratio
-        detection_ratio = f"{total_malicious}/{total_engines}" if total_engines > 0 else "0/0"
-        
-        # Replace 'verdict' with 'community_score'
-        community_score = attributes.get('reputation', 'Unknown')
-
-        return {"detection_ratio": detection_ratio, "total_malicious": total_malicious, "link": link, "community_score": community_score}
+        return {"detection_ratio": "0/0", "total_malicious": 0, "link": f"https://www.virustotal.com/gui/search/{observable}", "community_score": 0}
     
-    return {"detection_ratio": "0/0", "total_malicious": 0, "link": f"https://www.virustotal.com/gui/search/{observable}", "community_score": 0}
+    except Exception as e:
+        print(e)
+    # Always return None in case of failure
+    return None

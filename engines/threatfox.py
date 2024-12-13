@@ -32,24 +32,23 @@ def query_threatfox(observable, observable_type, PROXIES):
         response = requests.post(url, data=json.dumps(payload), proxies=PROXIES, verify=False)
         response.raise_for_status()
         result = response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"HTTP Request failed: {e}")
-        return None
-    except json.JSONDecodeError as e:
-        print(f"JSON decode error: {e}")
-        return None
 
-    data = result.get("data", [])
-    malware_printable_set = set()
+        data = result.get("data", [])
+        malware_printable_set = set()
 
-    if data and isinstance(data, list):
-        for element in data:
-            malware_printable = element.get("malware_printable", "Unknown") if element else None
-            malware_printable_set.add(malware_printable)
-        count = len(data)
-    else:
-        count = 0
+        if data and isinstance(data, list):
+            for element in data:
+                malware_printable = element.get("malware_printable", "Unknown") if element else None
+                malware_printable_set.add(malware_printable)
+            count = len(data)
+        else:
+            count = 0
 
-    link = f"https://threatfox.abuse.ch/browse.php?search=ioc%3A{observable}"
+        link = f"https://threatfox.abuse.ch/browse.php?search=ioc%3A{observable}"
 
-    return {"count": count, "malware_printable": list(malware_printable_set), "link": link}
+        return {"count": count, "malware_printable": list(malware_printable_set), "link": link}
+
+    except Exception as e:
+        print(e)
+    # Always return None in case of failure
+    return None
