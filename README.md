@@ -113,7 +113,7 @@ python3 app.py
 
 </details>
 
-![image-base](https://github.com/user-attachments/assets/9f789edf-ad41-4269-8cee-47331481999b)
+![image-base](https://github.com/user-attachments/assets/50b01df7-27d9-428c-988b-debcb1951458)
 
 # Security
 
