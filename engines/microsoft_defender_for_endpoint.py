@@ -66,53 +66,55 @@ def query_microsoft_defender_for_endpoint(observable, observable_type, tenant_id
           fileProductName, determinationType, determinationValue). Returns None if the request fails.
     """
 
-    jwt_token = read_token() or get_token(tenant_id, client_id, client_secret, PROXIES)
+    try:
+        jwt_token = read_token() or get_token(tenant_id, client_id, client_secret, PROXIES)
+        headers = {"Authorization": "Bearer " + jwt_token}
 
-    headers = {"Authorization": "Bearer " + jwt_token}
+        # Adjust the URL based on the observable type
+        file_info_url = None
+        if observable_type in ["MD5", "SHA1", "SHA256"]:
+            url = f"https://api.securitycenter.microsoft.com/api/files/{observable}/stats"
+            file_info_url = f"https://api.securitycenter.microsoft.com/api/files/{observable}"
+            link = f"https://securitycenter.microsoft.com/file/{observable}"
+        elif observable_type in ["IPv4", "IPv6", "BOGON"]:
+            url = f"https://api.securitycenter.microsoft.com/api/ips/{observable}/stats"
+            link = f"https://securitycenter.microsoft.com/ip/{observable}/overview"
+        elif observable_type == "FQDN":
+            url = f"https://api.securitycenter.microsoft.com/api/domains/{observable}/stats"
+            link = f"https://securitycenter.microsoft.com/domains?urlDomain={observable}"
+        elif observable_type == "URL":
+            extracted_domain = observable.split('/')[2]
+            url = f"https://api.securitycenter.microsoft.com/api/domains/{extracted_domain}/stats"
+            link = f"https://securitycenter.microsoft.com/url?url={observable}"
 
-    # Adjust the URL based on the observable type
-    file_info_url = None
-    if observable_type in ["MD5", "SHA1", "SHA256"]:
-        url = f"https://api.securitycenter.microsoft.com/api/files/{observable}/stats"
-        file_info_url = f"https://api.securitycenter.microsoft.com/api/files/{observable}"
-        link = f"https://securitycenter.microsoft.com/file/{observable}"
-    elif observable_type in ["IPv4", "IPv6", "BOGON"]:
-        url = f"https://api.securitycenter.microsoft.com/api/ips/{observable}/stats"
-        link = f"https://securitycenter.microsoft.com/ip/{observable}/overview"
-    elif observable_type == "FQDN":
-        url = f"https://api.securitycenter.microsoft.com/api/domains/{observable}/stats"
-        link = f"https://securitycenter.microsoft.com/domains?urlDomain={observable}"
-    elif observable_type == "URL":
-        extracted_domain = observable.split('/')[2]
-        url = f"https://api.securitycenter.microsoft.com/api/domains/{extracted_domain}/stats"
-        link = f"https://securitycenter.microsoft.com/url?url={observable}"
-
-    response = requests.get(url, headers=headers, proxies=PROXIES, verify=False)
-    
-    if file_info_url:
-        file_info_response = requests.get(file_info_url, headers=headers, proxies=PROXIES, verify=False)
-        file_info = file_info_response.json()
-
-    if response.status_code == 200:
-        data = response.json()
-        data["link"] = link
-        if file_info_url:
-            data["issuer"] = file_info.get("issuer", "Unknown")
-            data["signer"] = file_info.get("signer", "Unknown")
-            data["isValidCertificate"] = file_info.get("isValidCertificate", "Unknown")
-            data["filePublisher"] = file_info.get("filePublisher", "Unknown")
-            data["fileProductName"] = file_info.get("fileProductName", "Unknown")
-            data["determinationType"] = file_info.get("determinationType", "Unknown")
-            data["determinationValue"] = file_info.get("determinationValue", "Unknown")
+        response = requests.get(url, headers=headers, proxies=PROXIES, verify=False)
         
-        # Do not include hours, minutes, and seconds in the date
-        if data["orgFirstSeen"] and data["orgLastSeen"]:
-            data["orgFirstSeen"] = data["orgFirstSeen"].split("T")[0]
-            data["orgLastSeen"] = data["orgLastSeen"].split("T")[0]
-        # print(data)
-        return data
-    else:
-        print(f"Error: Received status code {response.status_code}")
-        return None
+        if file_info_url:
+            file_info_response = requests.get(file_info_url, headers=headers, proxies=PROXIES, verify=False)
+            file_info = file_info_response.json()
+
+        if response.status_code == 200:
+            data = response.json()
+            data["link"] = link
+            if file_info_url:
+                data["issuer"] = file_info.get("issuer", "Unknown")
+                data["signer"] = file_info.get("signer", "Unknown")
+                data["isValidCertificate"] = file_info.get("isValidCertificate", "Unknown")
+                data["filePublisher"] = file_info.get("filePublisher", "Unknown")
+                data["fileProductName"] = file_info.get("fileProductName", "Unknown")
+                data["determinationType"] = file_info.get("determinationType", "Unknown")
+                data["determinationValue"] = file_info.get("determinationValue", "Unknown")
+            
+            # Do not include hours, minutes, and seconds in the date
+            if data["orgFirstSeen"] and data["orgLastSeen"]:
+                data["orgFirstSeen"] = data["orgFirstSeen"].split("T")[0]
+                data["orgLastSeen"] = data["orgLastSeen"].split("T")[0]
+            # print(data)
+            return data
+
+    except Exception as e:
+        print(e)
+    # Always return None in case of failure
+    return None
 
     

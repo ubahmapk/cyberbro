@@ -38,6 +38,7 @@ def reverse_dns(observable, observable_type):
             elif identify_observable_type(extracted) == "IPv4":
                 reverse_name = dns.reversename.from_address(extracted)
                 return {'reverse_dns': [str(dns.resolver.resolve(reverse_name, "PTR")[0])]}
-    except Exception:
-        return None
+    except Exception as e:
+        print(e)
+    # Always return None in case of failure
     return None

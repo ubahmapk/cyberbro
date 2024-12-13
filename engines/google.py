@@ -24,5 +24,6 @@ def query_google(observable, PROXIES):
         
         return {"results": search_results}
     except Exception as e:
-        print(f"An error occurred: {e}")
-        return None
+        print(e)
+    # Always return None in case of failure
+    return None

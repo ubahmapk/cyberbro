@@ -28,8 +28,7 @@ def query_ip_quality_score(ip, API_KEY, PROXIES):
             data["link"] = f"https://www.ipqualityscore.com/free-ip-lookup-proxy-vpn-test/lookup/{ip}"
             return data
         
-    except requests.RequestException as e:
-        # Print the error message and return None in case of an exception
-        print(f"An error occurred: {e}")
-    
+    except Exception as e:
+        print(e)
+    # Always return None in case of failure
     return None

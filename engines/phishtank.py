@@ -38,12 +38,7 @@ def query_phishtank(observable, observable_type, PROXIES):
         data = response.json()
         print(data["results"])
         return data["results"]
-    except requests.exceptions.RequestException as e:
-        print(f"Request failed: {e}")
-    except ValueError as e:
-        print(f"Error parsing JSON response: {e}")
-    except KeyError as e:
-        print(f"Expected key not found in response: {e}")
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        print(e)
+    # Always return None in case of failure
     return None

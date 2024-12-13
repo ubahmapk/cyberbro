@@ -14,6 +14,7 @@ def query_abusix(observable):
     try:
         abuse = querycontacts.ContactFinder().find(observable)
         return {"abuse": abuse[0]}
-    except Exception:
-        print("An error occurred while querying Abusix.")
+    except Exception as e:
+        print(e)
+    # Always return None in case of failure
     return None 

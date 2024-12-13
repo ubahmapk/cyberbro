@@ -100,6 +100,7 @@ def query_openrdap(observable, observable_type, PROXIES):
             'update_date': update_date,
             'link': link
         }
-    except (requests.RequestException, IndexError, ValueError) as e:
-        # Log the error if needed
-        return None
+    except Exception as e:
+        print(e)
+    # Always return None in case of failure
+    return None
