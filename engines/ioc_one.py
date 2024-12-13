@@ -28,8 +28,8 @@ def query_ioc_one_html(observable, PROXIES):
         for card in cards[:5]:
             header = card.find('div', class_='card-header').text.strip()
             title = card.find('h5', class_='card-title').text.strip()
-            link = card.find('a', class_='btn border btn-primary m-1', target='_blank')['href']
-            search_results.append({"header": header, "title": title, "link": link})
+            source = card.find('a', class_='btn border btn-primary m-1', target='_blank')['href']
+            search_results.append({"header": header, "title": title, "source": source})
 
         return {"results": search_results, "link": url}
     except Exception as e:
