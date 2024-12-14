@@ -30,7 +30,7 @@ This Code of Conduct applies within project spaces and public spaces where an in
 
 ## Enforcement  
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the maintainer at **kbr81a5yuvz@protonmail.com**. All complaints will be reviewed and investigated, and appropriate action will be taken to maintain a safe and welcoming environment.  
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the maintainer at **kbr81a5yuvz at protonmail.com**. All complaints will be reviewed and investigated, and appropriate action will be taken to maintain a safe and welcoming environment.  
 
 ## Attribution  
 
