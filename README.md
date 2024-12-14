@@ -30,7 +30,7 @@ without having to deploy a **complex** solution.
 
 # Getting Started - TL;DR
 
-> [!IMPORTANT]
+> [!TIP]
 > If you are lazy, you need Docker. \
 > Do a `git clone` ; copy `secrets-sample.json` to `secrets.json` ; `docker compose up` then go to `localhost:5000`. Yep, that's it!
 
@@ -128,9 +128,8 @@ python3 app.py
 
 ![image-base](https://github.com/user-attachments/assets/50b01df7-27d9-428c-988b-debcb1951458)
 
-# Security
-
-**Disclaimer**: this is still a development server, not intended for production. \
+> [!CAUTION]
+> This is still a development server, not intended for production. \
 Some misconfigurations may lead to **security issues**.
 
 # API and third-party services
