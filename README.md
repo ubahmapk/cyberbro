@@ -136,7 +136,8 @@ Some misconfigurations may lead to **security issues**.
 
 * [VirusTotal](https://developers.virustotal.com/v3.0/reference)
 * [AbuseIPDB](https://docs.abuseipdb.com/)
-* [IPInfo](https://ipinfo.io/developers)
+* [IPquery](https://ipquery.gitbook.io/ipquery-docs)
+* [IPinfo](https://ipinfo.io/developers)
 * [Google Safe Browsing](https://developers.google.com/safe-browsing)
 * [IP Quality Score](https://www.ipqualityscore.com/)
 * [Microsoft Defender for Endpoint](https://docs.microsoft.com/en-us/windows/security/threat-protection/microsoft-defender-atp/microsoft-defender-for-endpoint-api)
