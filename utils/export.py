@@ -26,6 +26,17 @@ def prepare_row(result, selected_engines):
         row["rev_dns"] = result.get("reversed_success") if rev_dns_data else None
         row["dns_lookup"] = rev_dns_data.get("reverse_dns") if rev_dns_data else None
 
+    if "ipquery" in selected_engines:
+        ipquery_data = result.get("ipquery", {})
+        row["ipq_cn"] = ipquery_data.get("country_code") if ipquery_data else None
+        row["ipq_country"] = ipquery_data.get("country_name") if ipquery_data else None
+        row["ipq_geo"] = ipquery_data.get("geolocation") if ipquery_data else None
+        row["ipq_asn"] = ipquery_data.get("asn") if ipquery_data else None
+        row["ipq_isp"] = ipquery_data.get("isp") if ipquery_data else None
+        row["ipq_vpn"] = ipquery_data.get("is_vpn") if ipquery_data else None
+        row["ipq_tor"] = ipquery_data.get("is_tor") if ipquery_data else None
+        row["ipq_proxy"] = ipquery_data.get("is_proxy") if ipquery_data else None
+
     if "ipinfo" in selected_engines:
         row["ipinfo_cn"] = ipinfo_data.get("country_code") if ipinfo_data else None
         row["ipinfo_country"] = ipinfo_data.get("country_name") if ipinfo_data else None

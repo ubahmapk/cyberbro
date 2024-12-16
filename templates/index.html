@@ -325,8 +325,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 <div>
                     <label title="Performs a reverse DNS lookup for IP, domain, URL (on your machine)"><input type="checkbox" name="engines" value="reverse_dns" data-supports="default domain ip abuse free_no_key" checked> Reverse DNS </label><br>
                     <label title="Checks RDAP (ex Whois) record for domain, URL, no API key required"><input type="checkbox" name="engines" value="rdap" data-supports="default abuse domain free_no_key" checked> RDAP (ex Whois)</label><br>
-                    <label title="Checks IPinfo for IP, reversed obtained IP for a given domain / URL, free API key required"><input type="checkbox" name="engines" value="ipinfo" data-supports="default ip" checked> IPinfo</label><br>
-                    <label title="Checks AbuseIPDB for IP, reversed obtained IP for a given domain / URL, free API key required"><input type="checkbox" name="engines" value="abuseipdb" data-supports="default risk" checked> AbuseIPDB</label><br>
+                    <label title="Checks IPquery for IP, reversed obtained IP for a given domain / URL, free, no API key"><input type="checkbox" name="engines" value="ipquery" data-supports="default ip risk vpn proxy free_no_key" checked> IPquery</label><br>
+                    <label title="Checks AbuseIPDB for IP, reversed obtained IP for a given domain / URL, free API key required"><input type="checkbox" name="engines" value="abuseipdb" data-supports="risk"> AbuseIPDB</label><br>
+                    <label title="Checks IPinfo for IP, reversed obtained IP for a given domain / URL, free API key required"><input type="checkbox" name="engines" value="ipinfo" data-supports="ip"> IPinfo</label><br>
                     <label title="Checks IP Quality Score for IP, reversed obtained IP for a given domain / URL, free API key required"><input type="checkbox" name="engines" value="ip_quality_score" data-supports="vpn proxy risk"> IP Quality Score</label><br>
                     <label title="Checks VirusTotal for IP, domain, URL, hash, free API key required"><input type="checkbox" name="engines" value="virustotal" data-supports="hash risk ip domain url"> VirusTotal</label><br>
                     <label title="Checks Spur.us for IP, reversed obtained IP for a given domain / URL, free, no API key"><input type="checkbox" name="engines" value="spur" data-supports="vpn proxy free_no_key"> Spur.us</label><br>
@@ -437,9 +438,15 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 <option value="all">All Countries</option>
                 {% set countries = [] %}
                 {% for result in analysis_results.results %}
+                {% if (result.ipinfo and result.ipinfo.country_name not in countries) or (result.ipquery and result.ipquery.country_name not in countries) %}
                 {% if result.ipinfo and result.ipinfo.country_name not in countries %}
                 {% set _ = countries.append(result.ipinfo.country_name) %}
                 <option value="{{ result.ipinfo.country_name | lower }}">{{ result.ipinfo.country_name }}</option>
+                {% endif %}
+                {% if result.ipquery and result.ipquery.country_name not in countries %}
+                {% set _ = countries.append(result.ipquery.country_name) %}
+                <option value="{{ result.ipquery.country_name | lower }}">{{ result.ipquery.country_name }}</option>
+                {% endif %}
                 {% endif %}
                 {% endfor %}
             </select>
@@ -473,6 +480,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <th>Type</th>
                     {% if "reverse_dns" in analysis_results.selected_engines %}
                     <th>DNS Lookup</th>
+                    {% endif %}
+                    {% if "ipquery" in analysis_results.selected_engines %}
+                    <th>IPquery</th>
                     {% endif %}
                     {% if "ipinfo" in analysis_results.selected_engines %}
                     <th>IPinfo</th>
@@ -527,7 +537,25 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
             <tbody>
                 {% for result in analysis_results.results %}
                 <tr
-                    class="{% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}high-risk{% elif result.virustotal and result.virustotal.total_malicious > 10 or result.virustotal and result.virustotal.community_score < -10 %}high-detection{% elif result.virustotal and result.virustotal.community_score > 100 %}clean-detection{% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}warning-row{% elif result.threatfox and result.threatfox.count != 0 %}high-risk{% endif %}">
+                    class="
+                    {% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}
+                        high-risk
+                    {% elif result.virustotal and (result.virustotal.total_malicious > 10 or result.virustotal.community_score < -10) %}
+                        high-detection
+                    {% elif result.virustotal and result.virustotal.community_score > 100 %}
+                        clean-detection
+                    {% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}
+                        warning-row
+                    {% elif result.ipquality_score and (result.ip_quality_score.proxy or result.ip_quality_score.vpn or result.ip_quality_score.tor) %}
+                        warning-row
+                    {% elif result.ipquery and (result.ipquery.is_proxy or result.ipquery.is_vpn or result.ipquery.is_tor) %}
+                        warning-row
+                    {% elif (result.ip_quality_score and result.ip_quality_score.fraud_score > 50) or (result.ipquery and result.ipquery.risk_score > 50) %}
+                        high-risk
+                    {% elif result.threatfox and result.threatfox.count != 0 %}
+                        high-risk
+                    {% endif %}
+                    ">
                     <td>{{ result.observable }}</td>
                     <td>{{ result.type }}</td>
                     {% if "reverse_dns" in analysis_results.selected_engines %}
@@ -536,6 +564,33 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% for dns in result.reverse_dns.reverse_dns %}
                             {{ dns }}<br>
                         {% endfor %}
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if "ipquery" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.ipquery %}
+                        <strong>IP: </strong><a href="{{ result.ipquery.link }}" target="_blank">{{ result.ipquery.ip }}</a><br>
+                        <strong>Score: </strong><a href="{{ result.ipquery.link }}" target="_blank">{{ result.ipquery.risk_score }}</a><br>
+
+                        <strong>Geoloc: </strong>{{ result.ipquery.geolocation }}<br>
+                        <strong>Country: </strong><span class="country country-{{result.ipquery.country_name | lower}}">{{result.ipquery.country_name}}</span> <span class="fi fi-{{ result.ipquery.country_code | lower }}"></span><br>
+                        <strong>ASN: </strong>{{ result.ipquery.asn }} {{ result.ipquery.isp }}<br>
+                        {% if result.ipquery.is_proxy == True %}
+                        <strong>Proxy: </strong>{{ result.ipquery.is_proxy }}<br>
+                        {% endif %}
+
+                        {% if result.ipquery.is_vpn == True %}
+                        <strong>VPN: </strong>{{ result.ipquery.is_vpn }}<br>
+                        {% endif %}
+                        {% if result.ipquery.is_tor == True %}
+                        <strong>Tor: </strong>{{ result.ipquery.is_tor }}<br>
+                        {% endif %}
+                        {% if result.ipquery.is_tor == False and result.ipquery.is_vpn == False and result.ipquery.is_proxy == False %}
+                        <strong>Type: </strong>Not anonymous<br>
+                        {% endif %}
                         {% else %}
                         Not applicable
                         {% endif %}
