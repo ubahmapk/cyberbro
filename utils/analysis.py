@@ -7,11 +7,12 @@ import sys
 
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
-    microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan, phishtank, abusix, rdap, threatfox, google, github, ioc_one
+    microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan, phishtank, abusix, rdap, threatfox, google, github, ioc_one, ipquery
 )
 
 from models.analysis_result import AnalysisResult
 from utils.database import save_analysis_result, get_analysis_result
+from utils.utils import is_bogon
 
 # Constants
 SECRETS_FILE = 'secrets.json'
@@ -83,10 +84,10 @@ def initialize_result(observable):
 
 def perform_engine_queries(observable, selected_engines, result):
     """Perform queries to the selected engines."""
-    if "ipinfo" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
-        result['ipinfo'] = ipinfo.query_ipinfo(observable["value"], secrets["ipinfo"], PROXIES)
-        if result['ipinfo']['asn'] == "BOGON":
-            observable["type"] = "BOGON"
+
+    # 1. Check if IP is private
+    if observable["type"] in ["IPv4", "IPv6"] and is_bogon(observable["value"]):
+        observable["type"] = "BOGON"
 
     if "ioc_one_html" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
         result['ioc_one_html'] = ioc_one.query_ioc_one_html(observable["value"], PROXIES)
@@ -120,6 +121,7 @@ def perform_engine_queries(observable, selected_engines, result):
     if "phishtank" in selected_engines and observable["type"] in ["FQDN", "URL"]:
         result['phishtank'] = phishtank.query_phishtank(observable["value"], observable["type"], PROXIES)
     
+    # 2. Reverse DNS if possible, change observable type to IP if possible
     if "reverse_dns" in selected_engines and observable["type"] in ["IPv4", "IPv6", "FQDN", "URL", "BOGON"]:
         reverse_dns_result = reverse_dns.reverse_dns(observable["value"], observable["type"])
         result['reverse_dns'] = reverse_dns_result
@@ -129,7 +131,10 @@ def perform_engine_queries(observable, selected_engines, result):
                 observable["type"] = "IPv4"
                 observable["value"] = reverse_dns_result["reverse_dns"][0]
 
-    if "ipinfo" in selected_engines and observable["type"] in ["IPv4", "IPv6"] and result['reversed_success']:
+    if "ipquery" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
+        result['ipquery'] = ipquery.query_ipquery(observable["value"], PROXIES)
+
+    if "ipinfo" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
         result['ipinfo'] = ipinfo.query_ipinfo(observable["value"], secrets["ipinfo"], PROXIES)
 
     if "abuseipdb" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:

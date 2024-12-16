@@ -1,5 +1,6 @@
 import re
 import socket
+import ipaddress
 
 def identify_observable_type(observable):
     """testing the observable against a set of patterns to identify its type"""
@@ -88,3 +89,6 @@ def is_really_ipv6(value):
         return True
     except socket.error:
         return False
+    
+def is_bogon(ip):
+    return ipaddress.ip_address(ip).is_private
