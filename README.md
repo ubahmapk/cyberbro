@@ -118,15 +118,15 @@ python3 app.py
 <details>
 <summary>See all screenshots</summary>
 
-![image-analysis](https://github.com/user-attachments/assets/7104a3c5-5574-4ccf-8889-891abb746e5d)
+![image-analysis](https://github.com/user-attachments/assets/1331e340-e95d-4b0a-b487-f13b27f2e24d)
 
-![image-history](https://github.com/user-attachments/assets/ccecdbbd-e561-4e04-9b48-0c36fc059e6c)
+![image-history](https://github.com/user-attachments/assets/859c5f43-6da9-4a6a-8b64-23e5035df8a5)
 
-![image-stats](https://github.com/user-attachments/assets/f044d711-50b4-4384-b164-077730f42184)
+![image-stats](https://github.com/user-attachments/assets/c4676eb5-b6de-4611-bade-e21d9e10fcf3)
 
 </details>
 
-![image-base](https://github.com/user-attachments/assets/50b01df7-27d9-428c-988b-debcb1951458)
+![image-base](https://github.com/user-attachments/assets/5de5db84-5e9c-4a67-aa83-30894ce55779)
 
 > [!CAUTION]
 > This is still a development server, not intended for production. \
