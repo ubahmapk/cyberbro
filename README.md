@@ -7,6 +7,7 @@ This project aims to provide a simple and efficient way to check the reputation 
 without having to deploy a **complex** solution.
 
 ![GitHub stars](https://img.shields.io/github/stars/stanfrbd/cyberbro?style=social)
+[![Follow on X/Twitter](https://img.shields.io/twitter/follow/cyberbro_cti?style=social)](https://x.com/cyberbro_cti)
 ![GitHub issues](https://img.shields.io/github/issues/stanfrbd/cyberbro)
 ![License](https://img.shields.io/github/license/stanfrbd/cyberbro)
 ![example branch parameter](https://github.com/stanfrbd/cyberbro/actions/workflows/jobs.yml/badge.svg)
