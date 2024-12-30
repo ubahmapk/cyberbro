@@ -17,7 +17,7 @@ without having to deploy a **complex** solution.
 # Features
 
 * **Effortless Input Handling**: Paste raw logs, IoCs, or fanged IoCs, and let our regex parser do the rest.
-* **Multi-Service Reputation Checks**: Verify observables (IP, hash, domain, URL) across multiple services like VirusTotal, AbuseIPDB, IPInfo, Spur.us, IP Quality Score, MDE, Google Safe Browsing, Shodan, Abusix, Phishtank, ThreatFox, Github, Google...
+* **Multi-Service Reputation Checks**: Verify observables (IP, hash, domain, URL) across multiple services like VirusTotal, AbuseIPDB, IPInfo, Spur.us, MDE, Google Safe Browsing, Shodan, Abusix, Phishtank, ThreatFox, Github, Google...
 * **Detailed Reports**: Generate comprehensive reports with advanced search and filter options.
 * **High Performance**: Leverage multithreading for faster processing.
 * **Automated Observable Pivoting**: Automatically pivot on domains, URL and IP addresses using reverse DNS and RDAP.
@@ -66,7 +66,6 @@ cp secrets-sample.json secrets.json
     "mde_tenant_id": "tenant_here",
     "mde_client_id": "client_id_here",
     "mde_client_secret": "client_secret_here",
-    "ip_quality_score": "token_here",
     "shodan": "token_here"
 }
 ```
@@ -140,7 +139,6 @@ Some misconfigurations may lead to **security issues**.
 * [IPquery](https://ipquery.gitbook.io/ipquery-docs)
 * [IPinfo](https://ipinfo.io/developers)
 * [Google Safe Browsing](https://developers.google.com/safe-browsing)
-* [IP Quality Score](https://www.ipqualityscore.com/)
 * [Microsoft Defender for Endpoint](https://docs.microsoft.com/en-us/windows/security/threat-protection/microsoft-defender-atp/microsoft-defender-for-endpoint-api)
 * [Shodan](https://developer.shodan.io/)
 * [Spur.us](https://spur.us/)

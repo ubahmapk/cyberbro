@@ -153,7 +153,6 @@ def update_config():
         secrets["mde_client_secret"] = request.form.get("mde_client_secret")
         secrets["virustotal"] = request.form.get("virustotal")
         secrets["google_safe_browsing"] = request.form.get("google_safe_browsing")
-        secrets["ip_quality_score"] = request.form.get("ip_quality_score")
         secrets["shodan"] = request.form.get("shodan")
         with open(SECRETS_FILE, 'w') as f:
             json.dump(secrets, f, indent=4)

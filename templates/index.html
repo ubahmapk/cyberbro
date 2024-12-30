@@ -328,7 +328,6 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <label title="Checks IPquery for IP, reversed obtained IP for a given domain / URL, free, no API key"><input type="checkbox" name="engines" value="ipquery" data-supports="default ip risk vpn proxy free_no_key" checked> IPquery</label><br>
                     <label title="Checks AbuseIPDB for IP, reversed obtained IP for a given domain / URL, free API key required"><input type="checkbox" name="engines" value="abuseipdb" data-supports="risk"> AbuseIPDB</label><br>
                     <label title="Checks IPinfo for IP, reversed obtained IP for a given domain / URL, free API key required"><input type="checkbox" name="engines" value="ipinfo" data-supports="ip"> IPinfo</label><br>
-                    <label title="Checks IP Quality Score for IP, reversed obtained IP for a given domain / URL, free API key required"><input type="checkbox" name="engines" value="ip_quality_score" data-supports="vpn proxy risk"> IP Quality Score</label><br>
                     <label title="Checks VirusTotal for IP, domain, URL, hash, free API key required"><input type="checkbox" name="engines" value="virustotal" data-supports="hash risk ip domain url"> VirusTotal</label><br>
                     <label title="Scraps Spur.us for IP, reversed obtained IP for a given domain / URL, free, no API key"><input type="checkbox" name="engines" value="spur" data-supports="vpn proxy free_no_key scraping"> Spur.us</label><br>
                     <label title="Checks Microsoft Defender for Endpoint, paid API info on Azure required"><input type="checkbox" name="engines" value="mde" data-supports="hash ip domain url"> Microsoft Defender for Endpoint</label><br>
@@ -490,9 +489,6 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if "abuseipdb" in analysis_results.selected_engines %}
                     <th>AbuseIPDB</th>
                     {% endif %}
-                    {% if "ip_quality_score" in analysis_results.selected_engines %}
-                    <th>IP Quality Score</th>
-                    {% endif %}
                     {% if "spur" in analysis_results.selected_engines %}
                     <th>Spur.us</th>
                     {% endif %}
@@ -546,11 +542,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         clean-detection
                     {% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}
                         warning-row
-                    {% elif result.ipquality_score and (result.ip_quality_score.proxy or result.ip_quality_score.vpn or result.ip_quality_score.tor) %}
-                        warning-row
                     {% elif result.ipquery and (result.ipquery.is_proxy or result.ipquery.is_vpn or result.ipquery.is_tor) %}
                         warning-row
-                    {% elif (result.ip_quality_score and result.ip_quality_score.fraud_score > 50) or (result.ipquery and result.ipquery.risk_score > 50) %}
+                    {% elif result.ipquery and result.ipquery.risk_score > 50 %}
                         high-risk
                     {% elif result.threatfox and result.threatfox.count != 0 %}
                         high-risk
@@ -621,31 +615,6 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         <strong>Reports: </strong>
                         <a href="{{ result.abuseipdb.link }}" target="_blank">{{ result.abuseipdb.reports }}</a><br>
                         <strong>Risk: </strong>{{ result.abuseipdb.risk_score }}%<br>
-                        {% else %}
-                        Not applicable
-                        {% endif %}
-                    </td>
-                    {% endif %}
-                    {% if "ip_quality_score" in analysis_results.selected_engines %}
-                    <td>
-                        {% if result.ip_quality_score %}
-                        <strong>Score: </strong><a href="{{ result.ip_quality_score.link }}" target="_blank">{{ result.ip_quality_score.fraud_score }}</a><br>
-                        
-                        {% if result.ip_quality_score.proxy == True %}
-                        <strong>Proxy: </strong>{{ result.ip_quality_score.proxy }}<br>
-                        {% endif %}
-
-                        {% if result.ip_quality_score.vpn == True %}
-                        <strong>VPN: </strong>{{ result.ip_quality_score.vpn }}<br>
-                        {% endif %}
-                        {% if result.ip_quality_score.tor == True %}
-                        <strong>Tor: </strong>{{ result.ip_quality_score.tor }}<br>
-                        {% endif %}
-                        {% if result.ip_quality_score.tor == False and result.ip_quality_score.vpn == False and result.ip_quality_score.proxy == False %}
-                        Not anonymous<br>
-                        {% endif %}
-                        <strong>ISP: </strong>{{ result.ip_quality_score.ISP }}<br>
-                        <strong>Organization: </strong>{{ result.ip_quality_score.organization }}<br>
                         {% else %}
                         Not applicable
                         {% endif %}
