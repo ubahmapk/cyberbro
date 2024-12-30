@@ -7,7 +7,7 @@ import sys
 
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
-    microsoft_defender_for_endpoint, ip_quality_score, spur_us_free, shodan, phishtank, abusix, rdap, threatfox, google, github, ioc_one, ipquery
+    microsoft_defender_for_endpoint, spur_us_free, shodan, phishtank, abusix, rdap, threatfox, google, github, ioc_one, ipquery
 )
 
 from models.analysis_result import AnalysisResult
@@ -142,9 +142,6 @@ def perform_engine_queries(observable, selected_engines, result):
 
     if "spur" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
         result['spur'] = spur_us_free.get_spur(observable["value"], SPUR_PROXIES)
-
-    if "ip_quality_score" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
-        result['ip_quality_score'] = ip_quality_score.query_ip_quality_score(observable["value"], secrets["ip_quality_score"], PROXIES)
 
     if "shodan" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
         result['shodan'] = shodan.query_shodan(observable["value"], secrets["shodan"], PROXIES)

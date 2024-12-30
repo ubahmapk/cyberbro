@@ -75,15 +75,6 @@ def prepare_row(result, selected_engines):
         row["vt_nb_detect"] = virustotal_data.get("total_malicious") if virustotal_data else None
         row["vt_community"] = virustotal_data.get("community_score") if virustotal_data else None
 
-    if "ip_quality_score" in selected_engines:
-        ip_quality_score_data = result.get("ip_quality_score", {})
-        row["ipqs_score"] = ip_quality_score_data.get("fraud_score") if ip_quality_score_data else None
-        row["ipqs_proxy"] = ip_quality_score_data.get("proxy") if ip_quality_score_data else None
-        row["ipqs_vpn"] = ip_quality_score_data.get("vpn") if ip_quality_score_data else None
-        row["ipqs_tor"] = ip_quality_score_data.get("tor") if ip_quality_score_data else None
-        row["ipqs_isp"] = ip_quality_score_data.get("ISP") if ip_quality_score_data else None
-        row["ipqs_organization"] = ip_quality_score_data.get("organization") if ip_quality_score_data else None
-
     if "spur" in selected_engines:
         spur_data = result.get("spur", {})
         row["spur_us_anon"] = spur_data.get("tunnels") if spur_data else None
