@@ -112,7 +112,6 @@ def internal_server_error(e):
     """Handle 500 errors."""
     return render_template('500.html'), 500
 
-# add a history page showing analysis results links
 @app.route('/history')
 def history():
     """Render the history page."""
@@ -125,13 +124,11 @@ def stats():
     stats = get_analysis_stats()
     return render_template('stats.html', stats=stats)
 
-# add about page
 @app.route('/about')
 def about():
     """Render the about page."""
     return render_template('about.html')
 
-# add config page
 @app.route('/config')
 def config():
     """Render the config page."""
@@ -139,7 +136,6 @@ def config():
         return render_template('404.html'), 404
     return render_template('config.html', secrets=secrets)
 
-# add update_config endpoint
 @app.route('/update_config', methods=['POST'])
 def update_config():
     """Update config from the form data"""
@@ -160,6 +156,30 @@ def update_config():
     except Exception as e:
         message = "An error occurred while updating the configuration."
     return jsonify({'message': message})
+
+@app.route('/api/results/<analysis_id>', methods=['GET'])
+def get_results(analysis_id):
+    """Get the results of the analysis."""
+    analysis_results = db.session.get(AnalysisResult, analysis_id)
+    if analysis_results:
+        return jsonify(analysis_results.results)
+    else:
+        return jsonify({'error': 'Analysis not found.'}), 404
+
+@app.route('/api/analyze', methods=['POST'])
+def analyze_api():
+    """Handle the analyze request."""
+    data = request.get_json()
+    form_data = ioc_fanger.fang(data.get("text", ""))
+    observables = extract_observables(form_data)
+    # all engines
+    selected_engines = data.get("engines", [])
+
+    analysis_id = str(uuid.uuid4())
+    threading.Thread(target=perform_analysis, args=(app, observables, selected_engines, analysis_id)).start()
+
+    # return the page link to the analysis and the analysis_id
+    return jsonify({'analysis_id': analysis_id, 'link': f"/results/{analysis_id}"}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
