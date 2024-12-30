@@ -132,6 +132,67 @@ python3 app.py
 > This is still a development server, not intended for production. \
 Some misconfigurations may lead to **security issues**.
 
+# Cyberbro API
+
+* The API is available at `/api/` and can be accessed via the GUI or command-line.
+
+**There are currently two endpoints:**
+
+* `/api/analyze` - Analyze a text and return analysis ID (JSON).
+* `/api/results/<analysis_id>` - Retrieve the results of a previous analysis (JSON).
+
+```bash
+curl -X POST "http://localhost:5000/api/analyze" -H "Content-Type: application/json" -d '{"text": "20minutes.fr", "engines": ["reverse_dns", "rdap"]}'
+```
+
+```json
+{
+  "analysis_id": "e88de647-b153-4904-91e5-8f5c79174854",
+  "link": "/results/e88de647-b153-4904-91e5-8f5c79174854"
+}
+```
+
+```bash
+curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
+```
+
+```json
+[
+  {
+    "observable": "20minutes.fr",
+    "rdap": {
+      "abuse_contact": "",
+      "creation_date": "2001-07-11",
+      "expiration_date": "2028-01-08",
+      "link": "https://rdap.nic.fr/domain/20minutes.fr",
+      "name_servers": [
+        "ns-1271.awsdns-30.org",
+        "ns-748.awsdns-29.net",
+        "ns-16.awsdns-02.com",
+        "ns-1958.awsdns-52.co.uk"
+      ],
+      "organization": "",
+      "registrant": "20 MINUTES FRANCE SAS",
+      "registrant_email": "0d6621ed24c26f0d32e2c4f76b507da9-679847@contact.gandi.net",
+      "registrar": "GANDI",
+      "update_date": "2024-11-18"
+    },
+    "reverse_dns": {
+      "reverse_dns": [
+        "13.249.9.82",
+        "13.249.9.92",
+        "13.249.9.83",
+        "13.249.9.129"
+      ]
+    },
+    "reversed_success": true,
+    "type": "FQDN"
+  }
+]
+```
+
+
+
 # API and third-party services
 
 * [VirusTotal](https://developers.virustotal.com/v3.0/reference)
