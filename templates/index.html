@@ -994,11 +994,11 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
             </div>
             {% endif %}
             
-
+            <div class="cards-basic-info">
             {% if analysis_results.results[0].google %}
             <div class="card">
             <h2>Google</h2>
-            <p><strong>Search results: </strong>{{ analysis_results.results[0].google.results | length }}</p>
+            <p><strong>Search results: </strong></p>
             {% for search_result in analysis_results.results[0].google.results %}
             <p><a href="{{ search_result.url }}" target="_blank" title="{{ search_result.description }}">{{ search_result.title }}</a></p>
             {% endfor %}
@@ -1007,16 +1007,17 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
             {% if analysis_results.results[0].github %}
             <div class="card">
             <h2>Github</h2>
-            <p><strong>Search results: </strong>{{ analysis_results.results[0].github.results | length }}</p>
+            <p><strong>Search results: </strong></p>
             {% for search_result in analysis_results.results[0].github.results %}
             <p><a href="{{ search_result.url }}" target="_blank" title="{{ search_result.description }}">{{ search_result.title }}</a></p>
             {% endfor %}
             </div>
             {% endif %}
+            </div>
             {% if analysis_results.results[0].ioc_one_html %}
             <div class="card">
             <h2>Ioc.One (HTML)</h2>
-            <p><strong>Search results: </strong>{{ analysis_results.results[0].ioc_one_html.results | length }}</p>
+            <p><strong>Search results: </strong></p>
             {% for search_result in analysis_results.results[0].ioc_one_html.results %}
             <p><a href="{{ search_result.source }}" target="_blank" title="{{ search_result.header }}">{{ search_result.title }}</a></p>
             {% endfor %}
@@ -1025,7 +1026,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
             {% if analysis_results.results[0].ioc_one_pdf %}
             <div class="card">
             <h2>Ioc.One (PDF)</h2>
-            <p><strong>Search results: </strong>{{ analysis_results.results[0].ioc_one_pdf.results | length }}</p>
+            <p><strong>Search results: </strong></p>
             {% for search_result in analysis_results.results[0].ioc_one_pdf.results %}
             <p><a href="{{ search_result.source }}" target="_blank" title="{{ search_result.header }}">{{ search_result.title }}</a></p>
             {% endfor %}
@@ -1034,7 +1035,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
         </div>
         <style>
             .card {
-            background-color: white;
+            background-color: var(--background-color);
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
