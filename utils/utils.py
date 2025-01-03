@@ -2,6 +2,16 @@ import re
 import socket
 import ipaddress
 
+# List of invalid TLDs - edit this list to add more invalid TLDs or in case of false positives
+INVALID_TLD = [
+    "doc", "xls", "xlsb", "xlam", "xlsm", "xlsx", "xltm", "xml", "txt", "exe", "ppt", "pdf", "docx", "dat", "png", "yarn", 
+    "jpg", "jpeg", "jar", "js", "gz", "pkg", "deb", "bin", "log", "csv", "sql", "tar", "apk", "bat", "py", "wsf", "vb", 
+    "gif", "ico", "tiff", "tif", "asp", "html", "htm", "css", "jsp", "php", "rss", "cpp", "pptx", "java", "ods", "bak", "cfg", 
+    "dll", "ini", "msi", "tmp", "rtf", "vbs", "json", "scr", "class", "slk", "iqy", "http", "jse", "vbe", "ps1", "ps", 
+    "yml", "yaml", "src", "hta", "pub", "https", "sys", "eml", "cab", "dc", "cmd", "init", "lnk", "core", "docm", "hwp", 
+    "publicvm", "iso", "crx", "config"
+]
+
 def identify_observable_type(observable):
     """testing the observable against a set of patterns to identify its type"""
     patterns = {
@@ -80,6 +90,17 @@ def extract_observables(text):
         if ipv6 not in seen:
             seen.add(ipv6)
             results.append({"value": ipv6, "type": "IPv6"})
+
+    # filter invalid TLDs
+    filtered_results = []
+    for result in results:
+        if result["type"] == "FQDN":
+            tld = result["value"].split(".")[-1]
+            if tld in INVALID_TLD:
+                continue
+        filtered_results.append(result)
+
+    results = filtered_results
 
     return results
 
