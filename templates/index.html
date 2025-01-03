@@ -696,8 +696,12 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {{ port }}<br>
                         {% endfor %}
                         </a>
-                        {% elif result.shodan and result.shodan.tags %}
-                        <strong>Tags: </strong>{{ result.shodan.tags }}<br>
+                        {% if result.shodan.tags | length > 0 %}
+                        <strong>Tags: </strong>
+                        {% for tag in result.shodan.tags %}
+                        {{ tag | upper }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                        {% endif %}
                         {% else %}
                         Not applicable
                         {% endif %}
