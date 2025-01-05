@@ -301,6 +301,56 @@
     .footer nav ul li a:hover {
         color: var(--primary-hover-color);
     }
+
+    .card {
+            flex: 1;
+            min-width: 250px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .card h3 {
+        margin-top: 0;
+    }
+
+    .card p {
+        margin: 10px 0;
+    }
+
+    .cards-container {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .cards-results-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    width: 100%;
+    }
+
+    .end-of-cards {
+    padding: 20px;
+    }
+
+    body.dark-mode .card {
+    background-color: var(--dark-background-color);
+    border-color: var(--dark-border-color);
+    }
+
+    @media (max-width: 500px) {
+    .cards-results-container {
+        flex-direction: column;
+    }
+
+    .card {
+        width: 100%;
+    }
+    }
     </style>
 </head>
 
@@ -424,6 +474,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
 
         <p>Analysis start time: {{ analysis_results.start_time_string }}</p>
         <p>Analysis duration: {{ analysis_results.analysis_duration_string }}</p>
+
+        {% if analysis_results.results | length > 1 %}
 
         <div class="filters-container">
             <input type="text" id="searchInput" class="filter-input" onkeyup="filterTable()" placeholder="Search...">
@@ -836,7 +888,259 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 {% endfor %}
             </tbody>
         </table>
+        {% elif analysis_results.results | length == 1 %}
+
+        <div class="cards-container">
+            <div class="cards-results-container">
+            <div class="card">
+            <h3>{{ analysis_results.results[0].observable }}</h3>
+            <p>{{ analysis_results.results[0].type }}</p>
+            </div>
+            {% if analysis_results.results[0].reverse_dns and analysis_results.results[0].reverse_dns.reverse_dns %}
+            <div class="card">
+            <h3>DNS Lookup</h3>
+            <p>{{ analysis_results.results[0].reverse_dns.reverse_dns | join(', ') }}</p>
+            </div>
+            {% endif %}
+            {% if analysis_results.results[0].virustotal %}
+            <div class="card
+                {% if analysis_results.results[0].virustotal and (analysis_results.results[0].virustotal.total_malicious > 10 or analysis_results.results[0].virustotal.community_score < -10) %}
+                 high-detection" style="background-color: red;"
+                {% elif analysis_results.results[0].virustotal and analysis_results.results[0].virustotal.community_score > 100 %}
+                 clean-detection" style="background-color: green;"
+                {% else %}
+                "
+                {% endif %}
+            >
+            <h3>VirusTotal</h3>
+            <p><strong>Ratio: </strong><a href="{{ analysis_results.results[0].virustotal.link }}" target="_blank">{{ analysis_results.results[0].virustotal.detection_ratio }}</a></p>
+            <p><strong>Community: </strong>{{ analysis_results.results[0].virustotal.community_score }}</p>
+            </div>
+            {% endif %}
+            </div>
+            <div class="cards-results-container">
+                {% if analysis_results.results[0].rdap %}
+                <div class="card">
+                <h3>RDAP</h3>
+                <p><strong>Registrar: </strong><a href="{{ analysis_results.results[0].rdap.link }}" target="_blank">{{ analysis_results.results[0].rdap.registrar }}</a></p>
+                {% if analysis_results.results[0].rdap.abuse_contact %}
+                <p><strong>Abuse contact: </strong><a href="mailto:{{ analysis_results.results[0].rdap.abuse_contact }}?subject=Report of abuse concerning {{ analysis_results.results[0].observable }}&body=Hello,%0D%0A%0D%0AOur team found out that your {{ analysis_results.results[0].type }} {{ analysis_results.results[0].observable }} does malicious activity.%0D%0A%0D%0APlease take actions.">{{ analysis_results.results[0].rdap.abuse_contact }}</a></p>
+                {% endif %}
+                {% if analysis_results.results[0].rdap.registrant %}
+                <p><strong>Registrant: </strong>{{ analysis_results.results[0].rdap.registrant }}</p>
+                {% endif %}
+                {% if analysis_results.results[0].rdap.organization %}
+                <p><strong>Organization: </strong>{{ analysis_results.results[0].rdap.organization }}</p>
+                {% endif %}
+                {% if analysis_results.results[0].rdap.registrant_email %}
+                <p><strong>Registrant email: </strong><a href="mailto:{{ analysis_results.results[0].rdap.registrant_email }}?subject=Report of abuse concerning {{ analysis_results.results[0].observable }}&body=Hello,%0D%0A%0D%0AOur team found out that your {{ analysis_results.results[0].type }} {{ analysis_results.results[0].observable }} does malicious activity.%0D%0A%0D%0APlease take actions.">{{ analysis_results.results[0].rdap.registrant_email }}</a></p>
+                {% endif %}
+                <p><strong>Creation: </strong>{{ analysis_results.results[0].rdap.creation_date }}</p>
+                <p><strong>Expiration: </strong>{{ analysis_results.results[0].rdap.expiration_date }}</p>
+                <p><strong>Updated: </strong>{{ analysis_results.results[0].rdap.update_date }}</p>
+                <p><strong>Name servers: </strong>{{ analysis_results.results[0].rdap.name_servers | join(', ') }}</p>
+                </div>
+                {% endif %}
+            {% if analysis_results.results[0].ipquery %}
+            <div class="card
+                {% if analysis_results.results[0].ipquery and (analysis_results.results[0].ipquery.is_proxy or analysis_results.results[0].ipquery.is_vpn or analysis_results.results[0].ipquery.is_tor) %}
+                 warning-row" style="background-color: orange;"
+                {% elif analysis_results.results[0].ipquery and analysis_results.results[0].ipquery.risk_score > 50 %}
+                 high-risk" style="background-color: red;"
+                {% else %}
+                "
+                {% endif %}
+            >
+            <h3>IPquery</h3>
+            <p><strong>IP: </strong><a href="{{ analysis_results.results[0].ipquery.link }}" target="_blank">{{ analysis_results.results[0].ipquery.ip }}</a></p>
+            <p><strong>Score: </strong>{{ analysis_results.results[0].ipquery.risk_score }}</p>
+            <p><strong>Geoloc: </strong>{{ analysis_results.results[0].ipquery.geolocation }}</p>
+            <p><strong>Country: </strong>{{ analysis_results.results[0].ipquery.country_name }} <span class="fi fi-{{ analysis_results.results[0].ipquery.country_code | lower }}"></span></p>
+            <p><strong>ASN: </strong>{{ analysis_results.results[0].ipquery.asn }} {{ analysis_results.results[0].ipquery.isp }}</p>
+            {% if analysis_results.results[0].ipquery.is_proxy %}
+            <p><strong>Proxy: </strong>{{ analysis_results.results[0].ipquery.is_proxy }}</p>
+            {% endif %}
+            {% if analysis_results.results[0].ipquery.is_vpn %}
+            <p><strong>VPN: </strong>{{ analysis_results.results[0].ipquery.is_vpn }}</p>
+            {% endif %}
+            {% if analysis_results.results[0].ipquery.is_tor %}
+            <p><strong>Tor: </strong>{{ analysis_results.results[0].ipquery.is_tor }}</p>
+            {% endif %}
+            {% if not analysis_results.results[0].ipquery.is_tor and not analysis_results.results[0].ipquery.is_vpn and not analysis_results.results[0].ipquery.is_proxy %}
+            <p><strong>Type: </strong>Not anonymous</p>
+            {% endif %}
+            </div>
+            {% endif %}
+            {% if analysis_results.results[0].ipinfo %}
+            <div class="card">
+            <h3>IPinfo</h3>
+            <p><strong>IP: </strong><a href="{{ analysis_results.results[0].ipinfo.link }}" target="_blank">{{ analysis_results.results[0].ipinfo.ip }}</a></p>
+            <p><strong>Geoloc: </strong>{{ analysis_results.results[0].ipinfo.geolocation }}</p>
+            <p><strong>Country: </strong>{{ analysis_results.results[0].ipinfo.country_name }} <span class="fi fi-{{ analysis_results.results[0].ipinfo.country_code | lower }}"></span></p>
+            <p><strong>Hostname: </strong>{{ analysis_results.results[0].ipinfo.hostname }}</p>
+            <p><strong>ASN: </strong>{{ analysis_results.results[0].ipinfo.asn }}</p>
+            </div>
+            {% endif %}
+            {% if analysis_results.results[0].abusix %}
+            <div class="card">
+            <h3>Abusix</h3>
+            <p><strong>Abuse contact: </strong><a href="mailto:{{ analysis_results.results[0].abusix.abuse }}?subject=Report of abuse concerning {{ analysis_results.results[0].observable }}&body=Hello,%0D%0A%0D%0AOur team found out that your {{ analysis_results.results[0].type }} {{ analysis_results.results[0].observable }} does malicious activity.%0D%0A%0D%0APlease take actions.">{{ analysis_results.results[0].abusix.abuse }}</a></p>
+            </div>
+            {% endif %}
+            </div>
+            <div class="cards-results-container">
+            {% if analysis_results.results[0].abuseipdb %}
+            <div class="card{% if analysis_results.results[0].abuseipdb and analysis_results.results[0].abuseipdb.risk_score > 50 %} high-risk" style="background-color: red;"{% else %}"{% endif %}>
+            <h3>AbuseIPDB</h3>
+            <p><strong>Reports: </strong><a href="{{ analysis_results.results[0].abuseipdb.link }}" target="_blank">{{ analysis_results.results[0].abuseipdb.reports }}</a></p>
+            <p><strong>Risk: </strong>{{ analysis_results.results[0].abuseipdb.risk_score }}%</p>
+            </div>
+            {% endif %}
+            {% if analysis_results.results[0].spur %}
+            <div class="card{% if analysis_results.results[0].spur and analysis_results.results[0].spur.tunnels not in ['Not anonymous', 'Non applicable'] %} warning-row" style="background-color: orange;"{% else %}"{% endif %}>
+            <h3>Spur.us</h3>
+            <p><a href="{{ analysis_results.results[0].spur.link }}" target="_blank">{{ analysis_results.results[0].spur.tunnels }}</a></p>
+            </div>
+            {% endif %}
+            </div>
+
+            <div class="cards-results-container">
+            {% if analysis_results.results[0].mde %}
+            <div class="card">
+            <h3>Microsoft Defender for Endpoint</h3>
+            {% if analysis_results.results[0].mde.ipAddress %}
+            <p><strong>Devices: </strong><a href="{{ analysis_results.results[0].mde.link }}" target="_blank">{{ analysis_results.results[0].mde.orgPrevalence }}</a></p>
+            <p><strong>First seen: </strong>{{ analysis_results.results[0].mde.orgFirstSeen }}</p>
+            <p><strong>Last seen: </strong>{{ analysis_results.results[0].mde.orgLastSeen }}</p>
+            {% elif analysis_results.results[0].mde.sha1 %}
+            <p><strong>Devices: </strong><a href="{{ analysis_results.results[0].mde.link }}" target="_blank">{{ analysis_results.results[0].mde.organizationPrevalence }}</a></p>
+            <p><strong>First seen: </strong>{{ analysis_results.results[0].mde.orgFirstSeen }}</p>
+            <p><strong>Last seen: </strong>{{ analysis_results.results[0].mde.orgLastSeen }}</p>
+            <p><strong>Top filenames: </strong>{{ analysis_results.results[0].mde.topFileNames }}</p>
+            <p><strong>File product name: </strong>{{ analysis_results.results[0].mde.fileProductName }}</p>
+            <p><strong>File publisher: </strong>{{ analysis_results.results[0].mde.filePublisher }}</p>
+            <p><strong>Signer: </strong>{{ analysis_results.results[0].mde.signer }}</p>
+            <p><strong>Issuer: </strong>{{ analysis_results.results[0].mde.issuer }}</p>
+            <p><strong>IsValidCertificate: </strong>{{ analysis_results.results[0].mde.isValidCertificate }}</p>
+            <p><strong>Determination: </strong>{{ analysis_results.results[0].mde.determinationType }}</p>
+            <p><strong>Determination value: </strong>{{ analysis_results.results[0].mde.determinationValue }}</p>
+            {% elif analysis_results.results[0].mde.host %}
+            <p><strong>Devices: </strong><a href="{{ analysis_results.results[0].mde.link }}" target="_blank">{{ analysis_results.results[0].mde.orgPrevalence }}</a></p>
+            <p><strong>First seen: </strong>{{ analysis_results.results[0].mde.orgFirstSeen }}</p>
+            <p><strong>Last seen: </strong>{{ analysis_results.results[0].mde.orgLastSeen }}</p>
+            {% endif %}
+            </div>
+            {% endif %}
+            {% if analysis_results.results[0].threatfox %}
+            <div class="card{% if analysis_results.results[0].threatfox and analysis_results.results[0].threatfox.count != 0 %} high-risk" style="background-color: red;"{% else %}"{% endif %}>
+                <h3>ThreatFox</h3>
+                {% if analysis_results.results[0].threatfox.count != 0 %}
+                <p><strong>Count: </strong><a href="{{ analysis_results.results[0].threatfox.link }}" target="_blank">{{ analysis_results.results[0].threatfox.count }}</a></p>
+                <p><strong>Malware: </strong>{{ analysis_results.results[0].threatfox.malware_printable | join(', ') }}</p>
+                {% else %}
+                <p>Not Found</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if analysis_results.results[0].phishtank %}
+            <div class="card">
+                <h3>Phishtank</h3>
+                {% if analysis_results.results[0].phishtank.in_database == True and analysis_results.results[0].phishtank.valid == True and analysis_results.results[0].phishtank.verified == True %}
+                <p><a href="{{ analysis_results.results[0].phishtank.phish_detail_page }}" target="_blank">Found (valid and verified)</a></p>
+                {% elif analysis_results.results[0].phishtank.in_database == True and analysis_results.results[0].phishtank.valid == False %}
+                <p><a href="{{ analysis_results.results[0].phishtank.phish_detail_page }}" target="_blank">Found (invalid)</a></p>
+                {% elif analysis_results.results[0].phishtank.in_database == True and analysis_results.results[0].phishtank.verified == False %}
+                <p><a href="{{ analysis_results.results[0].phishtank.phish_detail_page }}" target="_blank">Found (not verified)</a></p>
+                {% elif analysis_results.results[0].phishtank.in_database == False %}
+                <p>Not Found</p>
+                {% else %}
+                <p>Not applicable</p>
+                {% endif %}
+            </div>
+            {% endif %}
+            </div>
+            <div class="cards-results-container">
+            {% if analysis_results.results[0].google_safe_browsing %}
+            <div class="card">
+            <h3>Google Safe Browsing</h3>
+            <p><strong>Threat: </strong>{{ analysis_results.results[0].google_safe_browsing.threat_found }}</p>
+            <p><strong>Details: </strong>{{ analysis_results.results[0].google_safe_browsing.details }}</p>
+            </div>
+            {% endif %}
+            {% if analysis_results.results[0].shodan %}
+            <div class="card">
+            <h3>Shodan</h3>
+            <p><strong>Ports: </strong>{{ analysis_results.results[0].shodan.ports | join(', ') }}</p>
+            {% if analysis_results.results[0].shodan.tags | length > 0 %}
+            <p><strong>Tags: </strong>{{ analysis_results.results[0].shodan.tags | join(', ') }}</p>
+            {% endif %}
+            </div>
+            {% endif %}
+            </div>
+            
+            <div class="cards-results-container">
+            {% if analysis_results.results[0].google %}
+            <div class="card">
+                <h3>Google</h3>
+                <p><strong>Search results: </strong></p>
+                {% if analysis_results.results[0].google.results | length > 0 %}
+                {% for search_result in analysis_results.results[0].google.results %}
+                <p><a href="{{ search_result.url }}" target="_blank" title="{{ search_result.description }}">{{ search_result.title }}</a></p>
+                {% endfor %}
+                {% else %}
+                <p>Not Found</p>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% if analysis_results.results[0].github %}
+            <div class="card">
+                <h3>Github</h3>
+                <p><strong>Search results: </strong></p>
+                {% if analysis_results.results[0].github.results | length > 0 %}
+                {% for search_result in analysis_results.results[0].github.results %}
+                <p><a href="{{ search_result.url }}" target="_blank" title="{{ search_result.description }}">{{ search_result.title }}</a></p>
+                {% endfor %}
+                {% else %}
+                <p>Not Found</p>
+                {% endif %}
+            </div>
+            {% endif %}
+            </div>
+            <div class="cards-results-container">
+            {% if analysis_results.results[0].ioc_one_html %}
+            <div class="card">
+                <h3>Ioc.One (HTML)</h3>
+                <p><strong>Search results: </strong></p>
+                {% if analysis_results.results[0].ioc_one_html.results | length > 0 %}
+                {% for search_result in analysis_results.results[0].ioc_one_html.results %}
+                <p><a href="{{ search_result.source }}" target="_blank" title="{{ search_result.header }}">{{ search_result.title }}</a></p>
+                {% endfor %}
+                {% else %}
+                <p>Not Found</p>
+                {% endif %}
+            </div>
+            {% endif %}
+            {% if analysis_results.results[0].ioc_one_pdf %}
+            <div class="card">
+                <h3>Ioc.One (PDF)</h3>
+                <p><strong>Search results: </strong></p>
+                {% if analysis_results.results[0].ioc_one_pdf.results | length > 0 %}
+                {% for search_result in analysis_results.results[0].ioc_one_pdf.results %}
+                <p><a href="{{ search_result.source }}" target="_blank" title="{{ search_result.header }}">{{ search_result.title }}</a></p>
+                {% endfor %}
+                {% else %}
+                <p>Not Found</p>
+                {% endif %}
+            </div>
+            {% endif %}
+            </div>
+        </div>
         {% endif %}
+        {% endif %}
+    </div>
+    <div class="end-of-cards">
+
     </div>
 
     <script>
@@ -856,6 +1160,17 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 orderCellsTop: true
             });
         });
+        
+        // remove cards-results-container container if empty
+        function checkCardsBasicInfo() {
+            document.querySelectorAll('.cards-results-container').forEach(container => {
+            if (container.children.length === 0) {
+                container.style.display = 'none';
+            }
+            });
+        }
+
+        checkCardsBasicInfo();
     </script>
 
 </body>
