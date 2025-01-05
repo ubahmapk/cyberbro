@@ -17,7 +17,7 @@ def query_ioc_one_html(observable, PROXIES):
     """
     try:
         url = f"https://ioc.one/auth/deep_search?search={observable}"
-        response = requests.get(url, proxies=PROXIES, verify=False)
+        response = requests.get(url, proxies=PROXIES, verify=False, headers={'User-Agent': 'cyberbro'})
         html_content = response.text
 
         soup = BeautifulSoup(html_content, 'html.parser')
@@ -50,7 +50,7 @@ def query_ioc_one_pdf(observable, PROXIES):
     """
     try:
         url = f"https://ioc.one/auth/deep_search/pdf?search={observable}"
-        response = requests.get(url, proxies=PROXIES, verify=False)
+        response = requests.get(url, proxies=PROXIES, verify=False, headers={'User-Agent': 'cyberbro'})
         html_content = response.text
 
         soup = BeautifulSoup(html_content, 'html.parser')
