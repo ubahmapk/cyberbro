@@ -217,6 +217,14 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 > [!NOTE]
 > Any questions? Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki) or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new)
 
+# Special thanks
+
+A huge thank you to all the amazing contributors who made pull requests and helped improve this project:
+
+* [Axel](https://github.com/botlabsDev) who develops [Ioc.One](https://ioc.one/)
+
+Your contributions are greatly appreciated!
+
 # License
 
 ```
