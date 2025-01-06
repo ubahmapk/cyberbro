@@ -2,7 +2,7 @@ from models.analysis_result import AnalysisResult, db
 
 def get_analysis_stats():
     """Get analysis statistics from the database."""
-    analyses = AnalysisResult.query.all()
+    analyses = db.session.query(AnalysisResult).all()
     num_analyses = len(analyses)
     
     unique_observables = set()
