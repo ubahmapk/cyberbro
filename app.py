@@ -115,7 +115,7 @@ def internal_server_error(e):
 @app.route('/history')
 def history():
     """Render the history page."""
-    analysis_results = AnalysisResult.query.filter(AnalysisResult.results != []).order_by(AnalysisResult.end_time.desc()).all()
+    analysis_results = db.session.query(AnalysisResult).filter(AnalysisResult.results != []).order_by(AnalysisResult.end_time.desc()).limit(60).all()
     return render_template('history.html', analysis_results=analysis_results)
 
 @app.route('/stats')
