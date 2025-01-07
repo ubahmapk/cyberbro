@@ -890,7 +890,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
         <div class="cards-container">
             <div class="cards-results-container">
             <div class="card">
-            <h3>{{ analysis_results.results[0].observable }}</h3>
+                <h3 title="{{ analysis_results.results[0].observable }}">{{ analysis_results.results[0].observable[:60] }}{% if analysis_results.results[0].observable | length > 80 %}...{% endif %}</h3>
             <p>{{ analysis_results.results[0].type }}</p>
             </div>
             {% if analysis_results.results[0].reverse_dns and analysis_results.results[0].reverse_dns.reverse_dns %}
