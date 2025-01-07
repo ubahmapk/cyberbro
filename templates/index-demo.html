@@ -605,7 +605,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         high-risk
                     {% endif %}
                     ">
-                    <td>{{ result.observable }}</td>
+                    <td>{{ result.observable[:60] }}{% if result.observable | length > 60 %}...{% endif %}</td>
                     <td>{{ result.type }}</td>
                     {% if "reverse_dns" in analysis_results.selected_engines %}
                     <td>
