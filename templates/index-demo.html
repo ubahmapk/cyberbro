@@ -377,7 +377,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 <br>
 
                 <div>
-                    <h3 title="Use your mouse to hover over the engine name to see what it does">Select the engines to use (use your own instance to get all engines)</h3>
+                    <h3 title="Use your mouse to hover over the engine name to see what it does">Select the engines to use (use your own instance to get all engines, API limits may apply here)</h3>
                 </div>
                 <div>
                     <label title="Performs a reverse DNS lookup for IP, domain, URL (on your machine)"><input type="checkbox" name="engines" value="reverse_dns" data-supports="default domain ip abuse free_no_key" checked> Reverse DNS </label><br>
@@ -390,6 +390,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <label title="Checks Shodan, reversed obtained IP for a given domain / URL, free API key required"><input type="checkbox" name="engines" value="shodan" data-supports="ports ip"> Shodan</label><br>
                     <label title="Checks Phishtank for domains, URL, free, no API key"><input type="checkbox" name="engines" value="phishtank" data-supports="risk domain url free_no_key"> Phishtank</label><br>
                     <label title="Checks ThreatFox by Abuse.ch for IP, domains, URL, free, no API key"><input type="checkbox" name="engines" value="threatfox" data-supports="ip domain url free_no_key"> ThreatFox</label><br>
+                    <label title="Checks URLscan for URL, free, no API key"><input type="checkbox" name="engines" value="urlscan" data-supports="domain url free_no_key"> URLscan</label><br>
                     <label title="Scraps Google search results for all types of observable, free, no API key"><input type="checkbox" name="engines" value="google" data-supports="domain url ip hash free_no_key scraping"> Google</label><br>
                     <label title="Scraps Github search results for all types of observable, free, no API key"><input type="checkbox" name="engines" value="github" data-supports="domain url ip hash free_no_key scraping"> Github</label><br>
                     <label title="Checks abuse contact with Abusix for IP, reversed obtained IP for a given domain / URL, free, no API key"><input type="checkbox" name="engines" value="abusix" data-supports="abuse free_no_key"> Abusix</label><br><br>
@@ -582,6 +583,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% endif %}
                     {% if "ioc_one_pdf" in analysis_results.selected_engines %}
                     <th>Ioc.One (PDF)</th>
+                    {% endif %}
+                    {% if "urlscan" in analysis_results.selected_engines %}
+                    <th>URLscan</th>
                     {% endif %}
                 </tr>
             </thead>
@@ -881,6 +885,25 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% endif %}
                     </td>
                     {% endif %}
+                    {% if "urlscan" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.urlscan %}
+                        <strong>Scan count: </strong><a href="{{ result.urlscan.link }}" target="_blank">{{ result.urlscan.scan_count }}</a><br>
+                        {% if result.urlscan.scan_count == 0 %}
+                        Not Found
+                        {% else %}
+                        <strong>Top domains: </strong>
+                        <ul>
+                            {% for domain in result.urlscan.top_domains %}
+                            <li>{{ domain.domain }} ({{ domain.count }})</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
@@ -1000,6 +1023,25 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
             </div>
             {% endif %}
             </div>
+
+            <div class="cards-results-container">
+                {% if analysis_results.results[0].urlscan %}
+                <div class="card">
+                <h3>URLscan</h3>
+                <p><strong>Scan count: </strong><a href="{{ analysis_results.results[0].urlscan.link }}" target="_blank">{{ analysis_results.results[0].urlscan.scan_count }}</a></p>
+                {% if analysis_results.results[0].urlscan.scan_count == 0 %}
+                <p>Not Found</p>
+                {% else %}
+                <p><strong>Top domains: </strong></p>
+                <ul>
+                    {% for domain in analysis_results.results[0].urlscan.top_domains %}
+                    <li>{{ domain.domain }} ({{ domain.count }})</li>
+                    {% endfor %}
+                </ul>
+                </div>
+                {% endif %}
+                {% endif %}
+                </div>    
 
             <div class="cards-results-container">
             {% if analysis_results.results[0].mde %}

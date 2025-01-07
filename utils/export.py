@@ -93,6 +93,11 @@ def prepare_row(result, selected_engines):
         row["phishtank_verified"] = phishtank_data.get("verified") if phishtank_data else None
         row["phishtank_valid"] = phishtank_data.get("valid") if phishtank_data else None
 
+    if "urlscan" in selected_engines:
+        urlscan_data = result.get("urlscan", {})
+        row["urlscan_count"] = urlscan_data.get("scan_count") if urlscan_data else None
+        row["urlscan_top_domains"] = urlscan_data.get("top_domains") if urlscan_data else None
+
     return row
 
 def prepare_data_for_export(analysis_results):
