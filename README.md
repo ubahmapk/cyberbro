@@ -19,7 +19,7 @@ without having to deploy a **complex** solution.
 # Features
 
 * **Effortless Input Handling**: Paste raw logs, IoCs, or fanged IoCs, and let our regex parser do the rest.
-* **Multi-Service Reputation Checks**: Verify observables (IP, hash, domain, URL) across multiple services like VirusTotal, AbuseIPDB, IPInfo, Spur.us, MDE, Google Safe Browsing, Shodan, Abusix, Phishtank, ThreatFox, Github, Google...
+* **Multi-Service Reputation Checks**: Verify observables (IP, hash, domain, URL) across multiple services like VirusTotal, AbuseIPDB, IPInfo, Spur.us, MDE, Google Safe Browsing, Shodan, Abusix, Phishtank, ThreatFox, URLscan, Github, Google...
 * **Detailed Reports**: Generate comprehensive reports with advanced search and filter options.
 * **High Performance**: Leverage multithreading for faster processing.
 * **Automated Observable Pivoting**: Automatically pivot on domains, URL and IP addresses using reverse DNS and RDAP.
@@ -213,6 +213,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 * [Google](https://google.com/)
 * [Github](https://github.com/)
 * [ThreatFox](https://threatfox.abuse.ch/api/)
+* [URLscan](https://urlscan.io/)
 * [Ioc.One](https://ioc.one/)
 
 > [!NOTE]
