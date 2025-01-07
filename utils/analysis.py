@@ -7,7 +7,7 @@ import sys
 
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
-    microsoft_defender_for_endpoint, spur_us_free, shodan, phishtank, abusix, rdap, threatfox, google, github, ioc_one, ipquery
+    microsoft_defender_for_endpoint, spur_us_free, shodan, phishtank, abusix, rdap, threatfox, google, github, ioc_one, ipquery, urlscan
 )
 
 from models.analysis_result import AnalysisResult
@@ -88,6 +88,9 @@ def perform_engine_queries(observable, selected_engines, result):
     # 1. Check if IP is private
     if observable["type"] in ["IPv4", "IPv6"] and is_bogon(observable["value"]):
         observable["type"] = "BOGON"
+
+    if "urlscan" in selected_engines and observable["type"] in ["URL", "FQDN"]:
+        result['urlscan'] = urlscan.query_urlscan(observable["value"], observable["type"], PROXIES)
 
     if "ioc_one_html" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
         result['ioc_one_html'] = ioc_one.query_ioc_one_html(observable["value"], PROXIES)
