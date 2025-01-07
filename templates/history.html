@@ -273,10 +273,15 @@
                             <td><a href="/results/{{ analysis.id }}">{{ analysis.id }}</a></td>
                             <td>
                                 <p id="observables-in-analysis" title="{{ analysis.results|map(attribute='observable')|join(', ') }}">
-                                {% for result in analysis.results[:3] %}
-                                    {{ result.observable }}{% if not loop.last %}, {% endif %}
-                                {% endfor %}
-                                {% if analysis.results|length > 3 %}...{% endif %}
+                                {% set observables = analysis.results|map(attribute='observable')|list %}
+                                {% set display_observables = observables[:3] %}
+                                {% set display_text = display_observables|join(', ') %}
+                                {% if display_text|length > 150 %}
+                                    {{ display_text[:80] }}...
+                                {% else %}
+                                    {{ display_text }}
+                                {% endif %}
+                                {% if observables|length > 3 %}...{% endif %}
                                 </p>
                             </td>
                             <td>{{ analysis.results|length }}</td>
