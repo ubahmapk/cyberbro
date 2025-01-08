@@ -522,6 +522,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         let plainText = '';
                         data.forEach(result => {
                             plainText += `Observable: ${result.observable}\nType: ${result.type}\n`;
+                            if (result.reverse_dns) {
+                                plainText += `Reverse DNS: ${result.reverse_dns.reverse_dns.join(', ')}\n`;
+                            }
                             if (result.ipquery) {
                                 plainText += `IPquery: Geolocation: ${result.ipquery.geolocation}, Country: ${result.ipquery.country_name}, ASN: ${result.ipquery.asn}, Risk Score: ${result.ipquery.risk_score}, Proxy: ${result.ipquery.is_proxy}, Tor: ${result.ipquery.is_tor}, VPN: ${result.ipquery.is_vpn}\n`;
                             }
@@ -554,9 +557,6 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             }
                             if (result.rdap) {
                                 plainText += `RDAP: Registrar: ${result.rdap.registrar}, Abuse Contact: ${result.rdap.abuse_contact}, Registrant: ${result.rdap.registrant}, Organization: ${result.rdap.organization}, Registrant Email: ${result.rdap.registrant_email}, Creation Date: ${result.rdap.creation_date}, Expiration Date: ${result.rdap.expiration_date}, Updated Date: ${result.rdap.update_date}, Name Servers: ${result.rdap.name_servers.join(', ')}\n`;
-                            }
-                            if (result.reverse_dns) {
-                                plainText += `Reverse DNS: ${result.reverse_dns.reverse_dns.join(', ')}\n`;
                             }
                             if (result.threatfox) {
                                 plainText += `ThreatFox: Count: ${result.threatfox.count}, Malware: ${result.threatfox.malware_printable.join(', ')}\n`;
