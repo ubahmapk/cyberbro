@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -167,9 +168,9 @@
         }
 
         .secrets_value {
-            width: 100%; 
-            border: 1px solid var(--border-color); 
-            border-radius: var(--border-radius); 
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
             padding: 3px;
             font-family: consolas, monospace;
             background-color: #e9ecef;
@@ -239,67 +240,102 @@
         }
 
         @-webkit-keyframes fadein {
-            from {bottom: 0; opacity: 0;} 
-            to {bottom: 30px; opacity: 1;}
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
         }
 
         @keyframes fadein {
-            from {bottom: 0; opacity: 0;}
-            to {bottom: 30px; opacity: 1;}
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
         }
 
         @-webkit-keyframes fadeout {
-            from {bottom: 30px; opacity: 1;} 
-            to {bottom: 0; opacity: 0;}
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
         }
 
         @keyframes fadeout {
-            from {bottom: 30px; opacity: 1;}
-            to {bottom: 0; opacity: 0;}
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div class="container">
         <button class="dark-mode-toggle" onclick="toggleDarkMode()">
-            <img id="darkModeIcon" src="https://img.icons8.com/ios-filled/50/ffffff/moon-symbol.png" alt="Dark Mode" width="20" height="20">
+            <img id="darkModeIcon" src="https://img.icons8.com/ios-filled/50/ffffff/moon-symbol.png" alt="Dark Mode"
+                width="20" height="20">
         </button>
         <a href="https://github.com/stanfrbd/cyberbro" target="_blank" class="github-logo">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo" width="40" height="40" class="github-logo-light">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo" width="40" height="40" class="github-logo-dark" style="filter: invert(1);">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo"
+                width="40" height="40" class="github-logo-light">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo"
+                width="40" height="40" class="github-logo-dark" style="filter: invert(1);">
         </a>
         <h1>Cyberbro - Configuration</h1>
-        
+
         <form id="configForm">
             <table>
                 <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Value</th>
-                    <th>Actions</th>
-                </tr>
+                    <tr>
+                        <th>Type</th>
+                        <th>Value</th>
+                        <th>Actions</th>
+                    </tr>
                 </thead>
                 <tbody>
-                {% for key, value in secrets.items() %}
-                <tr>
-                    <td style="width: 15%;">
-                    <label class="secrets_key" for="secret_{{ key }}">{{ key }}</label>
-                    </td>
-                    <td style="width:50%">
-                    <input class="secrets_value" type="password" id="secret_{{ key }}" name="{{ key }}" value="{{ value }}" readonly>
-                    </td>
-                    <td style="width: 15%">
-                    <button type="button" id="edit_{{ key }}" onclick="editSecret('{{ key }}')">✏️</button>
-                    <button type="button" id="cancel_{{ key }}" onclick="cancelEdit('{{ key }}', '{{ value }}')" style="display:none;">
-                        ❌
-                    </button>
-                    <button type="button" id="validate_{{ key }}" onclick="validateEdit('{{ key }}')" style="display:none;">
-                        ✅
-                    </button>
-                    </td>
-                </tr>
-                {% endfor %}
+                    {% for key, value in secrets.items() %}
+                    <tr>
+                        <td style="width: 15%;">
+                            <label class="secrets_key" for="secret_{{ key }}">{{ key }}</label>
+                        </td>
+                        <td style="width:50%">
+                            <input class="secrets_value" type="password" id="secret_{{ key }}" name="{{ key }}"
+                                value="{{ value }}" readonly>
+                        </td>
+                        <td style="width: 15%">
+                            <button type="button" id="edit_{{ key }}" onclick="editSecret('{{ key }}')">✏️</button>
+                            <button type="button" id="cancel_{{ key }}" onclick="cancelEdit('{{ key }}', '{{ value }}')"
+                                style="display:none;">
+                                ❌
+                            </button>
+                            <button type="button" id="validate_{{ key }}" onclick="validateEdit('{{ key }}')"
+                                style="display:none;">
+                                ✅
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
             <button type="submit" class="btn save">Save</button>
@@ -337,20 +373,20 @@
                 input.type = 'password';
             }
 
-            document.getElementById('configForm').addEventListener('submit', function(event) {
+            document.getElementById('configForm').addEventListener('submit', function (event) {
                 event.preventDefault();
                 const formData = new FormData(this);
                 fetch('/update_config', {
                     method: 'POST',
                     body: formData
                 })
-                .then(response => response.json())
-                .then(data => {
-                    showToast(data.message);
-                })
-                .catch(error => {
-                    showToast('An error occurred.', 'error');
-                });
+                    .then(response => response.json())
+                    .then(data => {
+                        showToast(data.message);
+                    })
+                    .catch(error => {
+                        showToast('An error occurred.', 'error');
+                    });
             });
 
             function showToast(message, type = 'success') {
@@ -406,4 +442,5 @@
         </ul>
     </nav>
 </footer>
+
 </html>

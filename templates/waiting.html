@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <link rel="icon" href="/favicon.ico" type="image/x-icon">    
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <meta charset="UTF-8">
     <title>Analysis in Progress</title>
     <style>
@@ -21,42 +22,59 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center; /* Center align all text */
-            margin-top: 100px; /* Move content down */
-            background-color: var(--background-color); /* Light background */
-            color: var(--text-color); /* Dark text color */
+            text-align: center;
+            /* Center align all text */
+            margin-top: 100px;
+            /* Move content down */
+            background-color: var(--background-color);
+            /* Light background */
+            color: var(--text-color);
+            /* Dark text color */
         }
-        
+
         .loader {
-            border: 16px solid #f3f3f3; /* Light grey */
-            border-top: 16px solid var(--primary-color); /* Primary color */
+            border: 16px solid #f3f3f3;
+            /* Light grey */
+            border-top: 16px solid var(--primary-color);
+            /* Primary color */
             border-radius: 50%;
             width: 60px;
             height: 60px;
-            animation: spin 2s linear infinite; /* Spin animation */
+            animation: spin 2s linear infinite;
+            /* Spin animation */
             margin: auto;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .dark-mode {
-            background-color: var(--dark-background-color); /* Dark background */
-            color: var(--dark-text-color); /* Light text color */
+            background-color: var(--dark-background-color);
+            /* Dark background */
+            color: var(--dark-text-color);
+            /* Light text color */
         }
 
         .light-mode {
-            background-color: var(--background-color); /* Light background */
-            color: var(--text-color); /* Dark text color */
+            background-color: var(--background-color);
+            /* Light background */
+            color: var(--text-color);
+            /* Dark text color */
         }
     </style>
 </head>
+
 <body>
     <div class="loader"></div>
     <p>Analysis in progress, please wait...</p>
-    
+
     <script>
         // Function to check if the analysis is complete
         function checkResults() {
@@ -88,4 +106,5 @@
         checkResults(); // Start checking for results
     </script>
 </body>
+
 </html>
