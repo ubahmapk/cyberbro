@@ -128,8 +128,8 @@ python3 app.py
 
 </details>
 
-![image-base](https://github.com/user-attachments/assets/5de5db84-5e9c-4a67-aa83-30894ce55779)
-![image](https://github.com/user-attachments/assets/6e310bfe-ee52-4e6b-b52d-1b3a27cd2e20)
+![image](https://github.com/user-attachments/assets/5092341e-30af-42e8-baff-772836873e24)
+![image](https://github.com/user-attachments/assets/e36a900e-873c-4eec-854f-1d01a97ebc1c)
 
 > [!CAUTION]
 > This is still a development server, not intended for production. \
