@@ -465,10 +465,108 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
         <h1>Cyberbro - Analysis Results</h1>
 
         <button class="btn" onclick="location.href='/'">New Analysis</button>
-        <form method="GET" action="/export/{{ analysis_results.id }}">
+        <div style="display: flex; gap: 10px; margin-left: 0;">
+            <form method="GET" action="/export/{{ analysis_results.id }}" style="display: flex; gap: 10px; margin-left: 0;">
             <button type="submit" name="format" value="csv" class="btn">Export to CSV</button>
             <button type="submit" name="format" value="excel" class="btn">Export to Excel</button>
-        </form>
+            </form>
+            <button class="btn" onclick="window.open('/api/results/{{ analysis_results.id }}', '_blank')">Raw</button>
+            <button class="btn" onclick="copyAsPlainText()">Copy as Plain Text</button>
+        </div>
+
+        <script>
+            function copyAsPlainText() {
+                fetch(`/api/results/{{ analysis_results.id }}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let plainText = '';
+                        data.forEach(result => {
+                            plainText += `Observable: ${result.observable}\nType: ${result.type}\n`;
+                            if (result.ipquery) {
+                                plainText += `IPquery: Geolocation: ${result.ipquery.geolocation}, Country: ${result.ipquery.country_name}, ASN: ${result.ipquery.asn}, Risk Score: ${result.ipquery.risk_score}, Proxy: ${result.ipquery.is_proxy}, Tor: ${result.ipquery.is_tor}, VPN: ${result.ipquery.is_vpn}\n`;
+                            }
+                            if (result.ipinfo) {
+                                plainText += `IPinfo: Geolocation: ${result.ipinfo.geolocation}, Country: ${result.ipinfo.country_name}, ASN: ${result.ipinfo.asn}\n`;
+                            }
+                            if (result.abuseipdb) {
+                                plainText += `AbuseIPDB: Reports: ${result.abuseipdb.reports}, Risk Score: ${result.abuseipdb.risk_score}\n`;
+                            }
+                            if (result.spur) {
+                                plainText += `Spur: Tunnels: ${result.spur.tunnels}\n`;
+                            }
+                            if (result.virustotal) {
+                                plainText += `VirusTotal: Detection Ratio: ${result.virustotal.detection_ratio}, Community Score: ${result.virustotal.community_score}\n`;
+                            }
+                            if (result.mde) {
+                                plainText += `Microsoft Defender for Endpoint: Prevalence: ${result.mde.organizationPrevalence}, First Seen: ${result.mde.orgFirstSeen}, Last Seen: ${result.mde.orgLastSeen}\n`;
+                            }
+                            if (result.google_safe_browsing) {
+                                plainText += `Google Safe Browsing: ${result.google_safe_browsing.threat_found}\n`;
+                            }
+                            if (result.shodan) {
+                                plainText += `Shodan: Ports: ${result.shodan.ports.join(', ')}${result.shodan.tags.length > 0 ? `, Tags: ${result.shodan.tags.join(', ')}` : ''}\n`;
+                            }
+                            if (result.phishtank) {
+                                plainText += `Phishtank: In Database: ${result.phishtank.in_database}\n`;
+                            }
+                            if (result.abusix) {
+                                plainText += `Abusix: ${result.abusix.abuse}\n`;
+                            }
+                            if (result.rdap) {
+                                plainText += `RDAP: Registrar: ${result.rdap.registrar}, Abuse Contact: ${result.rdap.abuse_contact}, Registrant: ${result.rdap.registrant}, Organization: ${result.rdap.organization}, Registrant Email: ${result.rdap.registrant_email}, Creation Date: ${result.rdap.creation_date}, Expiration Date: ${result.rdap.expiration_date}, Updated Date: ${result.rdap.update_date}, Name Servers: ${result.rdap.name_servers.join(', ')}\n`;
+                            }
+                            if (result.reverse_dns) {
+                                plainText += `Reverse DNS: ${result.reverse_dns.reverse_dns.join(', ')}\n`;
+                            }
+                            if (result.threatfox) {
+                                plainText += `ThreatFox: Count: ${result.threatfox.count}, Malware: ${result.threatfox.malware_printable.join(', ')}\n`;
+                            }
+                            if (result.google && result.google.results.length > 0) {
+                                plainText += `Google:\n`;
+                                result.google.results.forEach(googleResult => {
+                                    plainText += `  - ${googleResult.title}: ${googleResult.url}\n`;
+                                });
+                            }
+                            if (result.github && result.github.results.length > 0) {
+                                plainText += `Github:\n`;
+                                result.github.results.forEach(githubResult => {
+                                    plainText += `  - ${githubResult.title}: ${githubResult.url}\n`;
+                                });
+                            }
+                            if (result.ioc_one_html && result.ioc_one_html.results.length > 0) {
+                                plainText += `Ioc.One (HTML):\n`;
+                                result.ioc_one_html.results.forEach(iocOneHtmlResult => {
+                                    plainText += `  - ${iocOneHtmlResult.title}: ${iocOneHtmlResult.source}\n`;
+                                });
+                            }
+                            if (result.ioc_one_pdf && result.ioc_one_pdf.results.length > 0) {
+                                plainText += `Ioc.One (PDF):\n`;
+                                result.ioc_one_pdf.results.forEach(iocOnePdfResult => {
+                                    plainText += `  - ${iocOnePdfResult.title}: ${iocOnePdfResult.source}\n`;
+                                });
+                            }
+                            if (result.urlscan) {
+                                plainText += `URLscan: Scan Count: ${result.urlscan.scan_count}\n`;
+                                result.urlscan.top_domains.forEach(domain => {
+                                    plainText += `  - ${domain.domain} (${domain.count})\n`;
+                                });
+                            }
+                            plainText += '\n';
+                        });
+
+                        navigator.clipboard.writeText(plainText).then(() => {
+                            const copyButton = document.querySelector('.btn[onclick="copyAsPlainText()"]');
+                            copyButton.style.backgroundColor = 'green';
+                            copyButton.textContent = 'Copied!';
+                        }).catch(err => {
+                            console.error('Failed to copy text: ', err);
+                        });
+                    })
+                    .catch(err => {
+                        console.error('Failed to fetch results: ', err);
+                    });
+            }
+        </script>
 
         <p>Analysis start time: {{ analysis_results.start_time_string }}</p>
         <p>Analysis duration: {{ analysis_results.analysis_duration_string }}</p>
