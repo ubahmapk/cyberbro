@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -201,81 +202,93 @@
         }
 
         a {
-        color: var(--primary-color);
-        text-decoration: none;
-        transition: color 0.3s;
-    }
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
 
-    a:hover {
-        color: var(--primary-hover-color);
-    }
+        a:hover {
+            color: var(--primary-hover-color);
+        }
 
-    .footer {
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-        background-color: var(--primary-color);
-        color: white;
-        text-align: center;
-        padding: 10px 0;
-    }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+        }
 
-    .footer nav ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-    }
+        .footer nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
 
-    .footer nav ul li {
-        display: inline;
-    }
+        .footer nav ul li {
+            display: inline;
+        }
 
-    .footer nav ul li a {
-        color: white;
-        text-decoration: none;
-        font-size: 1rem;
-    }
+        .footer nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+        }
 
-    .footer nav ul li a:hover {
-        color: var(--primary-hover-color);
-    }
+        .footer nav ul li a:hover {
+            color: var(--primary-hover-color);
+        }
     </style>
 </head>
+
 <body>
 
     <div class="container">
         <button class="dark-mode-toggle" onclick="toggleDarkMode()">
-            <img id="darkModeIcon" src="https://img.icons8.com/ios-filled/50/ffffff/moon-symbol.png" alt="Dark Mode" width="20" height="20">
+            <img id="darkModeIcon" src="https://img.icons8.com/ios-filled/50/ffffff/moon-symbol.png" alt="Dark Mode"
+                width="20" height="20">
         </button>
         <a href="https://github.com/stanfrbd/cyberbro" target="_blank" class="github-logo">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo" width="40" height="40" class="github-logo-light">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo" width="40" height="40" class="github-logo-dark" style="filter: invert(1);">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo"
+                width="40" height="40" class="github-logo-light">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo"
+                width="40" height="40" class="github-logo-dark" style="filter: invert(1);">
         </a>
-            <h1>Cyberbro - About</h1>
-            <p>
-                Cyberbro aims to provide a simple and efficient way to check the reputation of your observables using multiple threat intelligence services, <br>without having to deploy a complex solution.<br><br>
-                This application is inspired by <a href="https://cybergordon.com/" target="_blank">CyberGordon</a> and <a href="https://intelowlproject.github.io/" target="_blank">IntelOwl</a>. <br><br>
-                
-                Cyberbro is built using Python and Flask.
-            </p>
-            <h2>Features</h2>
-            <ul>
-                <li>Handles various input types: paste raw logs, IoCs, fanged IoCs, and they will be parsed using regex.</li>
-                <li>Checks if an observable (IP, hash, domain, URL) is malicious using services like VirusTotal, AbuseIPDB, IPInfo, Spur.us, IP Quality Score, MDE, Google Safe Browsing, Shodan, Abusix, Phishtank, and more.</li>
-                <li>Generates comprehensive reports with search and filter features (type, country, risk, detection, proxy/VPN).</li>
-                <li>Utilizes multithreading to speed up the process (artificially limited with time.sleep() due to free API usage).</li>
-                <li>Performs reverse DNS lookups.</li>
-                <li>Checks abuse contacts for IPs, URLs, and domains (Abusix).</li>
-                <li>Allows exporting results to CSV and Excel files.</li>
-                <li>Verifies if the observable has been seen on the Microsoft Defender for Endpoint (MDE) platform (your tenant).</li>
-                <li>Supports proxy usage if needed.</li>
-            </ul>
+        <h1>Cyberbro - About</h1>
+        <p>
+            Cyberbro aims to provide a simple and efficient way to check the reputation of your observables using
+            multiple threat intelligence services, <br>without having to deploy a complex solution.<br><br>
+            This application is inspired by <a href="https://cybergordon.com/" target="_blank">CyberGordon</a> and <a
+                href="https://intelowlproject.github.io/" target="_blank">IntelOwl</a>. <br><br>
 
-            <p>For more information, visit the <a href="https://github.com/stanfrbd/cyberbro" target="_blank">GitHub repository</a>.</p>
-        </div>
+            Cyberbro is built using Python and Flask.
+        </p>
+        <h2>Features</h2>
+        <ul>
+            <li>Handles various input types: paste raw logs, IoCs, fanged IoCs, and they will be parsed using regex.
+            </li>
+            <li>Checks if an observable (IP, hash, domain, URL) is malicious using services like VirusTotal, AbuseIPDB,
+                IPInfo, Spur.us, IP Quality Score, MDE, Google Safe Browsing, Shodan, Abusix, Phishtank, and more.</li>
+            <li>Generates comprehensive reports with search and filter features (type, country, risk, detection,
+                proxy/VPN).</li>
+            <li>Utilizes multithreading to speed up the process (artificially limited with time.sleep() due to free API
+                usage).</li>
+            <li>Performs reverse DNS lookups.</li>
+            <li>Checks abuse contacts for IPs, URLs, and domains (Abusix).</li>
+            <li>Allows exporting results to CSV and Excel files.</li>
+            <li>Verifies if the observable has been seen on the Microsoft Defender for Endpoint (MDE) platform (your
+                tenant).</li>
+            <li>Supports proxy usage if needed.</li>
+        </ul>
+
+        <p>For more information, visit the <a href="https://github.com/stanfrbd/cyberbro" target="_blank">GitHub
+                repository</a>.</p>
+    </div>
 
     <script>
         const moonIcon = "https://img.icons8.com/ios-filled/50/ffffff/moon-symbol.png";
@@ -319,4 +332,5 @@
         </ul>
     </nav>
 </footer>
+
 </html>
