@@ -747,7 +747,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         high-risk
                     {% endif %}
                     ">
-                    <td title="{{ result.observable }}">{{ result.observable[:60] }}{% if result.observable | length > 60 %}...{% endif %}</td>
+                    <td title="{{ result.observable }}">{{ result.observable[:64] }}{% if result.observable | length > 64 %}...{% endif %}</td>
                     <td>{{ result.type }}</td>
                     {% if "reverse_dns" in analysis_results.selected_engines %}
                     <td>
@@ -1082,7 +1082,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
             <div class="cards-results-container">
                 <div class="card">
                     <h3 title="{{ analysis_results.results[0].observable }}">{{
-                        analysis_results.results[0].observable[:60] }}{% if analysis_results.results[0].observable |
+                        analysis_results.results[0].observable[:64] }}{% if analysis_results.results[0].observable |
                         length > 80 %}...{% endif %}</h3>
                     <p>{{ analysis_results.results[0].type }}</p>
                 </div>
