@@ -510,7 +510,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 <button type="submit" name="format" value="csv" class="btn">Export to CSV</button>
                 <button type="submit" name="format" value="excel" class="btn">Export to Excel</button>
             </form>
-            <button class="btn" onclick="window.open('/api/results/{{ analysis_results.id }}', '_blank')">Raw</button>
+            <button class="btn" onclick="window.open('/api/results/{{ analysis_results.id }}', 'Content-Type=text/json')">Raw</button>
             <button class="btn" onclick="copyAsPlainText()">Copy as Plain Text</button>
         </div>
 
