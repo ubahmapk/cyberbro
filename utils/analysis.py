@@ -89,7 +89,7 @@ def perform_engine_queries(observable, selected_engines, result):
     if observable["type"] in ["IPv4", "IPv6"] and is_bogon(observable["value"]):
         observable["type"] = "BOGON"
 
-    if "urlscan" in selected_engines and observable["type"] in ["URL", "FQDN"]:
+    if "urlscan" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
         result['urlscan'] = urlscan.query_urlscan(observable["value"], observable["type"], PROXIES)
 
     if "ioc_one_html" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
