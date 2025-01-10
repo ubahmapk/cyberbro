@@ -423,8 +423,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <label title="Checks ThreatFox by Abuse.ch for IP, domains, URL, free, no API key"><input
                             type="checkbox" name="engines" value="threatfox" data-supports="ip domain url free_no_key">
                         ThreatFox</label><br>
-                    <label title="Checks URLscan for URL, free, no API key"><input type="checkbox" name="engines"
-                            value="urlscan" data-supports="domain url free_no_key"> URLscan</label><br>
+                    <label title="Checks URLscan for for all types of observable, free, no API key"><input
+                            type="checkbox" name="engines" value="urlscan"
+                            data-supports="domain url ip hash free_no_key"> URLscan</label><br>
                     <label title="Scraps Google search results for all types of observable, free, no API key"><input
                             type="checkbox" name="engines" value="google"
                             data-supports="domain url ip hash free_no_key scraping"> Google</label><br>
@@ -759,7 +760,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         high-risk
                     {% endif %}
                     ">
-                    <td title="{{ result.observable }}">{{ result.observable[:64] }}{% if result.observable | length > 64 %}...{% endif %}</td>
+                    <td title="{{ result.observable }}">{{ result.observable[:64] }}{% if result.observable | length >
+                        64 %}...{% endif %}</td>
                     <td>{{ result.type }}</td>
                     {% if "reverse_dns" in analysis_results.selected_engines %}
                     <td>
@@ -1072,7 +1074,13 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% if result.urlscan.scan_count == 0 %}
                         Not Found
                         {% else %}
-                        <strong>Top domains: </strong>
+                        <strong>
+                            {% if result.type in ["FQDN", "URL"] %}
+                            Top domains:
+                            {% else %}
+                            Top related domains:
+                            {% endif %}
+                        </strong>
                         <ul>
                             {% for domain in result.urlscan.top_domains %}
                             <li>{{ domain.domain }} ({{ domain.count }})</li>
@@ -1234,7 +1242,13 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if analysis_results.results[0].urlscan.scan_count == 0 %}
                     <p>Not Found</p>
                     {% else %}
-                    <p><strong>Top domains: </strong></p>
+                    <p><strong>
+                            {% if analysis_results.results[0].type in ["FQDN", "URL"] %}
+                            Top domains:
+                            {% else %}
+                            Top related domains:
+                            {% endif %}
+                        </strong></p>
                     <ul>
                         {% for domain in analysis_results.results[0].urlscan.top_domains %}
                         <li>{{ domain.domain }} ({{ domain.count }})</li>
