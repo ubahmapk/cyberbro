@@ -7,10 +7,12 @@ requests.packages.urllib3.disable_warnings()
 def query_urlscan(observable, observable_type, PROXIES):
     """
     Queries the urlscan.io API for information about a given observable.
+
     Args:
-        observable (str): The observable to query (e.g., a URL or domain).
-        observable_type (str): The type of the observable (e.g., "URL").
+        observable (str): The observable to query (e.g., a URL, IP, or hash).
+        observable_type (str): The type of the observable (e.g., "URL", "IP", "HASH").
         PROXIES (dict): A dictionary of proxies to use for the request.
+
     Returns:
         dict: A dictionary containing the scan count, top domains, and a link to the urlscan.io search results.
               Example:
@@ -22,15 +24,29 @@ def query_urlscan(observable, observable_type, PROXIES):
                       {"domain": "example.net", "count": 2}
                   ],
                   "link": "https://urlscan.io/search/#page.domain:observable"
+              }
         None: If an error occurs during the request or processing.
+
     Raises:
         Exception: If an error occurs during the request or processing.
     """
-    
+
+    query_fields = {
+        "IPv4": "ip",
+        "IPv6": "ip",
+        "MD5": "files.md5",
+        "SHA1": "files.sha1",
+        "SHA256": "files.sha256",
+        "URL": "page.domain",
+        "FQDN": "page.domain"
+    }
+
+    query_field = query_fields.get(observable_type, "page.domain")
+
     if observable_type == "URL":
         observable = observable.split("/")[2].split(":")[0]
 
-    url = f"https://urlscan.io/api/v1/search/?q=page.domain:{observable}"
+    url = f"https://urlscan.io/api/v1/search/?q={query_field}:{observable}"
 
     try:
         response = requests.get(url, proxies=PROXIES, verify=False)
@@ -56,7 +72,7 @@ def query_urlscan(observable, observable_type, PROXIES):
         return {
             "scan_count": scan_count,
             "top_domains": top_domains_list, 
-            "link": f"https://urlscan.io/search/#page.domain:{observable}"
+            "link": f"https://urlscan.io/search/#{query_field}:{observable}"
         }
 
     except Exception as e:
