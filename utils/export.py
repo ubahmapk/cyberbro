@@ -98,6 +98,12 @@ def prepare_row(result, selected_engines):
         row["urlscan_count"] = urlscan_data.get("scan_count") if urlscan_data else None
         row["urlscan_top_domains"] = urlscan_data.get("top_domains") if urlscan_data else None
 
+    if "mde" in selected_engines:
+        mde_data = result.get("mde", {})
+        row["mde_first_seen"] = mde_data.get("orgFirstSeen") if mde_data else None
+        row["mde_last_seen"] = mde_data.get("orgLastSeen") if mde_data else None
+        row["mde_org_prevalence"] = mde_data.get("orgPrevalence") if mde_data else None
+    
     return row
 
 def prepare_data_for_export(analysis_results):
