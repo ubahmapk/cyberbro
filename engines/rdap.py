@@ -1,4 +1,5 @@
 import requests
+import tldextract
 
 # Disable SSL warnings in case of proxies like Zscaler which break SSL...
 requests.packages.urllib3.disable_warnings()
@@ -23,6 +24,10 @@ def query_openrdap(observable, observable_type, PROXIES):
             domain = observable
         else:
             return None
+        
+        # extract base domain from URL or FQDN
+        ext = tldextract.extract(domain)
+        domain = ext.registered_domain
 
         api_url = f"https://rdap.net/domain/{domain}"
         response = requests.get(api_url, verify=False, proxies=PROXIES)
