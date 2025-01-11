@@ -1,6 +1,7 @@
 import re
 import socket
 import ipaddress
+import tldextract
 
 # List of invalid TLDs - edit this list to add more invalid TLDs or in case of false positives
 INVALID_TLD = [
@@ -91,12 +92,13 @@ def extract_observables(text):
             seen.add(ipv6)
             results.append({"value": ipv6, "type": "IPv6"})
 
-    # filter invalid TLDs
+    # filter invalid TLDs using tldextract and the list of invalid TLDs
     filtered_results = []
     for result in results:
         if result["type"] == "FQDN":
             tld = result["value"].split(".")[-1]
-            if tld in INVALID_TLD:
+            extracted = tldextract.extract(result["value"])
+            if tld in INVALID_TLD or not extracted.suffix:
                 continue
         filtered_results.append(result)
 
