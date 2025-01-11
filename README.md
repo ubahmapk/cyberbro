@@ -31,6 +31,16 @@ without having to deploy a **complex** solution.
 * **Data Storage**: Store results in a SQLite database.
 * **Analysis History**: Maintain a history of analyses with easy retrieval and search functionality.
 
+# What Cyberbro does that others don't
+
+* **Accessible to everyone** from beginners to experts. No gatekeeping here.
+* **Lightweight & Easy Deployment**: Simple to set up and use.
+* **Advanced TLD Verification**: Uses `tldextract` to accurately extract root domains, helping RDAP lookups.
+* **Pragmatic Information Gathering**: Utilizes GitHub and Google indexed results to catch what other engines might miss.
+* **CTI Report Integration**: Leverages IoC.One for IoC-related **CTI reports** in HTML or PDF.
+* **EDR Integration**: Integrates with solutions like Microsoft Defender for Endpoint to check if observables were seen in YOUR environment.
+
+
 # Getting Started - TL;DR
 
 > [!TIP]
