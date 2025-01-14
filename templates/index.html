@@ -440,6 +440,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         title="Scraps (can be long) Ioc.One PDF search results for all types of observable, free, no API key"><input
                             type="checkbox" name="engines" value="ioc_one_pdf"
                             data-supports="domain url ip hash scraping"> Ioc.One (PDF)</label><br>
+                    <label title="Searches OpenCTI results for all types of observable, API key required"><input
+                            type="checkbox" name="engines" value="opencti" data-supports="domain url ip hash"> OpenCTI</label><br>
                     <label
                         title="Checks abuse contact with Abusix for IP, reversed obtained IP for a given domain / URL, free, no API key"><input
                             type="checkbox" name="engines" value="abusix" data-supports="abuse free_no_key">
@@ -604,6 +606,15 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                                     plainText += `  - ${domain.domain} (${domain.count})\n`;
                                 });
                             }
+                            if (result.opencti) {
+                                plainText += `OpenCTI:\n`;
+                                plainText += `  - Global Count: ${result.opencti.global_count}\n`;
+                                plainText += `  - Entity Counts:\n`;
+                                for (const [entity, count] of Object.entries(result.opencti.entity_counts)) {
+                                    plainText += `    - ${entity}: ${count}\n`;
+                                }
+                                plainText += `  - Search Link: ${result.opencti.search_link}\n`;
+                            }
                             plainText += '\n';
                         });
 
@@ -738,6 +749,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% endif %}
                     {% if "urlscan" in analysis_results.selected_engines %}
                     <th>URLscan</th>
+                    {% endif %}
+                    {% if "opencti" in analysis_results.selected_engines %}
+                    <th>OpenCTI</th>
                     {% endif %}
                 </tr>
             </thead>
@@ -1092,6 +1106,24 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% endif %}
                     </td>
                     {% endif %}
+                    {% if "opencti" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.opencti %}
+                        <strong>Global count: </strong>{{
+                            result.opencti.global_count }}<br>
+                        <strong>Entity counts:</strong>
+                        <ul>
+                            {% for entity, count in result.opencti.entity_counts.items() %}
+                            <li>{{ entity }}: {{ count }}</li>
+                            {% endfor %}
+                        </ul>
+                        <strong>Search link: </strong><a href="{{ result.opencti.search_link }}" target="_blank">See on
+                            OpenCTI</a>
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
@@ -1405,6 +1437,22 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% else %}
                     <p>Not Found</p>
                     {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="cards-results-container">
+                {% if analysis_results.results[0].opencti %}
+                <div class="card">
+                    <h3>OpenCTI</h3>
+                    <p><strong>Global count: </strong>{{ analysis_results.results[0].opencti.global_count }}</p>
+                    <p><strong>Entity counts:</strong></p>
+                    <ul>
+                        {% for entity, count in analysis_results.results[0].opencti.entity_counts.items() %}
+                        <li>{{ entity }}: {{ count }}</li>
+                        {% endfor %}
+                    </ul>
+                    <p><strong>Search link: </strong><a href="{{ analysis_results.results[0].opencti.search_link }}"
+                            target="_blank">See on OpenCTI</a></p>
                 </div>
                 {% endif %}
             </div>

@@ -71,11 +71,11 @@ def query_opencti(observable, API_KEY, OPENCTI_URL, PROXIES):
         }
         """
         
-        # Variables for the query
+        # Filter by date desc and take the first 100 results
         variables = {
-            "count": 25,
+            "count": 100,
             "orderMode": "desc",
-            "orderBy": "_score",
+            "orderBy": "created_at",
             "filters": {
                 "mode": "and",
                 "filters": [
