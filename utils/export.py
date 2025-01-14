@@ -103,6 +103,11 @@ def prepare_row(result, selected_engines):
         row["mde_first_seen"] = mde_data.get("orgFirstSeen") if mde_data else None
         row["mde_last_seen"] = mde_data.get("orgLastSeen") if mde_data else None
         row["mde_org_prevalence"] = mde_data.get("orgPrevalence") if mde_data else None
+
+    if "opencti" in selected_engines:
+        opencti_data = result.get("opencti", {})
+        row["opencti_entity_counts"] = opencti_data.get("entity_counts") if opencti_data else None
+        row["opencti_global_count"] = opencti_data.get("global_count") if opencti_data else None
     
     return row
 
