@@ -1,4 +1,5 @@
 import requests
+from urllib.parse import urljoin
 
 # Disable SSL warnings in case of proxies like Zscaler which break SSL...
 requests.packages.urllib3.disable_warnings()
@@ -18,6 +19,10 @@ def query_opencti(observable, API_KEY, OPENCTI_URL, PROXIES):
       ValueError: If the response cannot be parsed as JSON.
     """
     try:
+      # Ensure the URL is properly formatted without trailing slashes
+      OPENCTI_URL = urljoin(OPENCTI_URL, '/')
+      OPENCTI_URL = OPENCTI_URL.rstrip('/')
+      
       # URL for the OpenCTI API
       url = f"{OPENCTI_URL}/graphql"
       
