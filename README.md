@@ -27,6 +27,7 @@ without having to deploy a **complex** solution.
 * **Abuse Contact Lookup**: Accurately find abuse contacts for IPs, URLs, and domains.
 * **Export Options**: Export results to CSV and **autofiltered well formatted** Excel files.
 * **MDE Integration**: Check if observables are flagged on your Microsoft Defender for Endpoint (MDE) tenant.
+* **OpenCTI Integration**: Get stats (number of incidents, indicators) from OpenCTI and the latest Indicator if available.
 * **Proxy Support**: Use a proxy if required.
 * **Data Storage**: Store results in a SQLite database.
 * **Analysis History**: Maintain a history of analyses with easy retrieval and search functionality.
@@ -78,7 +79,9 @@ cp secrets-sample.json secrets.json
     "mde_tenant_id": "tenant_here",
     "mde_client_id": "client_id_here",
     "mde_client_secret": "client_secret_here",
-    "shodan": "token_here"
+    "shodan": "token_here",
+    "opencti_api_key": "token_here",
+    "opencti_url": "https://demo.opencti.io"
 }
 ```
 
@@ -225,6 +228,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 * [ThreatFox](https://threatfox.abuse.ch/api/)
 * [URLscan](https://urlscan.io/)
 * [Ioc.One](https://ioc.one/)
+* [OpenCTI](https://www.opencti.io/)
 
 > [!NOTE]
 > Any questions? Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki) or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new)
