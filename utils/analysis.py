@@ -7,7 +7,7 @@ import sys
 
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
-    microsoft_defender_for_endpoint, spur_us_free, shodan, phishtank, abusix, rdap, threatfox, google, github, ioc_one, ipquery, urlscan
+    microsoft_defender_for_endpoint, spur_us_free, shodan, phishtank, abusix, rdap, threatfox, google, github, ioc_one, ipquery, urlscan, opencti
 )
 
 from models.analysis_result import AnalysisResult
@@ -111,6 +111,9 @@ def perform_engine_queries(observable, selected_engines, result):
         result['mde'] = microsoft_defender_for_endpoint.query_microsoft_defender_for_endpoint(
             observable["value"], observable["type"], secrets["mde_tenant_id"], secrets["mde_client_id"], secrets["mde_client_secret"], PROXIES
         )
+    
+    if "opencti" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+        result['opencti'] = opencti.query_opencti(observable["value"], secrets["opencti_api_key"], secrets["opencti_url"], PROXIES)
     
     if "threatfox" in selected_engines and observable["type"] in ["URL", "FQDN", "IPv4", "IPv6"]:
         result['threatfox'] = threatfox.query_threatfox(observable["value"], observable["type"], PROXIES)

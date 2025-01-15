@@ -1,5 +1,4 @@
 requests
-requests[socks]
 flask
 pandas
 jwt
@@ -8,7 +7,6 @@ dnspython
 pycountry
 fake_useragent
 bs4
-stem
 pytest
 querycontacts
 flask_sqlalchemy
