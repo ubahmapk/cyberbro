@@ -382,8 +382,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 <br>
 
                 <div>
-                    <h3 title="Use your mouse to hover over the engine name to see what it does">Select the engines to
-                        use (use your own instance to get all engines, API limits may apply here)</h3>
+                    <h3 title="Use your mouse to hover over the engine name to see what it does">Select the engines to use (use your own instance to get all engines, API limits may apply here)</h3>
                 </div>
                 <div>
                     <label title="Performs a reverse DNS lookup for IP, domain, URL (on your machine)"><input
@@ -427,8 +426,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <label title="Scraps Github search results for all types of observable, free, no API key"><input
                             type="checkbox" name="engines" value="github"
                             data-supports="domain url ip hash free_no_key scraping"> Github</label><br>
-                    <label title="Searches OpenCTI demo results for all types of observable, API key required"><input
-                            type="checkbox" name="engines" value="opencti" data-supports="domain url ip hash"> OpenCTI (demo)</label><br>
+                    <label title="Searches OpenCTI results for all types of observable, API key required"><input
+                            type="checkbox" name="engines" value="opencti" data-supports="domain url ip hash"> OpenCTI (netmanageit.com public instance)</label><br>
                     <label
                         title="Checks abuse contact with Abusix for IP, reversed obtained IP for a given domain / URL, free, no API key"><input
                             type="checkbox" name="engines" value="abusix" data-supports="abuse free_no_key">
@@ -491,8 +490,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     }
                 </script>
 
-                <button type="submit" class="btn" style="position: relative; bottom: 20px;">Start Analysis - All info
-                    will be public!!!</button>
+                <button type="submit" class="btn" style="position: relative; bottom: 20px;">Start Analysis - All info will be public!!!</button>
             </form>
         </div>
 
@@ -602,6 +600,16 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                                     plainText += `    - ${entity}: ${count}\n`;
                                 }
                                 plainText += `  - Search Link: ${result.opencti.search_link}\n`;
+                                plainText += `  - Latest Entity Created At: ${result.opencti.latest_created_at}\n`;
+                                plainText += `  - Latest Indicator Name: ${result.opencti.latest_indicator_name}\n`;
+                                if (result.opencti.latest_indicator_link) {
+                                    plainText += `  - Latest Indicator Link: ${result.opencti.latest_indicator_link}\n`;
+                                    plainText += `  - OpenCTI Score: ${result.opencti.x_opencti_score} / 100\n`;
+                                    plainText += `  - Confidence: ${result.opencti.confidence}\n`;
+                                    plainText += `  - Revoked: ${result.opencti.revoked}\n`;
+                                    plainText += `  - Valid From: ${result.opencti.valid_from}\n`;
+                                    plainText += `  - Valid Until: ${result.opencti.valid_until}\n`;
+                                }
                             }
                             plainText += '\n';
                         });
@@ -1097,16 +1105,24 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if "opencti" in analysis_results.selected_engines %}
                     <td>
                         {% if result.opencti %}
-                        <strong>Global count: </strong>{{
-                            result.opencti.global_count }}<br>
+                        <strong>Global count: </strong>{{ result.opencti.global_count }}<br>
                         <strong>Entity counts:</strong>
                         <ul>
                             {% for entity, count in result.opencti.entity_counts.items() %}
                             <li>{{ entity }}: {{ count }}</li>
                             {% endfor %}
                         </ul>
-                        <strong>Search link: </strong><a href="{{ result.opencti.search_link }}" target="_blank">See on
-                            OpenCTI</a>
+                        <strong>Search link: </strong><a href="{{ result.opencti.search_link }}" target="_blank">See on OpenCTI</a><br>
+                        <strong>Latest Entity Created At: </strong>{{ result.opencti.latest_created_at }}<br>
+                        {% if result.opencti.latest_indicator_link %}
+                            <strong>Latest Indicator Name: </strong>{{ result.opencti.latest_indicator_name }}<br>
+                            <strong>Latest Indicator Link: </strong><a href="{{ result.opencti.latest_indicator_link }}" target="_blank">See Indicator</a><br>
+                            <strong>OpenCTI Score: </strong>{{ result.opencti.x_opencti_score }} / 100<br>
+                            <strong>Confidence: </strong>{{ result.opencti.confidence }}<br>
+                            <strong>Revoked: </strong>{{ result.opencti.revoked }}<br>
+                            <strong>Valid From: </strong>{{ result.opencti.valid_from }}<br>
+                            <strong>Valid Until: </strong>{{ result.opencti.valid_until }}<br>
+                        {% endif %}
                         {% else %}
                         Not applicable
                         {% endif %}
@@ -1441,6 +1457,16 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     </ul>
                     <p><strong>Search link: </strong><a href="{{ analysis_results.results[0].opencti.search_link }}"
                             target="_blank">See on OpenCTI</a></p>
+                    <p><strong>Latest Entity Created At: </strong>{{ analysis_results.results[0].opencti.latest_created_at }}</p>
+                    {% if analysis_results.results[0].opencti.latest_indicator_link %}
+                    <p><strong>Latest Indicator Name: </strong>{{ analysis_results.results[0].opencti.latest_indicator_name }}</p>
+                    <p><strong>Latest Indicator Link: </strong><a href="{{ analysis_results.results[0].opencti.latest_indicator_link }}" target="_blank">See Indicator</a></p>
+                    <p><strong>OpenCTI Score: </strong>{{ analysis_results.results[0].opencti.x_opencti_score }} / 100</p>
+                    <p><strong>Confidence: </strong>{{ analysis_results.results[0].opencti.confidence }}</p>
+                    <p><strong>Revoked: </strong>{{ analysis_results.results[0].opencti.revoked }}</p>
+                    <p><strong>Valid From: </strong>{{ analysis_results.results[0].opencti.valid_from }}</p>
+                    <p><strong>Valid Until: </strong>{{ analysis_results.results[0].opencti.valid_until }}</p>
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>
