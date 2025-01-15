@@ -1473,7 +1473,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             target="_blank">See on OpenCTI</a></p>
                     <p><strong>Latest Entity Created At: </strong>{{ analysis_results.results[0].opencti.latest_created_at }}</p>
                     {% if analysis_results.results[0].opencti.latest_indicator_link %}
-                    <p><strong>Latest Indicator Name:</strong>{{ analysis_results.results[0].opencti.latest_indicator_name }}</p>
+                    <p><strong>Latest Indicator Name: </strong>{{ analysis_results.results[0].opencti.latest_indicator_name }}</p>
                     <p><strong>Latest Indicator Link: </strong><a href="{{ analysis_results.results[0].opencti.latest_indicator_link }}" target="_blank">See Indicator</a></p>
                     <p><strong>OpenCTI Score: </strong>{{ analysis_results.results[0].opencti.x_opencti_score }} / 100</p>
                     <p><strong>Confidence: </strong>{{ analysis_results.results[0].opencti.confidence }}</p>
