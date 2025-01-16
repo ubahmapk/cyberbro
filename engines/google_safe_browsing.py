@@ -1,40 +1,50 @@
+import logging
 import requests
+from typing import Optional, Dict, Any
 
 # Disable SSL warning
 requests.packages.urllib3.disable_warnings()
 
-def query_google_safe_browsing(observable, observable_type, API_KEY, PROXIES):
+logger = logging.getLogger(__name__)
+
+def query_google_safe_browsing(
+    observable: str,
+    observable_type: str,
+    api_key: str,
+    proxies: Dict[str, str]
+) -> Optional[Dict[str, Any]]:
     """
     Queries the Google Safe Browsing API to check if the given observable is associated with any threats.
+
     Args:
-        observable (str): The observable to be checked. It can be a URL, Fully Qualified Domain Name (FQDN), or an IP address.
+        observable (str): The observable to be checked (URL, FQDN, or IP).
+        observable_type (str): The type of the observable (e.g., "URL", "FQDN", "IPv4", "IPv6").
+        api_key (str): Your Google Safe Browsing API key.
+        proxies (dict): Dictionary containing proxy settings.
+
     Returns:
-        dict: A dictionary containing the result of the query. The dictionary has the following keys:
-            - "threat_found" (str): Indicates whether a threat was found ("Threat found" or "No threat found").
-            - "details" (list or None): If a threat was found, this contains the details of the threats. Otherwise, it is None.
-    Raises:
-        requests.exceptions.RequestException: If there is an issue with the network request.
-        ValueError: If the observable type is not recognized.
+        dict: A dictionary containing the result of the query with the structure:
+            {
+                "threat_found": "Threat found" or "No threat found",
+                "details": [...] or None
+            }
+        None: If an error occurs or the API request fails.
     """
     try:
-        url = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={API_KEY}"
+        url = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={api_key}"
 
-        # Determine the type of observable and construct the request
         threat_entries = []
-        
-        # Check if the observable is a URL
+        # Assign the URL to check based on the observable type
         if observable_type == "URL":
             threat_entries.append({"url": observable})
-        
-        # Check if the observable is a Fully Qualified Domain Name (FQDN)
         elif observable_type == "FQDN":
-            threat_entries.append({"url": f"http://{observable}"})  # Or https depending on your need
-        
-        # Check if the observable is an IP address
+            threat_entries.append({"url": f"http://{observable}"})
         elif observable_type in ["IPv4", "IPv6"]:
-            threat_entries.append({"url": f"http://{observable}"})  # Treat as a URL
+            threat_entries.append({"url": f"http://{observable}"})
+        else:
+            logger.warning("Unsupported observable_type '%s' for Google Safe Browsing.", observable_type)
+            return None
 
-        # Create the request body
         body = {
             "threatInfo": {
                 "threatTypes": [
@@ -50,16 +60,16 @@ def query_google_safe_browsing(observable, observable_type, API_KEY, PROXIES):
             }
         }
 
-        # Send the request to Google Safe Browsing API
-        response = requests.post(url, json=body, proxies=PROXIES, verify=False)
-        data = response.json()
+        response = requests.post(url, json=body, proxies=proxies, verify=False)
+        response.raise_for_status()
 
-        # Check if any threats were found
-        if 'matches' in data:
-            return {"threat_found": "Threat found", "details": data['matches']}
+        data = response.json()
+        if "matches" in data:
+            return {"threat_found": "Threat found", "details": data["matches"]}
         else:
             return {"threat_found": "No threat found", "details": None}
+
     except Exception as e:
-        print(e)
-    # Always return None in case of failure
+        logger.error("Error while querying Google Safe Browsing for '%s': %s", observable, e, exc_info=True)
+
     return None

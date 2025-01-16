@@ -1,40 +1,61 @@
+import logging
 import requests
 import tldextract
+from typing import Optional, Dict, Any
 
 # Disable SSL warnings in case of proxies like Zscaler which break SSL...
 requests.packages.urllib3.disable_warnings()
 
-def query_openrdap(observable, observable_type, PROXIES):
+logger = logging.getLogger(__name__)
+
+def query_openrdap(
+    observable: str,
+    observable_type: str,
+    proxies: Dict[str, str]
+) -> Optional[Dict[str, Any]]:
     """
     Queries the Open RDAP service for information about a given domain.
     Open RDAP is a free RDAP resolver that provides information about domain names.
 
-    Parameters:
-    observable (str): The observable to query (e.g., URL or FQDN).
-    observable_type (str): The type of the observable ("URL" or "FQDN").
-    PROXIES (dict): A dictionary of proxies to use for the request.
+    Args:
+        observable (str): The observable to query (e.g., URL or FQDN).
+        observable_type (str): The type of the observable ("URL" or "FQDN").
+        proxies (dict): A dictionary of proxies to use for the request.
 
     Returns:
-    dict: The JSON response from the RDAP service, or None if an error occurs.
+        dict: The JSON-like information from the RDAP service, including abuse contact, registrar, 
+              creation/expiration dates, etc. For example:
+              {
+                'abuse_contact': ...,
+                'registrar': ...,
+                'organization': ...,
+                ...
+              }
+        None: If an error occurs or the observable_type is unsupported.
     """
     try:
         if observable_type == "URL":
-            domain = observable.split("/")[2].split(":")[0]
+            # Example: http://domain.com/path => extract domain
+            domain_part = observable.split("/")[2].split(":")[0]
         elif observable_type == "FQDN":
-            domain = observable
+            domain_part = observable
         else:
+            logger.warning("Unsupported observable type '%s' for RDAP.", observable_type)
             return None
-        
-        # extract base domain from URL or FQDN
-        ext = tldextract.extract(domain)
+
+        # Extract base domain from the given domain (removes subdomains, if any)
+        ext = tldextract.extract(domain_part)
         domain = ext.registered_domain
+        if not domain:
+            logger.warning("Could not extract a valid registered domain from '%s'.", domain_part)
+            return None
 
         api_url = f"https://rdap.net/domain/{domain}"
-        response = requests.get(api_url, verify=False, proxies=PROXIES)
-        response.raise_for_status()  # Raise an HTTPError for bad responses
-        
+        response = requests.get(api_url, verify=False, proxies=proxies)
+        response.raise_for_status()
+
         data = response.json()
-        
+
         abuse_contact = ""
         registrar = ""
         organization = ""
@@ -46,66 +67,77 @@ def query_openrdap(observable, observable_type, PROXIES):
         update_date = ""
         link = ""
 
-        for entity in data.get('entities', []):
-            roles = entity.get('roles', [])
-            if 'abuse' in roles:
-                for vcard in entity.get('vcardArray', [])[1]:
-                    if vcard[0] == 'email' and vcard[3] != '':
-                        abuse_contact = vcard[3]
-            if 'registrar' in roles:
-                for vcard in entity.get('vcardArray', [])[1]:
-                    if vcard[0] == 'fn':
-                        registrar = vcard[3]
-            for sub_entity in entity.get('entities', []):
-                if 'abuse' in sub_entity.get('roles', []):
-                    for vcard in sub_entity.get('vcardArray', [])[1]:
-                        if vcard[0] == 'email':
-                            abuse_contact = vcard[3]
-            # add registrant if exists
-            if 'registrant' in roles:
-                for vcard in entity.get('vcardArray', [])[1]:
-                    if vcard[0] == 'fn':
-                        registrant = vcard[3]
-            # add registrant email if exists
-            if 'registrant' in roles:
-                for vcard in entity.get('vcardArray', [])[1]:
-                    if vcard[0] == 'email':
-                        registrant_email = vcard[3]
+        # Parse 'entities' to find details like abuse contact, registrar, registrant, etc.
+        for entity in data.get("entities", []):
+            roles = entity.get("roles", [])
+            if "abuse" in roles:
+                abuse_contact = _extract_vcard_field(entity, "email") or abuse_contact
+            if "registrar" in roles:
+                registrar = _extract_vcard_field(entity, "fn") or registrar
+            if "registrant" in roles:
+                registrant = _extract_vcard_field(entity, "fn") or registrant
+                registrant_email = _extract_vcard_field(entity, "email") or registrant_email
+                organization = _extract_vcard_field(entity, "org") or organization
 
-            # add organization if exists
-            if 'registrant' in roles:
-                for vcard in entity.get('vcardArray', [])[1]:
-                    if vcard[0] == 'org':
-                        organization = vcard[3]
-        
-        for ns in data.get('nameservers', []):
-            name_servers.append(ns.get('ldhName').lower())
+            # Sub-entities can also contain 'abuse' roles
+            for sub_entity in entity.get("entities", []):
+                if "abuse" in sub_entity.get("roles", []):
+                    abuse_contact = _extract_vcard_field(sub_entity, "email") or abuse_contact
 
-        for event in data.get('events', []):
-            if event.get('eventAction') == 'registration':
-                creation_date = event.get('eventDate').split("T")[0]
-            if event.get('eventAction') == 'expiration':
-                expiration_date = event.get('eventDate').split("T")[0]
-            if event.get('eventAction') == 'last changed':
-                update_date = event.get('eventDate').split("T")[0]
+        # Parse name servers
+        for ns in data.get("nameservers", []):
+            ns_name = ns.get("ldhName")
+            if ns_name:
+                name_servers.append(ns_name.lower())
 
-        for el in data.get('links', []):
-            if el.get('rel') == 'self':
-                link = el.get('href')
+        # Parse event dates
+        for event in data.get("events", []):
+            action = event.get("eventAction")
+            date_str = event.get("eventDate", "")
+            if date_str and "T" in date_str:
+                date_str = date_str.split("T")[0]  # Keep YYYY-MM-DD
+            if action == "registration":
+                creation_date = date_str
+            elif action == "expiration":
+                expiration_date = date_str
+            elif action == "last changed":
+                update_date = date_str
+
+        # Parse links
+        for el in data.get("links", []):
+            if el.get("rel") == "self":
+                link = el.get("href", "")
 
         return {
-            'abuse_contact': abuse_contact,
-            'registrar': registrar,
-            'organization': organization,
-            'registrant': registrant,
-            'registrant_email': registrant_email,
-            'name_servers': name_servers,
-            'creation_date': creation_date,
-            'expiration_date': expiration_date,
-            'update_date': update_date,
-            'link': link
+            "abuse_contact": abuse_contact,
+            "registrar": registrar,
+            "organization": organization,
+            "registrant": registrant,
+            "registrant_email": registrant_email,
+            "name_servers": name_servers,
+            "creation_date": creation_date,
+            "expiration_date": expiration_date,
+            "update_date": update_date,
+            "link": link
         }
+
     except Exception as e:
-        print(e)
-    # Always return None in case of failure
+        logger.error("Error querying RDAP for '%s' (%s): %s", observable, observable_type, e, exc_info=True)
+
     return None
+
+
+def _extract_vcard_field(entity: Dict[str, Any], field: str) -> str:
+    """
+    Helper to extract a specific field (e.g., 'email', 'fn', 'org') from 
+    an entity's 'vcardArray' if present.
+    """
+    vcard_array = entity.get("vcardArray", [])
+    if len(vcard_array) < 2:
+        return ""
+
+    # vcard_array is typically [ "vcard", [ [field, type, type_val, actual_value], ... ] ]
+    for item in vcard_array[1]:
+        if len(item) == 4 and item[0] == field and item[3]:
+            return item[3]
+    return ""
