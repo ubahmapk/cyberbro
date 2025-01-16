@@ -29,7 +29,7 @@ def query_threatfox(observable, observable_type, PROXIES):
     payload = {"query": "search_ioc", "search_term": observable}
 
     try:
-        response = requests.post(url, data=json.dumps(payload), proxies=PROXIES, verify=False)
+        response = requests.post(url, data=json.dumps(payload), proxies=PROXIES, verify=False, timeout=10)
         response.raise_for_status()
         result = response.json()
 
