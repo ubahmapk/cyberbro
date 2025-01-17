@@ -1,36 +1,34 @@
-import json
+import logging
 import requests
+from typing import Optional, Dict, Any
 
 # Disable SSL warning
 requests.packages.urllib3.disable_warnings()
 
-def query_urlscan(observable, observable_type, PROXIES):
+logger = logging.getLogger(__name__)
+
+def query_urlscan(
+    observable: str,
+    observable_type: str,
+    proxies: Dict[str, str]
+) -> Optional[Dict[str, Any]]:
     """
-    Queries the urlscan.io API for information about a given observable.
+    Queries the urlscan.io API for information about a given observable (URL, IP, or file hash).
 
     Args:
-        observable (str): The observable to query (e.g., a URL, IP, or hash).
-        observable_type (str): The type of the observable (e.g., "URL", "IP", "HASH").
-        PROXIES (dict): A dictionary of proxies to use for the request.
+        observable (str): The observable to query.
+        observable_type (str): The type of the observable (e.g., "URL", "IP", "MD5", "SHA256", etc.).
+        proxies (dict): A dictionary of proxies to use for the request.
 
     Returns:
-        dict: A dictionary containing the scan count, top domains, and a link to the urlscan.io search results.
-              Example:
+        dict: A dictionary containing "scan_count", "top_domains", and "link". For example:
               {
                   "scan_count": 10,
-                  "top_domains": [
-                      {"domain": "example.com", "count": 5},
-                      {"domain": "example.org", "count": 3},
-                      {"domain": "example.net", "count": 2}
-                  ],
-                  "link": "https://urlscan.io/search/#page.domain:observable"
+                  "top_domains": [{"domain": "example.com", "count": 5}, ...],
+                  "link": "https://urlscan.io/search/#page.domain:example.com"
               }
-        None: If an error occurs during the request or processing.
-
-    Raises:
-        Exception: If an error occurs during the request or processing.
+        None: If an error occurs.
     """
-
     query_fields = {
         "IPv4": "ip",
         "IPv6": "ip",
@@ -40,42 +38,40 @@ def query_urlscan(observable, observable_type, PROXIES):
         "URL": "page.domain",
         "FQDN": "page.domain"
     }
-
     query_field = query_fields.get(observable_type, "page.domain")
 
-    if observable_type == "URL":
-        observable = observable.split("/")[2].split(":")[0]
-
-    url = f"https://urlscan.io/api/v1/search/?q={query_field}:{observable}"
-
     try:
-        response = requests.get(url, proxies=PROXIES, verify=False)
+        # If observable is a URL, extract domain
+        if observable_type == "URL":
+            domain_part = observable.split("/")[2].split(":")[0]
+            observable = domain_part
+
+        url = f"https://urlscan.io/api/v1/search/?q={query_field}:{observable}"
+
+        response = requests.get(url, proxies=proxies, verify=False)
         response.raise_for_status()
+
         result = response.json()
-
         results = result.get("results", [])
-
         scan_count = result.get("total", 0)
 
         domain_count = {}
-        
         for entry in results:
-            page = entry.get("page", {})
-            domain = page.get("domain", "Unknown")
+            page_info = entry.get("page", {})
+            domain = page_info.get("domain", "Unknown")
             domain_count[domain] = domain_count.get(domain, 0) + 1
 
-        sorted_domains = sorted(domain_count.items(), key=lambda domain_count_item: domain_count_item[1], reverse=True)
-        top_domains = sorted_domains[:5]
-        
-        top_domains_list = [{"domain": domain, "count": count} for domain, count in top_domains]
+        # Sort and extract top 5
+        sorted_domains = sorted(domain_count.items(), key=lambda item: item[1], reverse=True)
+        top_domains = [{"domain": dmn, "count": cnt} for dmn, cnt in sorted_domains[:5]]
 
         return {
             "scan_count": scan_count,
-            "top_domains": top_domains_list, 
+            "top_domains": top_domains,
             "link": f"https://urlscan.io/search/#{query_field}:{observable}"
         }
 
     except Exception as e:
-        print(e)
-    # Always return None in case of failure
+        logger.error("Error querying urlscan.io for '%s' (%s): %s", observable, observable_type, e, exc_info=True)
+
     return None

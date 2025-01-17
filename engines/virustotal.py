@@ -1,29 +1,41 @@
-import requests
+import logging
 import base64
+import requests
+from typing import Optional, Dict, Any
 
 # Disable SSL warning in case of proxies that break SSL
 requests.packages.urllib3.disable_warnings()
 
-def query_virustotal(observable, observable_type, API_KEY, PROXIES):
+logger = logging.getLogger(__name__)
+
+def query_virustotal(
+    observable: str,
+    observable_type: str,
+    api_key: str,
+    proxies: Dict[str, str]
+) -> Optional[Dict[str, Any]]:
     """
-    Queries the VirusTotal API for information about a given observable.
+    Queries the VirusTotal API for information about a given observable (IP, domain, URL, or file hash).
+
     Args:
-        observable (str): The observable to query. This can be an IP address (IPv4 or IPv6), 
-                          a fully qualified domain name (FQDN), a URL, or a file hash.
+        observable (str): The IoC to query (IPv4, IPv6, domain, URL, or file hash).
+        observable_type (str): The type of the observable ("IPv4", "FQDN", "URL", "MD5", etc.).
+        api_key (str): VirusTotal API key.
+        proxies (dict): Dictionary of proxies.
+
     Returns:
-        dict: A dictionary containing the following keys:
-            - detection_ratio (str): The ratio of malicious detections to total engines.
-            - total_malicious (int): The total number of engines that flagged the observable as malicious.
-            - link (str): A link to the VirusTotal GUI for the observable.
-            - community_score (int or str): The community reputation score of the observable, or 'Unknown' if not available.
-    Raises:
-        requests.exceptions.RequestException: If there is an issue with the HTTP request.
-        KeyError: If the expected data is not found in the API response.
+        dict: Contains detection ratio, total malicious, link, and community_score, for example:
+            {
+                "detection_ratio": "5/70",
+                "total_malicious": 5,
+                "link": "https://www.virustotal.com/gui/ip-address/<ip>/detection",
+                "community_score": 10
+            }
+        None: If any error occurs.
     """
     try:
-        headers = {"x-apikey": API_KEY}
-
-        # Adjust the URL based on the observable type
+        headers = {"x-apikey": api_key}
+        # Determine the correct endpoint & link based on the observable type
         if observable_type in ["IPv4", "IPv6"]:
             url = f"https://www.virustotal.com/api/v3/ip_addresses/{observable}"
             link = f"https://www.virustotal.com/gui/ip-address/{observable}/detection"
@@ -34,33 +46,42 @@ def query_virustotal(observable, observable_type, API_KEY, PROXIES):
             encoded_url = base64.urlsafe_b64encode(observable.encode()).decode().strip("=")
             url = f"https://www.virustotal.com/api/v3/urls/{encoded_url}"
             link = f"https://www.virustotal.com/gui/url/{encoded_url}/detection"
-        else:  # Assume any other observable is a file hash
+        else:  # Assume a file hash
             url = f"https://www.virustotal.com/api/v3/files/{observable}"
             link = f"https://www.virustotal.com/gui/file/{observable}/detection"
 
-        response = requests.get(url, headers=headers, proxies=PROXIES, verify=False)
+        response = requests.get(url, headers=headers, proxies=proxies, verify=False)
         response.raise_for_status()
+
         data = response.json()
+        if "data" in data and "attributes" in data["data"]:
+            attributes = data["data"]["attributes"]
+            stats = attributes.get("last_analysis_stats", {})
 
-        if 'data' in data:
-            attributes = data['data']['attributes']
-            
-            # Use last_analysis_stats for detection ratio
-            last_analysis_stats = attributes.get('last_analysis_stats', {})
-            total_malicious = last_analysis_stats.get('malicious', 0)
-            total_engines = sum(last_analysis_stats.values())
+            total_malicious = stats.get("malicious", 0)
+            total_engines = sum(stats.values()) if stats else 0
+            detection_ratio = f"{total_malicious}/{total_engines}" if total_engines else "0/0"
 
-            # Establish the detection ratio
-            detection_ratio = f"{total_malicious}/{total_engines}" if total_engines > 0 else "0/0"
-            
-            # Replace 'verdict' with 'community_score'
-            community_score = attributes.get('reputation', 'Unknown')
+            # 'reputation' is usually the community score
+            community_score = attributes.get("reputation", "Unknown")
 
-            return {"detection_ratio": detection_ratio, "total_malicious": total_malicious, "link": link, "community_score": community_score}
-        
-        return {"detection_ratio": "0/0", "total_malicious": 0, "link": f"https://www.virustotal.com/gui/search/{observable}", "community_score": 0}
-    
+            return {
+                "detection_ratio": detection_ratio,
+                "total_malicious": total_malicious,
+                "link": link,
+                "community_score": community_score
+            }
+
+        # If 'data' or 'attributes' key is missing, fallback
+        logger.warning("VirusTotal response missing expected keys for '%s': %s", observable, data)
+        return {
+            "detection_ratio": "0/0",
+            "total_malicious": 0,
+            "link": f"https://www.virustotal.com/gui/search/{observable}",
+            "community_score": 0
+        }
+
     except Exception as e:
-        print(e)
-    # Always return None in case of failure
+        logger.error("Error querying VirusTotal for '%s': %s", observable, e, exc_info=True)
+
     return None
