@@ -28,6 +28,9 @@ def query_opencti(
         None: If an error occurs or data is missing.
     """
     try:
+        # Get FQDN from URL to avoid false positives searches
+        if "http" in observable:
+            observable = observable.split("/")[2].split(":")[0]
         # Ensure the URL is properly formatted
         base_url = urljoin(opencti_url, "/").rstrip("/")
         url = f"{base_url}/graphql"

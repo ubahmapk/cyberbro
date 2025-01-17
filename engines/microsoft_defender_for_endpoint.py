@@ -99,7 +99,7 @@ def query_microsoft_defender_for_endpoint(
             url = f"https://api.securitycenter.microsoft.com/api/domains/{observable}/stats"
             link = f"https://securitycenter.microsoft.com/domains?urlDomain={observable}"
         elif observable_type == "URL":
-            extracted_domain = observable.split("/")[2]
+            extracted_domain = observable.split("/")[2].split(":")[0]
             url = f"https://api.securitycenter.microsoft.com/api/domains/{extracted_domain}/stats"
             link = f"https://securitycenter.microsoft.com/url?url={observable}"
         else:
