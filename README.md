@@ -30,6 +30,7 @@ without having to deploy a **complex** solution.
 * **OpenCTI Integration**: Get stats (number of incidents, indicators) from OpenCTI and the latest Indicator if available.
 * **Proxy Support**: Use a proxy if required.
 * **Data Storage**: Store results in a SQLite database.
+* **Grep.App**: Search for observables with Grep.App API (fast GitHub searches).
 * **Analysis History**: Maintain a history of analyses with easy retrieval and search functionality.
 
 # What Cyberbro does that others don't
@@ -229,6 +230,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 * [URLscan](https://urlscan.io/)
 * [Ioc.One](https://ioc.one/)
 * [OpenCTI](https://www.opencti.io/)
+* [Grep.App](https://grep.app/)
 
 > [!NOTE]
 > Any questions? Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki) or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new)
