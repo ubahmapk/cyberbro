@@ -768,6 +768,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         high-risk
                     {% elif result.threatfox and result.threatfox.count != 0 %}
                         high-risk
+                    {% elif result.opencti and result.opencti.latest_indicator_link and not result.opencti.revoked %}
+                        warning-row
                     {% endif %}
                     ">
                     <td title="{{ result.observable }}">{{ result.observable[:64] }}{% if result.observable | length >
@@ -1446,7 +1448,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
             </div>
             <div class="cards-results-container">
                 {% if analysis_results.results[0].opencti %}
-                <div class="card">
+                <div class="card{% if analysis_results.results[0].opencti.latest_indicator_link and not analysis_results.results[0].opencti.revoked %} warning-row" style="background-color: orange;"{% else %}"{% endif %}>
                     <h3>OpenCTI</h3>
                     <p><strong>Global count: </strong>{{ analysis_results.results[0].opencti.global_count }}</p>
                     <p><strong>Entity counts:</strong></p>
