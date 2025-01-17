@@ -1,51 +1,64 @@
+import logging
 import requests
+from typing import Optional, Dict, Any
 
 # Disable SSL warnings in case of proxies like Zscaler which break SSL...
 requests.packages.urllib3.disable_warnings()
 
-def query_abuseipdb(ip, API_KEY, PROXIES):
+logger = logging.getLogger(__name__)
+
+def query_abuseipdb(ip: str, api_key: str, proxies: Optional[Dict[str, str]]) -> Optional[Dict[str, Any]]:
     """
     Queries the AbuseIPDB API for information about a given IP address.
+
     Args:
         ip (str): The IP address to check.
+        api_key (str): Your AbuseIPDB API key.
+        proxies (Optional[dict]): Dictionary of proxies if needed, e.g. {"http": "...", "https": "..."}.
+
     Returns:
-        dict: A dictionary containing the following keys:
-            - 'reports' (int): The total number of reports for the IP address.
-            - 'risk_score' (int): The abuse confidence score for the IP address.
-            - 'link' (str): A URL to the AbuseIPDB page for the IP address.
-        None: If the response does not contain 'data'.
+        dict: A dictionary containing:
+            - "reports" (int): The total number of reports for the IP address.
+            - "risk_score" (int): The abuse confidence score for the IP address.
+            - "link" (str): A URL to the AbuseIPDB page for the IP address.
+        None: If any error occurs or the response is missing necessary data.
+
     Raises:
         requests.exceptions.RequestException: If there is an issue with the network request.
         ValueError: If the response cannot be parsed as JSON.
     """
+    url = "https://api.abuseipdb.com/api/v2/check"
+    headers = {
+        "Key": api_key,
+        "Accept": "application/json"
+    }
+    params = {"ipAddress": ip}
+
     try:
-        # URL for the AbuseIPDB API
-        url = f"https://api.abuseipdb.com/api/v2/check"
-        
-        # Headers including the API key
-        headers = {"Key": API_KEY, "Accept": "application/json"}
-        
-        # Parameters including the IP address to check
-        params = {"ipAddress": ip}
-        
-        # Make the GET request to the API
-        response = requests.get(url, headers=headers, params=params, proxies=PROXIES, verify=False)
-        
-        # Parse the JSON response
-        data = response.json()
-        
-        # Check if the response contains 'data'
-        if 'data' in data:
-            # Extract the total number of reports and the abuse confidence score
-            reports = data['data'].get('totalReports', 0)
-            risk_score = data['data'].get('abuseConfidenceScore', 0)
-            
-            # Create a link to the AbuseIPDB page for the IP address
-            link = f"https://www.abuseipdb.com/check/{ip}"
-            
-            # Return the extracted information
-            return {"reports": reports, "risk_score": risk_score, "link": link}
+        response = requests.get(url, headers=headers, params=params, proxies=proxies, verify=False)
+        response.raise_for_status()  # Raises an HTTPError for 4xx/5xx statuses
+
+        json_response = response.json()
+        if "data" not in json_response:
+            logger.warning("AbuseIPDB response has no 'data' key. Full response: %s", json_response)
+            return None
+
+        data = json_response["data"]
+        reports = data.get("totalReports", 0)
+        risk_score = data.get("abuseConfidenceScore", 0)
+        link = f"https://www.abuseipdb.com/check/{ip}"
+
+        return {
+            "reports": reports,
+            "risk_score": risk_score,
+            "link": link
+        }
+
+    except requests.exceptions.RequestException as req_err:
+        logger.error("Network error while querying AbuseIPDB: %s", req_err, exc_info=True)
+    except ValueError as json_err:
+        logger.error("JSON parsing error while querying AbuseIPDB: %s", json_err, exc_info=True)
     except Exception as e:
-        print(e)
-    # Always return None in case of failure
+        logger.error("Unexpected error while querying AbuseIPDB: %s", e, exc_info=True)
+
     return None

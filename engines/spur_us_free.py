@@ -1,50 +1,63 @@
+import logging
 import requests
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
-
-ua = UserAgent()
+from typing import Optional, Dict, Any
 
 # Disable SSL warning in case of proxy like Zscaler which breaks SSL...
 requests.packages.urllib3.disable_warnings()
 
-def get_spur(ip, PROXIES):
+logger = logging.getLogger(__name__)
+ua = UserAgent()
+
+def get_spur(
+    ip: str,
+    proxies: Dict[str, str]
+) -> Optional[Dict[str, str]]:
     """
     Retrieves information about the given IP address from the spur.us website.
 
-    This function makes an HTTP GET request to the spur.us website to fetch context information about the provided IP address.
-    The function parses the HTML response to extract the anonymity status of the IP address from the page title.
-
     Args:
         ip (str): The IP address to retrieve information for.
+        proxies (dict): Dictionary of proxies for the request.
 
     Returns:
-        dict: A dictionary containing the link to the spur.us context page and the anonymity status of the IP address.
-              The dictionary has the following structure:
+        dict: A dictionary containing the link to the spur.us context page and the anonymity status, e.g.:
               {
-                  "link": str,      # The URL to the spur.us context page for the given IP address.
-                  "tunnels": str    # The anonymity status of the IP address.
+                  "link": "https://spur.us/context/<ip>",
+                  "tunnels": "Tor Exit Node" (for example)
               }
         None: If an error occurs during the request or parsing process.
     """
     try:
         spur_url = f"https://spur.us/context/{ip}"
-        spur_data = requests.get(spur_url, proxies=PROXIES, verify=False, headers={"User-Agent": ua.random})
-        # print(spur_data.text)
+        response = requests.get(
+            spur_url,
+            proxies=proxies,
+            verify=False,
+            headers={"User-Agent": ua.random}
+        )
+        response.raise_for_status()
 
-        soup = BeautifulSoup(spur_data.text, 'html.parser')
+        soup = BeautifulSoup(response.text, "html.parser")
         title_tag = soup.title
 
         if title_tag is not None:
             title_text = title_tag.get_text()
-
             if "(" in title_text and ")" in title_text:
+                # Extract substring between parentheses, e.g. " (Tor Proxy) "
                 content = title_text.split("(")[1].split(")")[0].strip()
             else:
                 content = "Not anonymous"
         else:
             content = "Not anonymous"
-        return {"link": f"https://spur.us/context/{ip}", "tunnels": content}
+
+        return {
+            "link": spur_url,
+            "tunnels": content
+        }
+
     except Exception as e:
-        print(e)
-    # Always return None in case of failure
+        logger.error("Error querying spur.us for IP '%s': %s", ip, e, exc_info=True)
+
     return None
