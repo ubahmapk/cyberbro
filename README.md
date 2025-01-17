@@ -237,8 +237,8 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 
 A huge thank you to all the amazing contributors who made pull requests and helped improve this project:
 
-* [Florian PILLOT](https://github.com/Harukunnn)
-* [Axel](https://github.com/botlabsDev) who develops [Ioc.One](https://ioc.one/)
+* [Florian PILLOT](https://github.com/Harukunnn) who reworked engines (refactoring and optimizations).
+* [Axel](https://github.com/botlabsDev) who develops [Ioc.One](https://ioc.one/) and added a specific User-Agent allowing scraping of Ioc[.]One.
 
 Your contributions are greatly appreciated!
 
