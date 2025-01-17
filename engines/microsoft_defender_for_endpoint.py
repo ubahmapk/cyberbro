@@ -2,6 +2,7 @@ import json
 import logging
 import requests
 import jwt
+import time
 from typing import Optional, Dict, Any
 
 # Disable SSL warnings in case of proxies like Zscaler which break SSL...
@@ -11,10 +12,16 @@ logger = logging.getLogger(__name__)
 
 def check_token_validity(token: str) -> bool:
     try:
-        # 'verify=False' here means we do not verify signature
-        jwt.decode(token, options={"verify_signature": False})
-        return True
-    except Exception:
+        # Decode the token without verifying the signature to check its expiration
+        decoded_token = jwt.decode(token, options={"verify_signature": False})
+        exp = decoded_token.get("exp")
+        if exp and exp > time.time():
+            return True
+        else:
+            logger.warning("MDE Token has expired.")
+            return False
+    except Exception as e:
+        logger.error("Failed to decode MDE token: %s", e, exc_info=True)
         return False
 
 def read_token() -> Optional[str]:
