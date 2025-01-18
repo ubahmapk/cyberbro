@@ -1,6 +1,11 @@
 # Use a base Python image
 FROM python:3.13-slim
 
+# Update the package list and install git - nano, then clean up the apt cache
+RUN apt-get update && \
+    apt-get install -y git nano && \
+    rm -rf /var/lib/apt/lists/*
+
 # Set the working directory in the container
 WORKDIR /app
 
