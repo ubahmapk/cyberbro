@@ -33,7 +33,9 @@ def query_google(observable: str, proxies: Dict[str, str]) -> Optional[Dict[str,
             num_results=5,
             proxy=proxies.get("http"),
             ssl_verify=False,
-            advanced=True
+            advanced=True,
+            lang="en",
+            region="US"
         )
         
         search_results = []
