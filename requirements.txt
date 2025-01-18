@@ -11,6 +11,7 @@ pytest
 querycontacts
 flask_sqlalchemy
 gunicorn
-googlesearch-python
 ioc-fanger
 tldextract
+# stanfrbd fork of googlesearch with Lynx user agent
+git+https://github.com/stanfrbd/googlesearch@lynx-user-agent
