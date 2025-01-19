@@ -18,6 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt --trusted-host=pypi.python.or
 # Copy the rest of the application code from the host to the container
 COPY . .
 
+# Run file prod/advanced_config.py (does nothing if the required variables are not set in secrets.json)
+RUN python prod/advanced_config.py
+
 # Expose port 5000 to allow external access to the application
 EXPOSE 5000
 
