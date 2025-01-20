@@ -385,53 +385,52 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <h3 title="Use your mouse to hover over the engine name to see what it does">Select the engines to use (use your own instance to get all engines, API limits may apply here)</h3>
                 </div>
                 <div>
-                    <label title="Performs a reverse DNS lookup for IP, domain, URL (on your machine)"><input
-                            type="checkbox" name="engines" value="reverse_dns"
-                            data-supports="default domain ip abuse free_no_key" checked> Reverse DNS </label><br>
-                    <label title="Checks RDAP (ex Whois) record for domain, URL, no API key required"><input
-                            type="checkbox" name="engines" value="rdap" data-supports="default abuse domain free_no_key"
-                            checked> RDAP (ex Whois)</label><br>
-                    <label
-                        title="Checks IPquery for IP, reversed obtained IP for a given domain / URL, free, no API key"><input
-                            type="checkbox" name="engines" value="ipquery"
-                            data-supports="default ip risk vpn proxy free_no_key" checked> IPquery</label><br>
-                    <label
-                        title="Checks AbuseIPDB for IP, reversed obtained IP for a given domain / URL, free API key required"><input
-                            type="checkbox" name="engines" value="abuseipdb" data-supports="risk"> AbuseIPDB</label><br>
-                    <label title="Checks VirusTotal for IP, domain, URL, hash, free API key required"><input
-                            type="checkbox" name="engines" value="virustotal" data-supports="hash risk ip domain url">
-                        VirusTotal</label><br>
-                    <label
-                        title="Scraps Spur.us for IP, reversed obtained IP for a given domain / URL, free, no API key"><input
-                            type="checkbox" name="engines" value="spur" data-supports="vpn proxy free_no_key scraping">
-                        Spur.us</label><br>
-                    <label title="Checks Google Safe Browsing, free API key required"><input type="checkbox"
-                            name="engines" value="google_safe_browsing" data-supports="risk domain ip"> Google Safe
-                        Browsing</label><br>
-                    <label
-                        title="Checks Shodan, reversed obtained IP for a given domain / URL, free API key required"><input
-                            type="checkbox" name="engines" value="shodan" data-supports="ports ip"> Shodan</label><br>
-                    <label title="Checks Phishtank for domains, URL, free, no API key"><input type="checkbox"
-                            name="engines" value="phishtank" data-supports="risk domain url free_no_key">
-                        Phishtank</label><br>
-                    <label title="Checks ThreatFox by Abuse.ch for IP, domains, URL, free, no API key"><input
-                            type="checkbox" name="engines" value="threatfox" data-supports="ip domain url free_no_key">
-                        ThreatFox</label><br>
-                    <label title="Checks URLscan for for all types of observable, free, no API key"><input
-                            type="checkbox" name="engines" value="urlscan"
-                            data-supports="domain url ip hash free_no_key"> URLscan</label><br>
-                    <label title="Scraps Google search results for all types of observable, free, no API key"><input
-                            type="checkbox" name="engines" value="google"
-                            data-supports="domain url ip hash free_no_key scraping"> Google</label><br>
-                    <label title="Get Github grep.app API search results for all types of observable, free, no API key"><input
-                            type="checkbox" name="engines" value="github"
-                            data-supports="domain url ip hash free_no_key scraping"> Github</label><br>
-                    <label title="Searches OpenCTI results for all types of observable, API key required, here is the demo of Filigran"><input
-                            type="checkbox" name="engines" value="opencti" data-supports="domain url ip hash"> OpenCTI (public demo - Filigran)</label><br>
-                    <label
-                        title="Checks abuse contact with Abusix for IP, reversed obtained IP for a given domain / URL, free, no API key"><input
-                            type="checkbox" name="engines" value="abusix" data-supports="abuse free_no_key">
-                        Abusix</label><br><br>
+                    <script>
+                        const GUI_ENABLED_ENGINES = JSON.parse('{% if GUI_ENABLED_ENGINES | length > 0 %} {{ GUI_ENABLED_ENGINES | tojson }} {% else %} [] {% endif %}');
+                        const allEngines = [
+                            { name: "reverse_dns", label: "Reverse DNS", supports: "default domain ip abuse free_no_key", checked: true, title: "Performs a reverse DNS lookup for IP, domain, URL (on your machine)" },
+                            { name: "rdap", label: "RDAP (ex Whois)", supports: "default abuse domain free_no_key", checked: true, title: "Checks RDAP (ex Whois) record for domain, URL, no API key required" },
+                            { name: "ipquery", label: "IPquery", supports: "default ip risk vpn proxy free_no_key", checked: true, title: "Checks IPquery for IP, reversed obtained IP for a given domain / URL, free, no API key" },
+                            { name: "abuseipdb", label: "AbuseIPDB", supports: "risk", checked: false, title: "Checks AbuseIPDB for IP, reversed obtained IP for a given domain / URL, free API key required" },
+                            { name: "ipinfo", label: "IPinfo", supports: "ip", checked: false, title: "Checks IPinfo for IP, reversed obtained IP for a given domain / URL, free API key required" },
+                            { name: "virustotal", label: "VirusTotal", supports: "hash risk ip domain url", checked: false, title: "Checks VirusTotal for IP, domain, URL, hash, free API key required" },
+                            { name: "spur", label: "Spur.us", supports: "vpn proxy free_no_key scraping", checked: false, title: "Scraps Spur.us for IP, reversed obtained IP for a given domain / URL, free, no API key" },
+                            { name: "mde", label: "Microsoft Defender for Endpoint", supports: "hash ip domain url", checked: false, title: "Checks Microsoft Defender for Endpoint, paid API info on Azure required" },
+                            { name: "google_safe_browsing", label: "Google Safe Browsing", supports: "risk domain ip", checked: false, title: "Checks Google Safe Browsing, free API key required" },
+                            { name: "shodan", label: "Shodan", supports: "ports ip", checked: false, title: "Checks Shodan, reversed obtained IP for a given domain / URL, free API key required" },
+                            { name: "phishtank", label: "Phishtank", supports: "risk domain url free_no_key", checked: false, title: "Checks Phishtank for domains, URL, free, no API key" },
+                            { name: "threatfox", label: "ThreatFox", supports: "ip domain url free_no_key", checked: false, title: "Checks ThreatFox by Abuse.ch for IP, domains, URL, free, no API key" },
+                            { name: "urlscan", label: "URLscan", supports: "domain url ip hash free_no_key", checked: false, title: "Checks URLscan for for all types of observable, free, no API key" },
+                            { name: "google", label: "Google", supports: "domain url ip hash free_no_key scraping", checked: false, title: "Scraps Google search results for all types of observable, free, no API key" },
+                            { name: "github", label: "Github", supports: "domain url ip hash free_no_key scraping", checked: false, title: "Get Github grep.app API search results for all types of observable, free, no API key" },
+                            { name: "ioc_one_html", label: "Ioc.One (HTML)", supports: "domain url ip hash scraping", checked: false, title: "Scraps (can be long) Ioc.One HTML search results for all types of observable, free, no API key" },
+                            { name: "ioc_one_pdf", label: "Ioc.One (PDF)", supports: "domain url ip hash scraping", checked: false, title: "Scraps (can be long) Ioc.One PDF search results for all types of observable, free, no API key" },
+                            { name: "opencti", label: "OpenCTI", supports: "domain url ip hash", checked: false, title: "Searches OpenCTI results for all types of observable, API key required" },
+                            { name: "abusix", label: "Abusix", supports: "abuse free_no_key", checked: false, title: "Checks abuse contact with Abusix for IP, reversed obtained IP for a given domain / URL, free, no API key" }
+                        ];
+
+                        const enginesToDisplay = GUI_ENABLED_ENGINES.length > 0 ? allEngines.filter(engine => GUI_ENABLED_ENGINES.includes(engine.name)) : allEngines;
+
+                        enginesToDisplay.forEach(engine => {
+                            const label = document.createElement('label');
+                            label.title = engine.title;
+                            const input = document.createElement('input');
+                            input.type = 'checkbox';
+                            input.name = 'engines';
+                            input.value = engine.name;
+                            input.dataset.supports = engine.supports;
+                            if (engine.checked) {
+                                input.checked = true;
+                            }
+                            label.appendChild(input);
+                            label.appendChild(document.createTextNode(` ${engine.label}`));
+                            document.querySelector('#analyzeForm div').appendChild(label);
+                            document.querySelector('#analyzeForm div').appendChild(document.createElement('br'));
+                        });
+                        
+                        document.querySelector('#analyzeForm div').appendChild(document.createElement('br'));
+
+                    </script>
                 </div>
 
                 <div>
@@ -511,13 +510,13 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 <button type="submit" name="format" value="csv" class="btn">Export to CSV</button>
                 <button type="submit" name="format" value="excel" class="btn">Export to Excel</button>
             </form>
-            <button class="btn" onclick="location.href='/api/results/{{ analysis_results.id }}'">Raw</button>
+            <button class="btn" onclick="location.href='/{{ API_PREFIX }}/results/{{ analysis_results.id }}'">Raw</button>
             <button class="btn" onclick="copyAsPlainText()">Copy as Plain Text</button>
         </div>
 
         <script>
             function copyAsPlainText() {
-                fetch(`/api/results/{{ analysis_results.id }}`)
+                fetch(`/{{ API_PREFIX }}/results/{{ analysis_results.id }}`)
                     .then(response => response.json())
                     .then(data => {
                         let plainText = '';
