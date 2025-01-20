@@ -22,18 +22,6 @@ DATA_DIR = os.path.join(BASE_DIR, 'data')
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
-# Disable modification tracking to save memory
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Set the size of the database connection pool
-app.config['SQLALCHEMY_POOL_SIZE'] = 10
-
-# Set the maximum overflow size of the connection pool
-app.config['SQLALCHEMY_MAX_OVERFLOW'] = 20
-
-# Enable the config page - not intended for public use since authentication is not implemented
-app.config['CONFIG_PAGE_ENABLED'] = False
-
 # Load secrets from a file
 SECRETS_FILE = os.path.join(BASE_DIR, 'secrets.json')
 if os.path.exists(SECRETS_FILE):
@@ -42,8 +30,26 @@ if os.path.exists(SECRETS_FILE):
 else:
     secrets = {}
 
+# Define API_PREFIX if the variable api_prefix is set in secrets.json else it must be "api"
+API_PREFIX = secrets.get("api_prefix", "api")
+
+# Enable the config page - not intended for public use since authentication is not implemented - checks if the variable config_page_enabled is set in secrets.json
+app.config['CONFIG_PAGE_ENABLED'] = secrets.get('config_page_enabled', False)
+
+# Define gui_enabled_engines list if the variable of type list gui_enabled_engines is set in secrets.json
+GUI_ENABLED_ENGINES = secrets.get('gui_enabled_engines', [])
+
 # Update the database URI to use the data directory
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(DATA_DIR, 'results.db')}"
+
+# Disable modification tracking to save memory
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Set the size of the database connection pool
+app.config['SQLALCHEMY_POOL_SIZE'] = 10
+
+# Set the maximum overflow size of the connection pool
+app.config['SQLALCHEMY_MAX_OVERFLOW'] = 20
 
 # Initialize the database
 db.init_app(app)
@@ -55,7 +61,7 @@ with app.app_context():
 @app.route('/')
 def index():
     """Render the index page."""
-    return render_template('index.html', results=[])
+    return render_template('index.html', results=[], API_PREFIX=API_PREFIX, GUI_ENABLED_ENGINES=GUI_ENABLED_ENGINES)
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -67,18 +73,18 @@ def analyze():
     analysis_id = str(uuid.uuid4())
     threading.Thread(target=perform_analysis, args=(app, observables, selected_engines, analysis_id)).start()
 
-    return render_template('waiting.html', analysis_id=analysis_id), 200
+    return render_template('waiting.html', analysis_id=analysis_id, API_PREFIX=API_PREFIX), 200
 
 @app.route('/results/<analysis_id>', methods=['GET'])
 def show_results(analysis_id):
     """Show the results of the analysis."""
     analysis_results = db.session.get(AnalysisResult, analysis_id)
     if analysis_results:
-        return render_template('index.html', analysis_results=analysis_results)
+        return render_template('index.html', analysis_results=analysis_results, API_PREFIX=API_PREFIX)
     else:
         return render_template('404.html'), 404
 
-@app.route('/is_analysis_complete/<analysis_id>', methods=['GET'])
+@app.route(f'/{API_PREFIX}/is_analysis_complete/<analysis_id>', methods=['GET'])
 def is_analysis_complete(analysis_id):
     """Check if the analysis is complete."""
     complete = not check_analysis_in_progress(analysis_id)
@@ -157,7 +163,7 @@ def update_config():
         message = "An error occurred while updating the configuration."
     return jsonify({'message': message})
 
-@app.route('/api/results/<analysis_id>', methods=['GET'])
+@app.route(f'/{API_PREFIX}/results/<analysis_id>', methods=['GET'])
 def get_results(analysis_id):
     """Get the results of the analysis."""
     analysis_results = db.session.get(AnalysisResult, analysis_id)
@@ -166,9 +172,9 @@ def get_results(analysis_id):
     else:
         return jsonify({'error': 'Analysis not found.'}), 404
 
-@app.route('/api/analyze', methods=['POST'])
+@app.route(f'/{API_PREFIX}/analyze', methods=['POST'])
 def analyze_api():
-    """Handle the analyze request."""
+    """Handle the analyze request via API. (Only JSON data is accepted)"""
     data = request.get_json()
     form_data = ioc_fanger.fang(data.get("text", ""))
     observables = extract_observables(form_data)
