@@ -153,9 +153,10 @@ Some misconfigurations may lead to **security issues**.
 
 * The API is available at `/api/` and can be accessed via the GUI or command-line.
 
-**There are currently two endpoints:**
+**There are currently 3 endpoints:**
 
 * `/api/analyze` - Analyze a text and return analysis ID (JSON).
+* `/api//is_analysis_complete/<analysis_id>` - Check if the analysis is complete (JSON).
 * `/api/results/<analysis_id>` - Retrieve the results of a previous analysis (JSON).
 
 ```bash
@@ -168,6 +169,15 @@ curl -X POST "http://localhost:5000/api/analyze" -H "Content-Type: application/j
   "link": "/results/e88de647-b153-4904-91e5-8f5c79174854"
 }
 ```
+
+```bash
+curl "http://localhost:5000/api/is_analysis_complete/e88de647-b153-4904-91e5-8f5c79174854"
+```
+
+```json
+{
+  "complete": true
+}
 
 ```bash
 curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
@@ -234,6 +244,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 
 > [!NOTE]
 > Any questions? Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki) or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new)
+> For the advanced config (tuning of `supervisord.conf` before deployment, selection of visible engines, change /api/ prefix...), check the [wiki](https://github.com/stanfrbd/cyberbro/wiki).
 
 # Special thanks
 

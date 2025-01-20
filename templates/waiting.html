@@ -78,7 +78,7 @@
     <script>
         // Function to check if the analysis is complete
         function checkResults() {
-            fetch('/is_analysis_complete/{{ analysis_id }}') // Check if analysis is complete
+            fetch('{{ API_PREFIX }}/is_analysis_complete/{{ analysis_id }}') // Check if analysis is complete
                 .then(response => response.json())
                 .then(data => {
                     if (data.complete) {
