@@ -178,6 +178,7 @@ curl "http://localhost:5000/api/is_analysis_complete/e88de647-b153-4904-91e5-8f5
 {
   "complete": true
 }
+```
 
 ```bash
 curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
@@ -243,8 +244,8 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 * [Grep.App](https://grep.app/)
 
 > [!NOTE]
-> Any questions? Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki) or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new)
-> For the advanced config (tuning of `supervisord.conf` before deployment, selection of visible engines, change /api/ prefix...), check the [wiki](https://github.com/stanfrbd/cyberbro/wiki).
+> Any questions? Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki) or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new) \
+> For the advanced config (tuning of `supervisord.conf` before deployment, selection of visible engines, change `/api/` prefix...), check the [wiki](https://github.com/stanfrbd/cyberbro/wiki).
 
 # Special thanks
 
