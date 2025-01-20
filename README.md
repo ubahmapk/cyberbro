@@ -156,7 +156,7 @@ Some misconfigurations may lead to **security issues**.
 **There are currently 3 endpoints:**
 
 * `/api/analyze` - Analyze a text and return analysis ID (JSON).
-* `/api//is_analysis_complete/<analysis_id>` - Check if the analysis is complete (JSON).
+* `/api/is_analysis_complete/<analysis_id>` - Check if the analysis is complete (JSON).
 * `/api/results/<analysis_id>` - Retrieve the results of a previous analysis (JSON).
 
 ```bash
