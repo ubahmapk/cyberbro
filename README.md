@@ -219,7 +219,8 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 ]
 ```
 
-
+> [!NOTE]
+> The [dedicated wiki page](https://github.com/stanfrbd/cyberbro/wiki/API-usage-and-engine-names) gives all the names of usable engines.
 
 # API and third-party services
 
@@ -245,7 +246,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 
 > [!NOTE]
 > Any questions? Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki) or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new) \
-> For the advanced config (tuning of `supervisord.conf` before deployment, selection of visible engines, change `/api/` prefix...), check the [wiki](https://github.com/stanfrbd/cyberbro/wiki).
+> For the advanced config (tuning of `supervisord.conf` before deployment, selection of visible engines, change `/api/` prefix...), check the [dedicated wiki page](https://github.com/stanfrbd/cyberbro/wiki/Advanced-options-in-secrets.json).
 
 # Special thanks
 
