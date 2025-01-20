@@ -1,0 +1,13 @@
+# Ignore temporary files
+*.tmp
+*.swp
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore Python cache directories
+__pycache__
+
+# Ignore Git directory
+.git
