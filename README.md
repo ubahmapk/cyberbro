@@ -10,7 +10,7 @@ without having to deploy a **complex** solution.
 
 ![GitHub stars](https://img.shields.io/github/stars/stanfrbd/cyberbro?style=social)
 [![Follow on X/Twitter](https://img.shields.io/twitter/follow/cyberbro_cti?style=social)](https://x.com/cyberbro_cti)
-[![Mastodon](https://img.shields.io/badge/Follow_@cyberbro_on_Mastodon-23-blue?logo=mastodon)](https://infosec.exchange/@cyberbro)
+[![Mastodon](https://img.shields.io/badge/Follow_@cyberbro-23-blue?logo=mastodon)](https://infosec.exchange/@cyberbro)
 ![GitHub issues](https://img.shields.io/github/issues/stanfrbd/cyberbro)
 ![License](https://img.shields.io/github/license/stanfrbd/cyberbro)
 ![example branch parameter](https://github.com/stanfrbd/cyberbro/actions/workflows/jobs.yml/badge.svg)
