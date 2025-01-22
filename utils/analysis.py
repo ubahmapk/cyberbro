@@ -7,7 +7,8 @@ import sys
 
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
-    microsoft_defender_for_endpoint, spur_us_free, shodan, phishtank, abusix, rdap, threatfox, google, github, ioc_one, ipquery, urlscan, opencti
+    microsoft_defender_for_endpoint, spur_us_free, shodan, phishtank, 
+    abusix, rdap, threatfox, google, github, ioc_one, ipquery, urlscan, opencti, extension
 )
 
 from models.analysis_result import AnalysisResult
@@ -92,16 +93,16 @@ def perform_engine_queries(observable, selected_engines, result):
     if "urlscan" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
         result['urlscan'] = urlscan.query_urlscan(observable["value"], observable["type"], PROXIES)
 
-    if "ioc_one_html" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+    if "ioc_one_html" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6", "CHROME_EXTENSION"]:
         result['ioc_one_html'] = ioc_one.query_ioc_one_html(observable["value"], PROXIES)
 
-    if "ioc_one_pdf" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+    if "ioc_one_pdf" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6", "CHROME_EXTENSION"]:
         result['ioc_one_pdf'] = ioc_one.query_ioc_one_pdf(observable["value"], PROXIES)
 
-    if "google" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+    if "google" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6", "CHROME_EXTENSION"]:
         result['google'] = google.query_google(observable["value"], PROXIES)
 
-    if "github" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+    if "github" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6", "CHROME_EXTENSION"]:
         result['github'] = github.query_github(observable["value"], PROXIES)
 
     if "rdap" in selected_engines and observable["type"] in ["FQDN", "URL"]:
@@ -112,7 +113,7 @@ def perform_engine_queries(observable, selected_engines, result):
             observable["value"], observable["type"], secrets["mde_tenant_id"], secrets["mde_client_id"], secrets["mde_client_secret"], PROXIES
         )
     
-    if "opencti" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+    if "opencti" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6", "CHROME_EXTENSION"]:
         result['opencti'] = opencti.query_opencti(observable["value"], secrets["opencti_api_key"], secrets["opencti_url"], PROXIES)
     
     if "threatfox" in selected_engines and observable["type"] in ["URL", "FQDN", "IPv4", "IPv6"]:
@@ -154,6 +155,9 @@ def perform_engine_queries(observable, selected_engines, result):
 
     if "abusix" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
         result['abusix'] = abusix.query_abusix(observable["value"])
+
+    if observable["type"] == "CHROME_EXTENSION":
+        result['extension'] = extension.get_name_from_id(observable["value"], PROXIES)
 
     # print("Results: ", result, file=sys.stderr)
     return result

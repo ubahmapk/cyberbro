@@ -23,7 +23,8 @@ def identify_observable_type(observable):
         "SHA256": r"^[a-fA-F0-9]{64}$",
         "Email": r"^[\w\.-]+@[\w\.-]+\.\w+$",
         "FQDN": r"^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$",
-        "URL": r"^(https?|ftp)://[^\s/$.?#].[^\s]*$"
+        "URL": r"^(https?|ftp)://[^\s/$.?#].[^\s]*$",
+        "CHROME_EXTENSION": r"^[a-z]{32}$"
     }
 
     for type_name, pattern in patterns.items():
@@ -42,7 +43,8 @@ def extract_observables(text):
         # Simplified URL pattern for http(s) only
         #"URL": r"\bhttps?://[^\s/$.?#].[^\s]*\b",
         "URL": r"\bhttps?://[^\s/$.?#].[^\s<>\"'\?,;\]\[\}\{]*",
-        "FQDN": r"\b(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\b"
+        "FQDN": r"\b(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\b",
+        "CHROME_EXTENSION": r"\b[a-z]{32}\b"
     }
 
     results = []
