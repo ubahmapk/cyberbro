@@ -21,7 +21,7 @@ without having to deploy a **complex** solution.
 # Features
 
 * **Effortless Input Handling**: Paste raw logs, IoCs, or fanged IoCs, and let our regex parser do the rest.
-* **Multi-Service Reputation Checks**: Verify observables (IP, hash, domain, URL) across multiple services like VirusTotal, AbuseIPDB, IPInfo, Spur.us, MDE, Google Safe Browsing, Shodan, Abusix, Phishtank, ThreatFox, URLscan, Github, Google...
+* **Multi-Service Reputation Checks**: Verify observables (IP, hash, domain, URL, Chrome extension IDs) across multiple services like OpenCTI, VirusTotal, AbuseIPDB, IPInfo, Spur.us, MDE, Google Safe Browsing, Shodan, Abusix, Phishtank, ThreatFox, URLscan, Github, Google...
 * **Detailed Reports**: Generate comprehensive reports with advanced search and filter options.
 * **High Performance**: Leverage multithreading for faster processing.
 * **Automated Observable Pivoting**: Automatically pivot on domains, URL and IP addresses using reverse DNS and RDAP.
@@ -38,6 +38,7 @@ without having to deploy a **complex** solution.
 # What Cyberbro does that others don't
 
 * **Accessible to everyone** from beginners to experts. No gatekeeping here.
+* **Chrome extensions IDs lookup**: Retrieve the name of Chrome extensions from ID, and get CTI data about it.
 * **Lightweight & Easy Deployment**: Simple to set up and use.
 * **Advanced TLD Verification**: Uses `tldextract` to accurately extract root domains, helping RDAP lookups.
 * **Pragmatic Information Gathering**: Utilizes GitHub and Google indexed results to catch what other engines might miss.
@@ -144,8 +145,8 @@ python3 app.py
 
 </details>
 
-![image](https://github.com/user-attachments/assets/5092341e-30af-42e8-baff-772836873e24)
-![image](https://github.com/user-attachments/assets/e36a900e-873c-4eec-854f-1d01a97ebc1c)
+![image](https://github.com/user-attachments/assets/bfff1355-51a2-496e-98c4-c5f3ea3476c8)
+![image](https://github.com/user-attachments/assets/e88dd9fd-3644-42a2-8a47-6ca6d44bf5e7)
 
 > [!CAUTION]
 > This is still a development server, not intended for production. \
