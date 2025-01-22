@@ -393,6 +393,7 @@
 1.2.3.4
 example.com
 d41d8cd98f00b204e9800998ecf8427e
+chrome extension id
 Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fanged data [.] [dot] hxxp, etc.)"
                     required></textarea>
                 <br>
@@ -416,13 +417,13 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             { name: "shodan", label: "Shodan", supports: "ports ip", checked: false, title: "Checks Shodan, reversed obtained IP for a given domain / URL, free API key required" },
                             { name: "phishtank", label: "Phishtank", supports: "risk domain url free_no_key", checked: false, title: "Checks Phishtank for domains, URL, free, no API key" },
                             { name: "threatfox", label: "ThreatFox", supports: "ip domain url free_no_key", checked: false, title: "Checks ThreatFox by Abuse.ch for IP, domains, URL, free, no API key" },
-                            { name: "urlscan", label: "URLscan", supports: "domain url ip hash free_no_key", checked: false, title: "Checks URLscan for for all types of observable, free, no API key" },
-                            { name: "google", label: "Google", supports: "domain url ip hash free_no_key scraping", checked: false, title: "Scraps Google search results for all types of observable, free, no API key" },
-                            { name: "github", label: "Github", supports: "domain url ip hash free_no_key scraping", checked: false, title: "Get Github grep.app API search results for all types of observable, free, no API key" },
-                            { name: "ioc_one_html", label: "Ioc.One (HTML)", supports: "domain url ip hash scraping", checked: false, title: "Scraps (can be long) Ioc.One HTML search results for all types of observable, free, no API key" },
-                            { name: "ioc_one_pdf", label: "Ioc.One (PDF)", supports: "domain url ip hash scraping", checked: false, title: "Scraps (can be long) Ioc.One PDF search results for all types of observable, free, no API key" },
-                            { name: "opencti", label: "OpenCTI", supports: "domain url ip hash", checked: false, title: "Searches OpenCTI results for all types of observable, API key required" },
-                            { name: "abusix", label: "Abusix", supports: "abuse free_no_key", checked: false, title: "Checks abuse contact with Abusix for IP, reversed obtained IP for a given domain / URL, free, no API key" }
+                            { name: "urlscan", label: "URLscan", supports: "domain url ip hash free_no_key", checked: false, title: "Checks URLscan for for IP, domains, URL, hash, free, no API key" },
+                            { name: "google", label: "Google", supports: "domain url ip hash extension free_no_key scraping", checked: false, title: "Scraps Google search results for all types of observable, free, no API key" },
+                            { name: "github", label: "Github", supports: "domain url ip hash extension free_no_key scraping", checked: false, title: "Get Github grep.app API search results for all types of observable, free, no API key" },
+                            { name: "ioc_one_html", label: "Ioc.One (HTML)", supports: "domain url ip hash extension scraping", checked: false, title: "Scraps (can be long) Ioc.One HTML search results for all types of observable, free, no API key" },
+                            { name: "ioc_one_pdf", label: "Ioc.One (PDF)", supports: "domain url ip hash extension scraping", checked: false, title: "Scraps (can be long) Ioc.One PDF search results for all types of observable, free, no API key" },
+                            { name: "opencti", label: "OpenCTI", supports: "domain url ip hash extension", checked: false, title: "Searches OpenCTI results for all types of observable, API key required" },
+                            { name: "abusix", label: "Abusix", supports: "abuse free_no_key", checked: false, title: "Checks abuse contact with Abusix only for IP, reversed obtained IP for a given domain / URL, free, no API key" }
                         ];
 
                         const enginesToDisplay = GUI_ENABLED_ENGINES.length > 0 ? allEngines.filter(engine => GUI_ENABLED_ENGINES.includes(engine.name)) : allEngines;
@@ -454,14 +455,16 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         <input type="radio" id="selectAll" name="engineSelection">
                         <label title="Can be long" for="selectAll" onclick="selectAllEngines()">All</label>
                         <input type="radio" id="selectAbuseChecker" name="engineSelection">
-                        <label title="Only IP, domain, URL - All free, no key" for="selectAbuseChecker"
-                            onclick="selectAbuseChecker()">Abuse mail</label>
+                        <label title="Abuse mail, only IP, domain, URL - All free, no key" for="selectAbuseChecker"
+                            onclick="selectAbuseChecker()">Abuse</label>
                         <input type="radio" id="selectHash" name="engineSelection">
                         <label for="selectHash" onclick="selectHash()">Hash</label>
                         <input type="radio" id="selectVpn" name="engineSelection">
                         <label title="Only IP" for="selectVpn" onclick="selectVpn()">VPN / Proxy</label>
                         <input type="radio" id="selectFree" name="engineSelection">
                         <label title="All free engines, no key" for="selectFree" onclick="selectFree()">Free</label>
+                        <input type="radio" id="selectExtension" name="engineSelection">
+                        <label title="Only Chrome extension" for="selectExtension" onclick="selectExtension()">Extension</label>
                         <input type="radio" id="selectDefault" name="engineSelection" checked>
                         <label title="Good for IP / domain / URL basic info" for="selectDefault"
                             onclick="selectDefault()">Default</label>
@@ -503,6 +506,12 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             checkbox.checked = checkbox.dataset.supports.includes('free_no_key');
                         });
                     }
+
+                    function selectExtension() {
+                        document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                            checkbox.checked = checkbox.dataset.supports.includes('extension');
+                        });
+                    }
                 </script>
 
                 <button type="submit" class="btn" style="position: relative; bottom: 20px;">Start Analysis - All info will be public!!!</button>
@@ -538,6 +547,12 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         let plainText = '';
                         data.forEach(result => {
                             plainText += `Observable: ${result.observable}\nType: ${result.type}\n`;
+
+                            if (result.extension) {
+                                plainText += `Extension: ${result.extension.name}\n`;
+                                plainText += `URL: ${result.extension.url}\n`;
+                            }
+
                             if (result.reverse_dns) {
                                 plainText += `Reverse DNS: ${result.reverse_dns.reverse_dns.join(', ')}\n`;
                             }
@@ -574,7 +589,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             if (result.rdap) {
                                 plainText += `RDAP: Registrar: ${result.rdap.registrar}, Abuse Contact: ${result.rdap.abuse_contact}, Registrant: ${result.rdap.registrant}, Organization: ${result.rdap.organization}, Registrant Email: ${result.rdap.registrant_email}, Creation Date: ${result.rdap.creation_date}, Expiration Date: ${result.rdap.expiration_date}, Updated Date: ${result.rdap.update_date}, Name Servers: ${result.rdap.name_servers.join(', ')}\n`;
                             }
-                            if (result.threatfox) {
+                            if (result.threatfox && result.threatfox.count > 0) {
                                 plainText += `ThreatFox: Count: ${result.threatfox.count}, Malware: ${result.threatfox.malware_printable.join(', ')}\n`;
                             }
                             if (result.google && result.google.results.length > 0) {
@@ -601,13 +616,13 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                                     plainText += `  - ${iocOnePdfResult.title}: ${iocOnePdfResult.source}\n`;
                                 });
                             }
-                            if (result.urlscan) {
+                            if (result.urlscan && result.urlscan.scan_count > 0) {
                                 plainText += `URLscan: Scan Count: ${result.urlscan.scan_count}\n`;
                                 result.urlscan.top_domains.forEach(domain => {
                                     plainText += `  - ${domain.domain} (${domain.count})\n`;
                                 });
                             }
-                            if (result.opencti) {
+                            if (result.opencti && result.opencti.global_count > 0) {
                                 plainText += `OpenCTI:\n`;
                                 plainText += `  - Global Count: ${result.opencti.global_count}\n`;
                                 plainText += `  - Entity Counts:\n`;
@@ -710,6 +725,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if "reverse_dns" in analysis_results.selected_engines %}
                     <th>DNS Lookup</th>
                     {% endif %}
+                    {% if "CHROME_EXTENSION" in analysis_results.results | map(attribute='type') %}
+                    <th>Extension</th>
+                    {% endif %}
                     {% if "ipquery" in analysis_results.selected_engines %}
                     <th>IPquery</th>
                     {% endif %}
@@ -796,6 +814,15 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% for dns in result.reverse_dns.reverse_dns %}
                         {{ dns }}<br>
                         {% endfor %}
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                    {% if "CHROME_EXTENSION" in analysis_results.results | map(attribute='type') %}
+                    <td>
+                        {% if result.type == "CHROME_EXTENSION" %}
+                        <a href="{{ result.extension.url }}" target="_blank">{{ result.extension.name }}</a>
                         {% else %}
                         Not applicable
                         {% endif %}
@@ -1179,6 +1206,17 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <p><strong>Ratio: </strong><a href="{{ analysis_results.results[0].virustotal.link }}"
                             target="_blank">{{ analysis_results.results[0].virustotal.detection_ratio }}</a></p>
                     <p><strong>Community: </strong>{{ analysis_results.results[0].virustotal.community_score }}</p>
+                </div>
+                {% endif %}
+                {% if analysis_results.results[0].extension %}
+                <div class="card">
+                    <h3>Extension</h3>
+                    {% if analysis_results.results[0].extension.url %}
+                    <p><a href="{{ analysis_results.results[0].extension.url }}"
+                            target="_blank">{{ analysis_results.results[0].extension.name }}</a></p>
+                    {% else %}
+                    <p>Not Found</p>
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>
