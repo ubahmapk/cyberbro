@@ -22,6 +22,11 @@ def prepare_row(result, selected_engines):
         "type": result.get("type")
     }
 
+    # Will be at the end of the report if there are other observable types
+    if result.get("type") == "CHROME_EXTENSION":
+        extension_data = result.get("extension")
+        row["extension_name"] = extension_data.get("name") if extension_data else None
+
     if "reverse_dns" in selected_engines:
         row["rev_dns"] = result.get("reversed_success") if rev_dns_data else None
         row["dns_lookup"] = rev_dns_data.get("reverse_dns") if rev_dns_data else None
