@@ -4,6 +4,7 @@ import time
 import uuid
 import threading
 from flask import Flask, request, render_template, jsonify, send_from_directory
+from flask_cors import CORS
 
 import ioc_fanger
 from utils.utils import extract_observables
@@ -13,6 +14,9 @@ from utils.stats import get_analysis_stats
 from utils.analysis import perform_analysis, check_analysis_in_progress
 
 app = Flask(__name__)
+
+# Enable CORS, very permisive. If you want to restrict it, you can use the origins parameter (can break the GUI)
+CORS(app)
 
 # Configure database
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
