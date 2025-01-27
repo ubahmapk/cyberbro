@@ -247,6 +247,14 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 * [OpenCTI](https://www.opencti.io/)
 * [Grep.App](https://grep.app/)
 
+# Cyberbro browser extension
+
+<p>
+<a href="https://addons.mozilla.org/addon/cyberbro-analyzer/"><img src="https://user-images.githubusercontent.com/585534/107280546-7b9b2a00-6a26-11eb-8f9f-f95932f4bfec.png" alt="Get Cyberbro Analyzer for Firefox"></a>
+</p>
+
+> Chrome and Edge are still waiting but it is available in dev mode. Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki/7.-Cyberbro-browser-extension)
+
 > [!NOTE]
 > Any questions? Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki) or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new) \
 > For the advanced config (tuning of `supervisord.conf` before deployment, selection of visible engines, change `/api/` prefix...), check the [dedicated wiki page](https://github.com/stanfrbd/cyberbro/wiki/Advanced-options-in-secrets.json).
