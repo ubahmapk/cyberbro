@@ -46,8 +46,9 @@ def prepare_row(result, selected_engines):
         row["ipinfo_cn"] = ipinfo_data.get("country_code") if ipinfo_data else None
         row["ipinfo_country"] = ipinfo_data.get("country_name") if ipinfo_data else None
         row["ipinfo_geo"] = ipinfo_data.get("geolocation") if ipinfo_data else None
-        row["ipinfo_asn"] = ipinfo_data.get("asn").split(' ', 1)[0] if ipinfo_data.get("asn") else None
-        row["ipinfo_org"] = ipinfo_data.get("asn").split(' ', 1)[1] if ipinfo_data.get("asn") else None
+        asn_data = ipinfo_data.get("asn").split(' ', 1) if ipinfo_data.get("asn") else []
+        row["ipinfo_asn"] = asn_data[0] if len(asn_data) > 0 else None
+        row["ipinfo_org"] = asn_data[1] if len(asn_data) > 1 else None
 
     if "abuseipdb" in selected_engines:
         row["a_ipdb_reports"] = abuseipdb_data.get("reports") if abuseipdb_data else None
