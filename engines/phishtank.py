@@ -27,7 +27,7 @@ def query_phishtank(
         dict: The results from the PhishTank API if the request is successful.
         None: If any exception or error occurs during the request.
     """
-    headers = {"User-Agent": "phishtank/IntelOwl"}
+    headers = {"User-Agent": "phishtank/Cyberbro"}
     observable_to_analyze = observable
 
     if observable_type == "FQDN":
