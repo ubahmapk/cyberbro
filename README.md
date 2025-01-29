@@ -1,20 +1,47 @@
-# Cyberbro
+<h1 align="center">Cyberbro</h1>
 
-A simple application that extracts your IoCs from garbage input and checks their reputation using multiple services. \
+<p align="center">
+<img src="https://github.com/user-attachments/assets/5e5a4406-99c1-47f1-a726-de176baa824c" width="90" /><br />
+<b><i>A simple application that extracts your IoCs from garbage input and checks their reputation using multiple services.</i></b>
+<br />
+<b>🌐 <a href="https://demo.cyberbro.net/">demo.cyberbro.net</a></b><br />
+
+</p>
+
+---
+
+<div align="center">
+  <a href="https://github.com/stanfrbd/cyberbro/stargazers">
+    <img src="https://img.shields.io/github/stars/stanfrbd/cyberbro?style=social" alt="GitHub stars">
+  </a>
+  <a href="https://x.com/cyberbro_cti">
+    <img src="https://img.shields.io/twitter/follow/cyberbro_cti?style=social" alt="Follow on X/Twitter">
+  </a>
+  <a href="https://infosec.exchange/@cyberbro">
+    <img src="https://img.shields.io/badge/Follow_@cyberbro-23-blue?logo=mastodon" alt="Mastodon">
+  </a>
+  <a href="https://github.com/stanfrbd/cyberbro/issues">
+    <img src="https://img.shields.io/github/issues/stanfrbd/cyberbro" alt="GitHub issues">
+  </a>
+  <a href="https://github.com/stanfrbd/cyberbro/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/stanfrbd/cyberbro" alt="License">
+  </a>
+  <a href="https://github.com/stanfrbd/cyberbro/actions/workflows/jobs.yml">
+    <img src="https://github.com/stanfrbd/cyberbro/actions/workflows/jobs.yml/badge.svg" alt="example branch parameter">
+  </a>
+  <a href="https://www.python.org/">
+    <img src="https://img.shields.io/badge/Python-3.13-blue?logo=python" alt="Python">
+  </a>
+</div>
+
+---
+
+# About
+
 Inspired by [Cybergordon](https://cybergordon.com/) and [IntelOwl](https://github.com/intelowlproject/IntelOwl).
 
 This project aims to provide a simple and efficient way to check the reputation of your observables using multiple services, 
 without having to deploy a **complex** solution.
-
-**==> Checkout the public demo: [https://demo.cyberbro.net/](https://demo.cyberbro.net/) <==**
-
-![GitHub stars](https://img.shields.io/github/stars/stanfrbd/cyberbro?style=social)
-[![Follow on X/Twitter](https://img.shields.io/twitter/follow/cyberbro_cti?style=social)](https://x.com/cyberbro_cti)
-[![Mastodon](https://img.shields.io/badge/Follow_@cyberbro-23-blue?logo=mastodon)](https://infosec.exchange/@cyberbro)
-![GitHub issues](https://img.shields.io/github/issues/stanfrbd/cyberbro)
-![License](https://img.shields.io/github/license/stanfrbd/cyberbro)
-![example branch parameter](https://github.com/stanfrbd/cyberbro/actions/workflows/jobs.yml/badge.svg)
-![Python](https://img.shields.io/badge/Python-3.13-blue?logo=python)
 
 ![cyberbro_gh](https://github.com/user-attachments/assets/d82a021c-a199-4f07-ab26-7af8e1b650a0)
 
