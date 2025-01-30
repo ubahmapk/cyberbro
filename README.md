@@ -176,8 +176,7 @@ python3 app.py
 ![image](https://github.com/user-attachments/assets/e88dd9fd-3644-42a2-8a47-6ca6d44bf5e7)
 
 > [!CAUTION]
-> This is still a development server, not intended for production. \
-Some misconfigurations may lead to **security issues**.
+> If you intend to use this in a **production environment**, use well configured **Reverse Proxy** + **WAF** to prevent **security issues**.
 
 # Cyberbro browser extension
 
