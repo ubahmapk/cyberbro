@@ -424,7 +424,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             { name: "ioc_one_pdf", label: "Ioc.One (PDF)", supports: "domain url ip hash extension scraping", checked: false, title: "Scraps (can be long) Ioc.One PDF search results for all types of observable, free, no API key" },
                             { name: "opencti", label: "OpenCTI", supports: "domain url ip hash extension", checked: false, title: "Searches OpenCTI results for all types of observable, API key required" },
                             { name: "abusix", label: "Abusix", supports: "abuse free_no_key", checked: false, title: "Checks abuse contact with Abusix only for IP, reversed obtained IP for a given domain / URL, free, no API key" },
-                            { name: "hudsonrock", label: "Hudson Rock", supports: "domain url email free_no_key", checked: false, title: "Searches Hudson Rocks results for domains, URL, Email, free, no API key" }
+                            { name: "hudsonrock", label: "Hudson Rock", supports: "domain url email free_no_key", checked: false, title: "Searches Hudson Rock leak / infostealer results for domains, URL, Email, free, no API key" }
                         ];
 
                         const enginesToDisplay = GUI_ENABLED_ENGINES.length > 0 ? allEngines.filter(engine => GUI_ENABLED_ENGINES.includes(engine.name)) : allEngines;
