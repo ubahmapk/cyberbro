@@ -643,9 +643,49 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                                 }
                             }
 
-                            if (result.hudsonrock && result.hudsonrock.results.length > 0) {
+                            if (result.hudsonrock) {
                                 plainText += `Hudson Rock:\n`;
-                                // TODO: Add Hudson Rock results
+
+                                if (result.type === "Email" && result.hudsonrock.stealers) {
+                                    plainText += `Compromised Computer Details:\n`;
+                                    result.hudsonrock.stealers.forEach(stealer => {
+                                        if (stealer.computer_name) plainText += `Computer Name: ${stealer.computer_name}\n`;
+                                        if (stealer.operating_system) plainText += `Operating System: ${stealer.operating_system}\n`;
+                                        if (stealer.date_compromised) plainText += `Date Compromised: ${stealer.date_compromised}\n`;
+                                        if (stealer.total_corporate_services) plainText += `Total Corporate Services: ${stealer.total_corporate_services}\n`;
+                                        if (stealer.total_user_services) plainText += `Total User Services: ${stealer.total_user_services}\n`;
+                                    });
+                                } else if (result.type === "URL" || result.type === "FQDN") {
+                                    plainText += `Compromised domain details:\n`;
+                                    if (result.hudsonrock.total) plainText += `Total: ${result.hudsonrock.total}\n`;
+                                    if (result.hudsonrock.totalStealers) plainText += `Total Stealers: ${result.hudsonrock.totalStealers}\n`;
+                                    if (result.hudsonrock.employees) plainText += `Employees: ${result.hudsonrock.employees}\n`;
+                                    if (result.hudsonrock.users) plainText += `Users: ${result.hudsonrock.users}\n`;
+                                    if (result.hudsonrock.third_parties) plainText += `Third Parties: ${result.hudsonrock.third_parties}\n`;
+                                    if (result.hudsonrock.totalUrls) plainText += `Total URLs: ${result.hudsonrock.totalUrls}\n`;
+                                    if (result.hudsonrock.last_employee_compromised) plainText += `Last Employee Compromised: ${result.hudsonrock.last_employee_compromised.split('T')[0]}\n`;
+                                    if (result.hudsonrock.last_user_compromised) plainText += `Last User Compromised: ${result.hudsonrock.last_user_compromised.split('T')[0]}\n`;
+                                    if (result.hudsonrock.is_shopify) plainText += `Is Shopify: ${result.hudsonrock.is_shopify}\n`;
+                                    if (result.hudsonrock.applications) plainText += `Applications: ${result.hudsonrock.applications.map(app => app.keyword).join(', ')}\n`;
+                                    if (result.hudsonrock.stealerFamilies) {
+                                        plainText += `Stealer Families:\n`;
+                                        for (const [family, count] of Object.entries(result.hudsonrock.stealerFamilies)) {
+                                            plainText += `  - ${family}: ${count}\n`;
+                                        }
+                                    }
+                                    if (result.hudsonrock.stats.employees_urls) {
+                                        plainText += `Employee URLs:\n`;
+                                        result.hudsonrock.stats.employees_urls.forEach(url => {
+                                            if (!url.includes("••")) plainText += `  - ${url}\n`;
+                                        });
+                                    }
+                                    if (result.hudsonrock.stats.clients_urls) {
+                                        plainText += `Client URLs:\n`;
+                                        result.hudsonrock.stats.clients_urls.forEach(url => {
+                                            if (!url.includes("••")) plainText += `  - ${url}\n`;
+                                        });
+                                    }
+                                }
                             }
                             plainText += '\n';
                         });
