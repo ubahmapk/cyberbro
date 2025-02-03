@@ -1232,10 +1232,10 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% if stealer.total_corporate_services %}<strong>Total Corporate Services: </strong>{{ stealer.total_corporate_services }}<br>{% endif %}
                         {% if stealer.total_user_services %}<strong>Total User Services: </strong>{{ stealer.total_user_services }}<br>{% endif %}
                         {% endfor %}
-                        {% elif result.hudsonrock and (result.type == "URL" or result.type == "FQDN") %}
+                        {% elif result.hudsonrock and (result.type == "URL" or result.type == "FQDN") and result.hudsonrock.total %}
                         <strong>Compromised domain details</strong>
                         {% if result.hudsonrock.total %}<p><strong>Total: </strong>{{ result.hudsonrock.total }}</p>{% endif %}
-                        {% if result.hudsonrock.totalStealers %}<p><strong>Total Stealers: </strong>{{ result.hudsonrock.totalStealers }}</p>{% endif %}
+                        {% if result.hudsonrock.total and result.hudsonrock.totalStealers %}<p><strong>Total Stealers: </strong>{{ result.hudsonrock.totalStealers }}</p>{% endif %}
                         {% if result.hudsonrock.employees %}<p><strong>Employees: </strong>{{ result.hudsonrock.employees }}</p>{% endif %}
                         {% if result.hudsonrock.users %}<p><strong>Users: </strong>{{ result.hudsonrock.users }}</p>{% endif %}
                         {% if result.hudsonrock.third_parties %}<p><strong>Third Parties: </strong>{{ result.hudsonrock.third_parties }}</p>{% endif %}
@@ -1653,12 +1653,12 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <p><strong>Total User Services: </strong>{{ stealer.total_user_services }}</p>
                     {% endif %}
                     {% endfor %}
-                    {% elif analysis_results.results[0].type == "URL" or analysis_results.results[0].type == "FQDN" %}
-                    <p><strong>Compromised domain details</strong></p>
+                    {% elif (analysis_results.results[0].type == "URL" or analysis_results.results[0].type == "FQDN") and analysis_results.results[0].hudsonrock.total %}
                     {% if analysis_results.results[0].hudsonrock.total %}
+                    <p><strong>Compromised domain details</strong></p>
                     <p><strong>Total: </strong>{{ analysis_results.results[0].hudsonrock.total }}</p>
                     {% endif %}
-                    {% if analysis_results.results[0].hudsonrock.totalStealers %}
+                    {% if analysis_results.results[0].hudsonrock.total and analysis_results.results[0].hudsonrock.totalStealers %}
                     <p><strong>Total Stealers: </strong>{{ analysis_results.results[0].hudsonrock.totalStealers }}</p>
                     {% endif %}
                     {% if analysis_results.results[0].hudsonrock.employees %}
