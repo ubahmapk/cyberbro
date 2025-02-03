@@ -423,7 +423,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             { name: "ioc_one_html", label: "Ioc.One (HTML)", supports: "domain url ip hash extension scraping", checked: false, title: "Scraps (can be long) Ioc.One HTML search results for all types of observable, free, no API key" },
                             { name: "ioc_one_pdf", label: "Ioc.One (PDF)", supports: "domain url ip hash extension scraping", checked: false, title: "Scraps (can be long) Ioc.One PDF search results for all types of observable, free, no API key" },
                             { name: "opencti", label: "OpenCTI", supports: "domain url ip hash extension", checked: false, title: "Searches OpenCTI results for all types of observable, API key required" },
-                            { name: "abusix", label: "Abusix", supports: "abuse free_no_key", checked: false, title: "Checks abuse contact with Abusix only for IP, reversed obtained IP for a given domain / URL, free, no API key" }
+                            { name: "abusix", label: "Abusix", supports: "abuse free_no_key", checked: false, title: "Checks abuse contact with Abusix only for IP, reversed obtained IP for a given domain / URL, free, no API key" },
+                            { name: "hudsonrock", label: "Hudson Rock", supports: "domain url email free_no_key", checked: false, title: "Searches Hudson Rocks results for domains, URL, Email, free, no API key" }
                         ];
 
                         const enginesToDisplay = GUI_ENABLED_ENGINES.length > 0 ? allEngines.filter(engine => GUI_ENABLED_ENGINES.includes(engine.name)) : allEngines;
@@ -641,6 +642,11 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                                     plainText += `  - Valid Until: ${result.opencti.valid_until}\n`;
                                 }
                             }
+
+                            if (result.hudsonrock && result.hudsonrock.results.length > 0) {
+                                plainText += `Hudson Rock:\n`;
+                                // TODO: Add Hudson Rock results
+                            }
                             plainText += '\n';
                         });
 
@@ -781,6 +787,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% endif %}
                     {% if "opencti" in analysis_results.selected_engines %}
                     <th>OpenCTI</th>
+                    {% endif %}
+                    {% if "hudsonrock" in analysis_results.selected_engines %}
+                    <th>Hudson Rock</th>
                     {% endif %}
                 </tr>
             </thead>
@@ -1172,6 +1181,62 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% endif %}
                     </td>
                     {% endif %}
+                    {% if "hudsonrock" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.type == "Email" and result.hudsonrock and result.hudsonrock.stealers %}
+                        <strong>Compromised Computer Details:</strong><br>
+                        {% for stealer in result.hudsonrock.stealers %}
+                        {% if stealer.computer_name %}<strong>Computer Name: </strong>{{ stealer.computer_name }}<br>{% endif %}
+                        {% if stealer.operating_system %}<strong>Operating System: </strong>{{ stealer.operating_system }}<br>{% endif %}
+                        {% if stealer.date_compromised %}<strong>Date Compromised: </strong>{{ stealer.date_compromised }}<br>{% endif %}
+                        {% if stealer.total_corporate_services %}<strong>Total Corporate Services: </strong>{{ stealer.total_corporate_services }}<br>{% endif %}
+                        {% if stealer.total_user_services %}<strong>Total User Services: </strong>{{ stealer.total_user_services }}<br>{% endif %}
+                        {% endfor %}
+                        {% elif result.hudsonrock and (result.type == "URL" or result.type == "FQDN") %}
+                        <strong>Compromised domain details</strong>
+                        {% if result.hudsonrock.total %}<p><strong>Total: </strong>{{ result.hudsonrock.total }}</p>{% endif %}
+                        {% if result.hudsonrock.totalStealers %}<p><strong>Total Stealers: </strong>{{ result.hudsonrock.totalStealers }}</p>{% endif %}
+                        {% if result.hudsonrock.employees %}<p><strong>Employees: </strong>{{ result.hudsonrock.employees }}</p>{% endif %}
+                        {% if result.hudsonrock.users %}<p><strong>Users: </strong>{{ result.hudsonrock.users }}</p>{% endif %}
+                        {% if result.hudsonrock.third_parties %}<p><strong>Third Parties: </strong>{{ result.hudsonrock.third_parties }}</p>{% endif %}
+                        {% if result.hudsonrock.totalUrls %}<p><strong>Total URLs: </strong>{{ result.hudsonrock.totalUrls }}</p>{% endif %}
+                        {% if result.hudsonrock.last_employee_compromised %}<p><strong>Last Employee Compromised: </strong>{{ result.hudsonrock.last_employee_compromised.split('T')[0] }}</p>{% endif %}
+                        {% if result.hudsonrock.last_user_compromised %}<p><strong>Last User Compromised: </strong>{{ result.hudsonrock.last_user_compromised.split('T')[0] }}</p>{% endif %}
+                        {% if result.hudsonrock.is_shopify %}<p><strong>Is Shopify: </strong>{{ result.hudsonrock.is_shopify }}</p>{% endif %}
+                        {% if result.hudsonrock.applications %}<p><strong>Applications: </strong>{{ result.hudsonrock.applications | map(attribute='keyword') | join(', ') }}</p>{% endif %}
+                        {% if result.hudsonrock.stealerFamilies %}
+                        <p><strong>Stealer Families: </strong></p>
+                        <ul>
+                            {% for family, count in result.hudsonrock.stealerFamilies.items() %}
+                            <li>{{ family }}: {{ count }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% if result.hudsonrock.stats.employees_urls %}
+                        <p><strong>Employee URLs: </strong></p>
+                        <ul>
+                            {% for url in result.hudsonrock.stats.employees_urls %}
+                            {% if "••" not in url %}
+                            <li><a href="{{ url }}" target="_blank">{{ url }}</a></li>
+                            {% endif %}
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% if result.hudsonrock.stats.clients_urls %}
+                        <p><strong>Client URLs: </strong></p>
+                        <ul>
+                            {% for url in result.hudsonrock.stats.clients_urls %}
+                            {% if "••" not in url %}
+                            <li><a href="{{ url }}" target="_blank">{{ url }}</a></li>
+                            {% endif %}
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
@@ -1524,6 +1589,96 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% endif %}
                 </div>
                 {% endif %}
+            </div>
+            <div class="cards-results-container">
+                {% if analysis_results.results[0].hudsonrock %}
+                <div class="card">
+                    <h3>Hudson Rock</h3>
+                    {% if analysis_results.results[0].type == "Email" and analysis_results.results[0].hudsonrock.stealers %}
+                    <p><strong>Compromised Computer Details:</strong></p>
+                    {% for stealer in analysis_results.results[0].hudsonrock.stealers %}
+                    {% if stealer.computer_name %}
+                    <p><strong>Computer Name: </strong>{{ stealer.computer_name }}</p>
+                    {% endif %}
+                    {% if stealer.operating_system %}
+                    <p><strong>Operating System: </strong>{{ stealer.operating_system }}</p>
+                    {% endif %}
+                    {% if stealer.date_compromised %}
+                    <p><strong>Date Compromised: </strong>{{ stealer.date_compromised }}</p>
+                    {% endif %}
+                    {% if stealer.total_corporate_services %}
+                    <p><strong>Total Corporate Services: </strong>{{ stealer.total_corporate_services }}</p>
+                    {% endif %}
+                    {% if stealer.total_user_services %}
+                    <p><strong>Total User Services: </strong>{{ stealer.total_user_services }}</p>
+                    {% endif %}
+                    {% endfor %}
+                    {% elif analysis_results.results[0].type == "URL" or analysis_results.results[0].type == "FQDN" %}
+                    <p><strong>Compromised domain details</strong></p>
+                    {% if analysis_results.results[0].hudsonrock.total %}
+                    <p><strong>Total: </strong>{{ analysis_results.results[0].hudsonrock.total }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].hudsonrock.totalStealers %}
+                    <p><strong>Total Stealers: </strong>{{ analysis_results.results[0].hudsonrock.totalStealers }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].hudsonrock.employees %}
+                    <p><strong>Employees: </strong>{{ analysis_results.results[0].hudsonrock.employees }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].hudsonrock.users %}
+                    <p><strong>Users: </strong>{{ analysis_results.results[0].hudsonrock.users }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].hudsonrock.third_parties %}
+                    <p><strong>Third Parties: </strong>{{ analysis_results.results[0].hudsonrock.third_parties }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].hudsonrock.totalUrls %}
+                    <p><strong>Total URLs: </strong>{{ analysis_results.results[0].hudsonrock.totalUrls }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].hudsonrock.last_employee_compromised %}
+                    <p><strong>Last Employee Compromised: </strong>{{ analysis_results.results[0].hudsonrock.last_employee_compromised.split('T')[0] }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].hudsonrock.last_user_compromised %}
+                    <p><strong>Last User Compromised: </strong>{{ analysis_results.results[0].hudsonrock.last_user_compromised.split('T')[0] }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].hudsonrock.is_shopify %}
+                    <p><strong>Is Shopify: </strong>{{ analysis_results.results[0].hudsonrock.is_shopify }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].hudsonrock.applications %}
+                    <p><strong>Applications: </strong>{{ analysis_results.results[0].hudsonrock.applications | map(attribute='keyword') | join(', ') }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].hudsonrock.stealerFamilies %}
+                    <p><strong>Stealer Families: </strong></p>
+                    <ul>
+                        {% for family, count in analysis_results.results[0].hudsonrock.stealerFamilies.items() %}
+                        <li>{{ family }}: {{ count }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% if analysis_results.results[0].hudsonrock.stats.employees_urls %}
+                    <p><strong>Employee URLs: </strong></p>
+                    <ul>
+                        {% for url in analysis_results.results[0].hudsonrock.stats.employees_urls %}
+                        {% if "••" not in url %}
+                        <li><a href="{{ url }}" target="_blank">{{ url }}</a></li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% if analysis_results.results[0].hudsonrock.stats.clients_urls %}
+                    <p><strong>Client URLs: </strong></p>
+                    <ul>
+                        {% for url in analysis_results.results[0].hudsonrock.stats.clients_urls %}
+                        {% if "••" not in url %}
+                        <li><a href="{{ url }}" target="_blank">{{ url }}</a></li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% else %}
+                    <p>Not applicable</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
             </div>
         </div>
         {% endif %}
