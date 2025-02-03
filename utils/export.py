@@ -115,6 +115,17 @@ def prepare_row(result, selected_engines):
         row["opencti_entity_counts"] = opencti_data.get("entity_counts") if opencti_data else None
         row["opencti_global_count"] = opencti_data.get("global_count") if opencti_data else None
     
+    if "hudsonrock" in selected_engines:
+        hudsonrock_data = result.get("hudsonrock", {})
+        row["hr_total_corporate_services"] = hudsonrock_data.get("total_corporate_services") if hudsonrock_data else None
+        row["hr_total_user_services"] = hudsonrock_data.get("total_user_services") if hudsonrock_data else None
+        row["hr_total"] = hudsonrock_data.get("total") if hudsonrock_data else None
+        row["hr_total_stealers"] = hudsonrock_data.get("totalStealers") if hudsonrock_data else None
+        row["hr_employees"] = hudsonrock_data.get("employees") if hudsonrock_data else None
+        row["hr_users"] = hudsonrock_data.get("users") if hudsonrock_data else None
+        row["hr_third_parties"] = hudsonrock_data.get("third_parties") if hudsonrock_data else None
+        row["hr_stealer_families"] = hudsonrock_data.get("stealerFamilies") if hudsonrock_data else None
+    
     return row
 
 def prepare_data_for_export(analysis_results):

@@ -60,6 +60,7 @@ without having to deploy a **complex** solution.
 * **Proxy Support**: Use a proxy if required.
 * **Data Storage**: Store results in a SQLite database.
 * **Grep.App**: Search for observables with Grep.App API (fast GitHub searches).
+* **Hudson Rock**: Check if an email / domain was part of a data breach or was victim of an infostealer.
 * **Analysis History**: Maintain a history of analyses with easy retrieval and search functionality.
 
 # What Cyberbro does that others don't
@@ -280,6 +281,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 * [Ioc.One](https://ioc.one/)
 * [OpenCTI](https://www.opencti.io/)
 * [Grep.App](https://grep.app/)
+* [Hudson Rock](https://hudsonrock.com/)
 
 > [!NOTE]
 > Any questions? Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki) or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new) \

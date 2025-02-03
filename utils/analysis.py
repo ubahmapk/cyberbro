@@ -8,7 +8,7 @@ import sys
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
     microsoft_defender_for_endpoint, spur_us_free, shodan, phishtank, 
-    abusix, rdap, threatfox, google, github, ioc_one, ipquery, urlscan, opencti, extension
+    abusix, rdap, threatfox, google, github, ioc_one, ipquery, urlscan, opencti, extension, hudsonrock
 )
 
 from models.analysis_result import AnalysisResult
@@ -127,6 +127,9 @@ def perform_engine_queries(observable, selected_engines, result):
 
     if "phishtank" in selected_engines and observable["type"] in ["FQDN", "URL"]:
         result['phishtank'] = phishtank.query_phishtank(observable["value"], observable["type"], PROXIES)
+
+    if "hudsonrock" in selected_engines and observable["type"] in ["Email", "FQDN", "URL"]:
+        result['hudsonrock'] = hudsonrock.query_hudsonrock(observable["value"], observable["type"], PROXIES)
     
     # 2. Reverse DNS if possible, change observable type to IP if possible
     if "reverse_dns" in selected_engines and observable["type"] in ["IPv4", "IPv6", "FQDN", "URL", "BOGON"]:
