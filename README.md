@@ -130,6 +130,9 @@ cp secrets-sample.json secrets.json
 
 ## Lazy and easy - use docker
 
+> [!WARNING]
+> Make sure you install the `compose` plugin as `docker compose` and not `docker-compose`.
+
 ```bash
 docker compose up # use -d to run in background and use --build to rebuild the image
 ```
