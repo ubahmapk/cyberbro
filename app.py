@@ -160,7 +160,7 @@ def update_config():
         # Apply the GUI_ENABLED_ENGINES configuration directly to the GUI to avoid restarting the app
         global GUI_ENABLED_ENGINES
         GUI_ENABLED_ENGINES = request.form.get("gui_enabled_engines", "")
-        secrets["gui_enabled_engines"] = [engine.strip() for engine in GUI_ENABLED_ENGINES.split(",")] if GUI_ENABLED_ENGINES else []
+        secrets["gui_enabled_engines"] = [engine.strip().lower() for engine in GUI_ENABLED_ENGINES.split(",")] if GUI_ENABLED_ENGINES else []
         GUI_ENABLED_ENGINES = secrets["gui_enabled_engines"]
         
         # Save the secrets to the secrets.json file

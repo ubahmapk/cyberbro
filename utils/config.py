@@ -45,7 +45,7 @@ try:
                 env_configured = True
                 if key == "gui_enabled_engines":
                     # Split the comma-separated list of engines into a list
-                    secrets[key] = env_value.split(",")
+                    secrets[key] = [engine.strip().lower() for engine in env_value.split(",")]
                 elif key == "config_page_enabled":
                     secrets[key] = env_value.lower() in ["true", "1", "yes"]
                 else:
