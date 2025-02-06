@@ -351,7 +351,7 @@
                         
                         {% if key == 'gui_enabled_engines' %}
                         <td style="width: 15%;">
-                            <label class="secrets_key" for="secret_{{ key }}">{{ key }} (separated by ",")</label>
+                            <label class="secrets_key" for="secret_{{ key }}">{{ key }} (separated by ",") - when empty, all engines are enabled.</label>
                         </td>
                         <td style="width: 50%;">
                             <input class="enabled_engines_value" type="text" id="secret_{{ key }}" name="{{ key }}"
