@@ -19,17 +19,20 @@ config.read(supervisord_conf_file)
 supervisor_conf_edited = False
 
 # Update the supervisord.conf with the new parameters if they exist
-if 'supervisord_workers_count' in secrets:
+workers_count = secrets.get('supervisord_workers_count') or os.getenv('SUPERVISORD_WORKERS_COUNT')
+threads_count = secrets.get('supervisord_threads_count') or os.getenv('SUPERVISORD_THREADS_COUNT')
+
+if workers_count:
     config['program:cyberbro']['command'] = config['program:cyberbro']['command'].replace(
         '-w ' + config['program:cyberbro']['command'].split('-w ')[1].split()[0],
-        f"-w {secrets['supervisord_workers_count']}"
+        f"-w {workers_count}"
     )
     supervisor_conf_edited = True
 
-if 'supervisord_threads_count' in secrets:
+if threads_count:
     config['program:cyberbro']['command'] = config['program:cyberbro']['command'].replace(
         '-t ' + config['program:cyberbro']['command'].split('-t ')[1].split()[0],
-        f"-t {secrets['supervisord_threads_count']}"
+        f"-t {threads_count}"
     )
     supervisor_conf_edited = True
 
