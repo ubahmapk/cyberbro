@@ -67,6 +67,7 @@ try:
         logging.info("Secrets file was automatically generated.")
 
 except Exception as e:
+    print("Error while loading secrets:", e)
     logging.error("Error while loading secrets: %s", e)
     exit(1)
 
