@@ -43,11 +43,11 @@ try:
             env_value = os.getenv(key.upper())
             if env_value:
                 env_configured = True
-            if key == "gui_enabled_engines":
-                # Split the comma-separated list of engines into a list
-                secrets[key] = env_value.split(",")
-            else:
-                secrets[key] = env_value
+                if key == "gui_enabled_engines":
+                    # Split the comma-separated list of engines into a list
+                    secrets[key] = env_value.split(",")
+                else:
+                    secrets[key] = env_value
 
         # Check if proxy variable is set
         if not secrets["proxy_url"]:
