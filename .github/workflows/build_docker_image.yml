@@ -22,14 +22,7 @@ jobs:
       - name: Build Docker image
         env:
           GUI_ENABLED_ENGINES: "reverse_dns,rdap,ipquery,abuseipdb,virustotal,spur,google_safe_browsing,shodan,phishtank,threatfox,urlscan,google,github,opencti,abusix,hudsonrock"
-        run: docker build -t cyberbro .
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/cyberbro:latest
 
       - name: Push Docker image
-        run: docker push ghcr.io/${{ github.repository_owner }}/cyberbro
-
-      - name: Deploy Docker container
-        env:
-          GUI_ENABLED_ENGINES: "reverse_dns,rdap,ipquery,abuseipdb,virustotal,spur,google_safe_browsing,shodan,phishtank,threatfox,urlscan,google,github,opencti,abusix,hudsonrock"
-        run: docker run -d --name my-container \
-          -e GUI_ENABLED_ENGINES \
-          ghcr.io/${{ github.repository_owner }}/cyberbro
+        run: docker push ghcr.io/${{ github.repository_owner }}/cyberbro:latest
