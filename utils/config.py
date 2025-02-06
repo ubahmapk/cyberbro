@@ -35,24 +35,33 @@ try:
             secrets.update(json.load(f))
     else:
         print("Secrets file not found. Trying to read environment variables...")
+        logging.info("Secrets file not found. Trying to read environment variables...")
 
         # Load secrets from environment variables
+        env_configured = False
         for key in secrets.keys():
             env_value = os.getenv(key.upper())
             if env_value:
-                if key == "gui_enabled_engines":
-                    # Split the comma-separated list of engines into a list
-                    secrets[key] = env_value.split(",")
-                else:
-                    secrets[key] = env_value
+                env_configured = True
+            if key == "gui_enabled_engines":
+                # Split the comma-separated list of engines into a list
+                secrets[key] = env_value.split(",")
+            else:
+                secrets[key] = env_value
 
-        # Check if mandatory variable is set
+        # Check if proxy variable is set
         if not secrets["proxy_url"]:
+            print("No proxy URL was set. Using no proxy.")
             logging.info("No proxy URL was set. Using no proxy.")
+
+        if not env_configured:
+            print("No environment variables were configured. You can configure secrets later in secrets.json.")
+            logging.info("No environment variables were configured. You can configure secrets later in secrets.json.")
 
         # Dump the variables and create the secrets.json file if at least proxy_url is set
         with open(SECRETS_FILE, 'w') as f:
             json.dump(secrets, f, indent=4)
+        print("Secrets file was automatically generated.")
         logging.info("Secrets file was automatically generated.")
 
 except Exception as e:
