@@ -8,9 +8,11 @@ secrets_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'secrets
 # Path to the supervisord.conf file
 supervisord_conf_file = os.path.join(os.path.dirname(__file__), 'supervisord.conf')
 
-# Read the secrets file
-with open(secrets_file, 'r') as f:
-    secrets = json.load(f)
+# Read the secrets file if it exists
+secrets = {}
+if os.path.exists(secrets_file):
+    with open(secrets_file, 'r') as f:
+        secrets = json.load(f)
 
 # Read the existing supervisord.conf
 config = configparser.ConfigParser()
