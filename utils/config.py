@@ -48,8 +48,7 @@ try:
 
         # Check if mandatory variable is set
         if not secrets["proxy_url"]:
-            logging.error("Error: No secrets.json file found and no environment variables set. Terminating the app.")
-            exit(1)
+            logging.info("No proxy URL was set. Using no proxy.")
 
         # Dump the variables and create the secrets.json file if at least proxy_url is set
         with open(SECRETS_FILE, 'w') as f:
