@@ -1,9 +1,6 @@
 import queue
-import socket
-import json
 import threading
 import time
-import sys
 
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
@@ -14,33 +11,14 @@ from engines import (
 from models.analysis_result import AnalysisResult
 from utils.database import save_analysis_result, get_analysis_result
 from utils.utils import is_bogon
+from utils.config import get_config
 
-# Constants
-SECRETS_FILE = 'secrets.json'
-TOR_PROXY = 'socks5h://127.0.0.1:9050'
-TOR_PORT = 9051
+# Read the secrets from the config file
+secrets = get_config()
 
-def read_secrets():
-    """Read secrets from the secrets.json file."""
-    with open(SECRETS_FILE) as f:
-        return json.load(f)
-
-secrets = read_secrets()
 PROXIES = {"http": secrets["proxy_url"], "https": secrets["proxy_url"]}
 
-def is_tor_running():
-    """Check if Tor is running."""
-    try:
-        with socket.create_connection(("127.0.0.1", TOR_PORT), timeout=2):
-            return True
-    except socket.error:
-        return False
-
-TOR_RUNNING = is_tor_running()
-SPUR_PROXIES = {'http': TOR_PROXY, 'https': TOR_PROXY} if TOR_RUNNING else PROXIES
-
 def perform_analysis(app, observables, selected_engines, analysis_id):
-    """Perform analysis on the given observables using the selected engines."""
     with app.app_context():
         start_time = time.time()
 
@@ -74,17 +52,14 @@ def perform_analysis(app, observables, selected_engines, analysis_id):
         update_analysis_metadata(analysis_id, start_time, selected_engines, results)
 
 def analyze_observable(observable, index, selected_engines, result_queue):
-    """Analyze a single observable."""
     result = initialize_result(observable)
     result = perform_engine_queries(observable, selected_engines, result)
     result_queue.put((index, result))
 
 def initialize_result(observable):
-    """Initialize the result dictionary for an observable."""
     return {"observable": observable["value"], "type": observable["type"], 'reversed_success': False}
 
 def perform_engine_queries(observable, selected_engines, result):
-    """Perform queries to the selected engines."""
 
     # 1. Check if IP is private
     if observable["type"] in ["IPv4", "IPv6"] and is_bogon(observable["value"]):
@@ -151,7 +126,7 @@ def perform_engine_queries(observable, selected_engines, result):
         result['abuseipdb'] = abuseipdb.query_abuseipdb(observable["value"], secrets["abuseipdb"], PROXIES)
 
     if "spur" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
-        result['spur'] = spur_us_free.get_spur(observable["value"], SPUR_PROXIES)
+        result['spur'] = spur_us_free.get_spur(observable["value"], PROXIES)
 
     if "shodan" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
         result['shodan'] = shodan.query_shodan(observable["value"], secrets["shodan"], PROXIES)
@@ -166,7 +141,6 @@ def perform_engine_queries(observable, selected_engines, result):
     return result
 
 def collect_results_from_queue(result_queue, num_observables):
-    """Collect results from the result queue."""
     results = [None] * num_observables
     while not result_queue.empty():
         index, result = result_queue.get()
@@ -174,12 +148,10 @@ def collect_results_from_queue(result_queue, num_observables):
     return results
 
 def check_analysis_in_progress(analysis_id):
-    """Check if the analysis is in progress."""
     analysis_result = get_analysis_result(analysis_id)
     return analysis_result.in_progress if analysis_result else False
 
 def update_analysis_metadata(analysis_id, start_time, selected_engines, results):
-    """Update the analysis metadata."""
     analysis_result = get_analysis_result(analysis_id)
     if analysis_result:
         end_time = time.time()
