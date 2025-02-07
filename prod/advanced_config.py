@@ -23,6 +23,7 @@ supervisor_conf_edited = False
 # Update the supervisord.conf with the new parameters if they exist
 workers_count = secrets.get('supervisord_workers_count') or os.getenv('SUPERVISORD_WORKERS_COUNT')
 threads_count = secrets.get('supervisord_threads_count') or os.getenv('SUPERVISORD_THREADS_COUNT')
+timeout = secrets.get('supervisord_timeout') or os.getenv('SUPERVISORD_TIMEOUT')
 
 if workers_count:
     config['program:cyberbro']['command'] = config['program:cyberbro']['command'].replace(
@@ -35,6 +36,13 @@ if threads_count:
     config['program:cyberbro']['command'] = config['program:cyberbro']['command'].replace(
         '-t ' + config['program:cyberbro']['command'].split('-t ')[1].split()[0],
         f"-t {threads_count}"
+    )
+    supervisor_conf_edited = True
+
+if timeout:
+    config['program:cyberbro']['command'] = config['program:cyberbro']['command'].replace(
+        '--timeout ' + config['program:cyberbro']['command'].split('--timeout ')[1].split()[0],
+        f"--timeout {timeout}"
     )
     supervisor_conf_edited = True
 
