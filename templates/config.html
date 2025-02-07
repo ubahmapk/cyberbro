@@ -176,6 +176,15 @@
             background-color: #e9ecef;
         }
 
+        .enabled_engines_value {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 3px;
+            font-family: consolas, monospace;
+            background-color: #e9ecef;
+        }
+
         .footer {
             position: fixed;
             bottom: 0;
@@ -315,7 +324,10 @@
                 </thead>
                 <tbody>
                     {% for key, value in secrets.items() %}
+
+                    
                     <tr>
+                        {% if key not in ["gui_enabled_engines", "api_prefix", "config_page_enabled"] %}
                         <td style="width: 15%;">
                             <label class="secrets_key" for="secret_{{ key }}">{{ key }}</label>
                         </td>
@@ -325,20 +337,44 @@
                         </td>
                         <td style="width: 15%">
                             <button type="button" id="edit_{{ key }}" onclick="editSecret('{{ key }}')">✏️</button>
-                            <button type="button" id="cancel_{{ key }}" onclick="cancelEdit('{{ key }}', '{{ value }}')"
+                            <button type="button" id="cancel_{{ key }}" onclick="cancelEdit('{{ key }}', '{{ value }}', 'password')"
                                 style="display:none;">
                                 ❌
                             </button>
-                            <button type="button" id="validate_{{ key }}" onclick="validateEdit('{{ key }}')"
+                            <button type="button" id="validate_{{ key }}" onclick="validateEdit('{{ key }}', 'password')"
                                 style="display:none;">
                                 ✅
                             </button>
                         </td>
+                        
+                        {% endif %}
+                        
+                        {% if key == 'gui_enabled_engines' %}
+                        <td style="width: 15%;">
+                            <label class="secrets_key" for="secret_{{ key }}">{{ key }} (separated by ",") - when empty, all engines are enabled.</label>
+                        </td>
+                        <td style="width: 50%;">
+                            <input class="enabled_engines_value" type="text" id="secret_{{ key }}" name="{{ key }}"
+                                value="{{ value | join(',') }}" readonly>
+                        </td>
+                        <td style="width: 15%">
+                            <button type="button" id="edit_{{ key }}" onclick="editSecret('{{ key }}')">✏️</button>
+                            <button type="button" id="cancel_{{ key }}" onclick="cancelEdit('{{ key }}', '{{ value | join(',') }}', 'text')"
+                                style="display:none;">
+                                ❌
+                            </button>
+                            <button type="button" id="validate_{{ key }}" onclick="validateEdit('{{ key }}', 'text')"
+                                style="display:none;">
+                                ✅
+                            </button>
+                        </td>
+                        {% endif %}
+
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            <button type="submit" class="btn save">Save</button>
+            <button type="submit" class="btn save" style="margin-bottom: 20px;">Save</button>
         </form>
 
         <div id="toast" class="toast"></div>
@@ -354,23 +390,23 @@
                 document.getElementById('edit_' + key).style.display = 'none';
             }
 
-            function cancelEdit(key, originalValue) {
+            function cancelEdit(key, originalValue, input_type) {
                 const input = document.getElementById('secret_' + key);
                 input.value = input.dataset.originalValue;
-                input.type = 'password';
+                input.type = input_type;
                 input.readOnly = true;
                 document.getElementById('cancel_' + key).style.display = 'none';
                 document.getElementById('validate_' + key).style.display = 'none';
                 document.getElementById('edit_' + key).style.display = 'inline';
             }
 
-            function validateEdit(key) {
+            function validateEdit(key, input_type) {
                 const input = document.getElementById('secret_' + key);
                 input.readOnly = true;
                 document.getElementById('cancel_' + key).style.display = 'none';
                 document.getElementById('validate_' + key).style.display = 'none';
                 document.getElementById('edit_' + key).style.display = 'inline';
-                input.type = 'password';
+                input.type = input_type;
             }
 
             document.getElementById('configForm').addEventListener('submit', function (event) {
@@ -431,7 +467,7 @@
         applyDarkMode();
     </script>
 </body>
-<footer class="footer">
+<footer class="footer" style="margin-top: 20px;">
     <nav>
         <ul>
             <li><a href="/">Home</a></li>
