@@ -19,8 +19,6 @@ jobs:
         run: echo ${{ secrets.DEPLOYMENT_TOKEN }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
       - name: Build Docker image
-        env:
-          GUI_ENABLED_ENGINES: "reverse_dns,rdap,ipquery,abuseipdb,virustotal,spur,google_safe_browsing,shodan,phishtank,threatfox,urlscan,google,github,opencti,abusix,hudsonrock"
         run: docker build -t ghcr.io/${{ github.repository_owner }}/cyberbro:latest .
 
       - name: Push Docker image
