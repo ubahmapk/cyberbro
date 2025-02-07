@@ -1,9 +1,8 @@
 name: Build and Publish Docker image on GitHub Container Registry
-
 on:
   push:
     branches:
-      - advanced-config
+      - main
 
 jobs:
   build:
