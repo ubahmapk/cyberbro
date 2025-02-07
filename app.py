@@ -7,6 +7,7 @@ from flask import Flask, request, render_template, jsonify, send_from_directory
 from flask_cors import CORS
 
 import ioc_fanger
+from utils.config import get_config, BASE_DIR, SECRETS_FILE
 from utils.utils import extract_observables
 from utils.export import prepare_data_for_export, export_to_csv, export_to_excel
 from models.analysis_result import AnalysisResult, db
@@ -18,30 +19,22 @@ app = Flask(__name__)
 # Enable CORS, very permisive. If you want to restrict it, you can use the origins parameter (can break the GUI)
 CORS(app)
 
-# Configure database
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
 # Ensure the data directory exists
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
-# Load secrets from a file
-SECRETS_FILE = os.path.join(BASE_DIR, 'secrets.json')
-if os.path.exists(SECRETS_FILE):
-    with open(SECRETS_FILE, 'r') as f:
-        secrets = json.load(f)
-else:
-    secrets = {}
+# Read the secrets from the secrets.json file
+secrets = get_config()
 
-# Define API_PREFIX if the variable api_prefix is set in secrets.json else it must be "api"
+# Define API_PREFIX
 API_PREFIX = secrets.get("api_prefix", "api")
 
-# Enable the config page - not intended for public use since authentication is not implemented - checks if the variable config_page_enabled is set in secrets.json
-app.config['CONFIG_PAGE_ENABLED'] = secrets.get('config_page_enabled', False)
+# Enable the config page - not intended for public use since authentication is not implemented
+app.config['CONFIG_PAGE_ENABLED'] = secrets.get("config_page_enabled", False)
 
-# Define gui_enabled_engines list if the variable of type list gui_enabled_engines is set in secrets.json
-GUI_ENABLED_ENGINES = secrets.get('gui_enabled_engines', [])
+# Define GUI_ENABLED_ENGINES
+GUI_ENABLED_ENGINES = secrets.get("gui_enabled_engines", [])
 
 # Update the database URI to use the data directory
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(DATA_DIR, 'results.db')}"
@@ -152,19 +145,31 @@ def update_config():
     if not app.config.get('CONFIG_PAGE_ENABLED', False):
         return jsonify({'message': 'Configuration update is disabled.'}), 403
     try:
-        secrets["proxy_url"] = request.form.get("proxy_url")
-        secrets["ipinfo"] = request.form.get("ipinfo")
-        secrets["mde_tenant_id"] = request.form.get("mde_tenant_id")
-        secrets["mde_client_id"] = request.form.get("mde_client_id")
-        secrets["mde_client_secret"] = request.form.get("mde_client_secret")
-        secrets["virustotal"] = request.form.get("virustotal")
-        secrets["google_safe_browsing"] = request.form.get("google_safe_browsing")
-        secrets["shodan"] = request.form.get("shodan")
+        secrets["proxy_url"] = request.form.get("proxy_url", secrets.get("proxy_url", ""))
+        secrets["virustotal"] = request.form.get("virustotal", secrets.get("virustotal", ""))
+        secrets["abuseipdb"] = request.form.get("abuseipdb", secrets.get("abuseipdb", ""))
+        secrets["ipinfo"] = request.form.get("ipinfo", secrets.get("ipinfo", ""))
+        secrets["google_safe_browsing"] = request.form.get("google_safe_browsing", secrets.get("google_safe_browsing", ""))
+        secrets["mde_tenant_id"] = request.form.get("mde_tenant_id", secrets.get("mde_tenant_id", ""))
+        secrets["mde_client_id"] = request.form.get("mde_client_id", secrets.get("mde_client_id", ""))
+        secrets["mde_client_secret"] = request.form.get("mde_client_secret", secrets.get("mde_client_secret", ""))
+        secrets["shodan"] = request.form.get("shodan", secrets.get("shodan", ""))
+        secrets["opencti_api_key"] = request.form.get("opencti_api_key", secrets.get("opencti_api_key", ""))
+        secrets["opencti_url"] = request.form.get("opencti_url", secrets.get("opencti_url", ""))
+        
+        # Apply the GUI_ENABLED_ENGINES configuration directly to the GUI to avoid restarting the app
+        global GUI_ENABLED_ENGINES
+        GUI_ENABLED_ENGINES = request.form.get("gui_enabled_engines", "")
+        secrets["gui_enabled_engines"] = [engine.strip().lower() for engine in GUI_ENABLED_ENGINES.split(",")] if GUI_ENABLED_ENGINES else []
+        GUI_ENABLED_ENGINES = secrets["gui_enabled_engines"]
+        
+        # Save the secrets to the secrets.json file
         with open(SECRETS_FILE, 'w') as f:
             json.dump(secrets, f, indent=4)
+        
         message = "Configuration updated successfully."
     except Exception as e:
-        message = "An error occurred while updating the configuration."
+        message = f"An error occurred while updating the configuration. {e}"
     return jsonify({'message': message})
 
 @app.route(f'/{API_PREFIX}/results/<analysis_id>', methods=['GET'])
