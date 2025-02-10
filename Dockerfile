@@ -18,14 +18,11 @@ RUN pip install --no-cache-dir -r requirements.txt --trusted-host=pypi.python.or
 # Copy the rest of the application code from the host to the container
 COPY . .
 
-# Run file prod/advanced_config.py (does nothing if the required variables are not set in secrets.json)
-RUN python prod/advanced_config.py
-
 # Expose port 5000 to allow external access to the application
 EXPOSE 5000
 
-# Copy the Supervisor configuration file to the appropriate directory
-RUN cp prod/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# Give permission to execute prod/entrypoint.sh
+RUN chmod +x prod/entrypoint.sh
 
-# Start Supervisor using the specified configuration file
-CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+# Run the application using the entrypoint.sh script
+CMD ["./prod/entrypoint.sh"]
