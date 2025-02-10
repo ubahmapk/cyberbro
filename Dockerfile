@@ -25,7 +25,7 @@ RUN python prod/advanced_config.py
 EXPOSE 5000
 
 # Copy the Supervisor configuration file to the appropriate directory
-COPY prod/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+RUN cp prod/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Start Supervisor using the specified configuration file
 CMD ["supervisord", "-c", "/etc/supervisor/supervisord.conf"]
