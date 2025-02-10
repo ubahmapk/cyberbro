@@ -28,9 +28,12 @@ secrets = {
     "gui_enabled_engines": []
 }
 
+secrets_file_exists = False
+
 # Load secrets from secrets.json if it exists
 try:
     if os.path.exists(SECRETS_FILE):
+        secrets_file_exists = True
         with open(SECRETS_FILE, 'r') as f:
             secrets.update(json.load(f))
     else:
@@ -63,8 +66,10 @@ try:
     # Dump the variables and create the secrets.json file
     with open(SECRETS_FILE, 'w') as f:
         json.dump(secrets, f, indent=4)
-    print("Secrets file was automatically generated.")
-    logging.info("Secrets file was automatically generated.")
+        
+    if not secrets_file_exists:
+        print("Secrets file was automatically generated.")
+        logging.info("Secrets file was automatically generated.")
 
 except Exception as e:
     print("Error while loading secrets:", e)
