@@ -3,6 +3,7 @@ import json
 import time
 import uuid
 import threading
+import requests
 from flask import Flask, request, render_template, jsonify, send_from_directory
 from flask_cors import CORS
 
@@ -48,6 +49,9 @@ app.config['SQLALCHEMY_POOL_SIZE'] = 10
 # Set the maximum overflow size of the connection pool
 app.config['SQLALCHEMY_MAX_OVERFLOW'] = 20
 
+# Set version 
+app.config['VERSION'] = "v0.4.3"
+
 # Initialize the database
 db.init_app(app)
 
@@ -55,10 +59,21 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+PROXIES = { "https": secrets["proxy_url"], "http": secrets["proxy_url"] }
+
+def check_new_version(current_version):
+    url = "https://api.github.com/repos/stanfrbd/cyberbro/releases/latest"
+    response = requests.get(url, proxies=PROXIES, verify=False)
+    latest_release = response.json()
+    latest_version = latest_release["tag_name"]
+
+    return latest_version != current_version
+
 @app.route('/')
 def index():
     """Render the index page."""
-    return render_template('index.html', results=[], API_PREFIX=API_PREFIX, GUI_ENABLED_ENGINES=GUI_ENABLED_ENGINES)
+    new_version_available = check_new_version(app.config['VERSION'])
+    return render_template('index.html', results=[], API_PREFIX=API_PREFIX, GUI_ENABLED_ENGINES=GUI_ENABLED_ENGINES, new_version_available=new_version_available)
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
