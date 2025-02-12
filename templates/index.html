@@ -368,6 +368,25 @@
                 width: 100%;
             }
         }
+    
+        .upgrade-notification {
+            background-color: #f8d7da;
+            color: black;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .close-upgrade-notification {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -386,6 +405,31 @@
         </a>
         <div id="startForm">
             <h1>Cyberbro - Observable Analysis</h1>
+
+            {% if new_version_available %}
+            <script>
+                function closeNotification() {
+                    document.getElementById('upgrade-notification').style.display = 'none';
+                }
+        
+                function hideNotificationPermanently() {
+                    closeNotification();
+                    localStorage.setItem('hideNotification', 'true');
+                }
+        
+                document.addEventListener('DOMContentLoaded', (event) => {
+                    if (localStorage.getItem('hideNotification') === 'true') {
+                        document.getElementById('upgrade-notification').style.display = 'none';
+                    }
+                });
+            </script>
+    
+            <div class="upgrade-notification" id="upgrade-notification">
+                <span class="close-upgrade-notification" onclick="closeNotification()">×</span>
+                A new version of Cyberbro is available! <a href="https://github.com/stanfrbd/cyberbro/" target="_blank">Upgrade</a>
+                <button onclick="hideNotificationPermanently()">Don't show again</button>
+            </div>
+            {% endif %}
 
             <form id="analyzeForm" method="POST" action="/analyze">
                 <label for="observables">Paste your observables here</label><br><br>

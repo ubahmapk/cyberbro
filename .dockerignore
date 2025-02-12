@@ -6,8 +6,17 @@
 .DS_Store
 Thumbs.db
 
-# Ignore Python cache directories
+# Ignore python cache directories
 __pycache__
 
-# Ignore Git directory
+# Ignore git directory
 .git
+
+# Ignore tests directory
+tests
+
+# Ignore .github directory
+.github
+
+# Ignore Markdown files
+*.md
