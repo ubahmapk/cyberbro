@@ -35,7 +35,7 @@ def query_hudsonrock(observable: str, observable_type: str, proxies: Dict[str, s
             logger.error("Unsupported observable type: %s", observable_type)
             return None
 
-        response = requests.get(url, proxies=proxies, verify=False)
+        response = requests.get(url, proxies=proxies, verify=False, timeout=10)
         response.raise_for_status()
         data = response.json()
 
