@@ -63,9 +63,24 @@ PROXIES = { "https": secrets["proxy_url"], "http": secrets["proxy_url"] }
 
 def check_new_version(current_version):
     url = "https://api.github.com/repos/stanfrbd/cyberbro/releases/latest"
+    cache_file = os.path.join(DATA_DIR, 'version_cache.json')
+
+    # Check if cache file exists and is not older than a day
+    if os.path.exists(cache_file):
+        with open(cache_file, 'r') as f:
+            cache_data = json.load(f)
+            last_checked = cache_data.get('last_checked')
+            if last_checked and time.time() - last_checked < 86400:
+                return cache_data.get('latest_version') != current_version
+
+    # If cache is older than a day or doesn't exist, fetch the latest version
     response = requests.get(url, proxies=PROXIES, verify=False)
     latest_release = response.json()
     latest_version = latest_release["tag_name"]
+
+    # Update the cache
+    with open(cache_file, 'w') as f:
+        json.dump({'last_checked': time.time(), 'latest_version': latest_version}, f)
 
     return latest_version != current_version
 
