@@ -412,13 +412,17 @@
                     document.getElementById('upgrade-notification').style.display = 'none';
                 }
         
-                function hideNotificationPermanently() {
+                function hideNotification() {
                     closeNotification();
-                    localStorage.setItem('hideNotification', 'true');
+                    const expirationDate = new Date();
+                    // Expires in 14 days
+                    expirationDate.setDate(expirationDate.getDate() + 14);
+                    localStorage.setItem('hideUpgradeNotification', JSON.stringify({ value: 'true', expires: expirationDate }));
                 }
         
                 document.addEventListener('DOMContentLoaded', (event) => {
-                    if (localStorage.getItem('hideNotification') === 'true') {
+                    const hideUpgradeNotification = JSON.parse(localStorage.getItem('hideUpgradeNotification'));
+                    if (hideUpgradeNotification && hideUpgradeNotification.value === 'true') {
                         document.getElementById('upgrade-notification').style.display = 'none';
                     }
                 });
@@ -427,7 +431,7 @@
             <div class="upgrade-notification" id="upgrade-notification">
                 <span class="close-upgrade-notification" onclick="closeNotification()">×</span>
                 A new version of Cyberbro is available! <a href="https://github.com/stanfrbd/cyberbro/" target="_blank">Upgrade</a>
-                <button onclick="hideNotificationPermanently()">Don't show again</button>
+                <button onclick="hideNotification()" title="Will be shown in 14 days">Don't show again</button>
             </div>
             {% endif %}
 
