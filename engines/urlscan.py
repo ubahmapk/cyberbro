@@ -48,7 +48,7 @@ def query_urlscan(
 
         url = f"https://urlscan.io/api/v1/search/?q={query_field}:{observable}"
 
-        response = requests.get(url, proxies=proxies, verify=False)
+        response = requests.get(url, proxies=proxies, verify=False, timeout=5)
         response.raise_for_status()
 
         result = response.json()

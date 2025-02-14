@@ -50,7 +50,7 @@ def query_virustotal(
             url = f"https://www.virustotal.com/api/v3/files/{observable}"
             link = f"https://www.virustotal.com/gui/file/{observable}/detection"
 
-        response = requests.get(url, headers=headers, proxies=proxies, verify=False)
+        response = requests.get(url, headers=headers, proxies=proxies, verify=False, timeout=5)
         response.raise_for_status()
 
         data = response.json()

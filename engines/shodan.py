@@ -37,7 +37,7 @@ def query_shodan(
     url = f"https://api.shodan.io/shodan/host/{observable}"
 
     try:
-        response = requests.get(url, headers=headers, proxies=proxies, verify=False)
+        response = requests.get(url, headers=headers, proxies=proxies, verify=False, timeout=5)
         response.raise_for_status()
 
         data = response.json()

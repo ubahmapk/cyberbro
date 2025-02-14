@@ -113,7 +113,7 @@ def query_microsoft_defender_for_endpoint(
             logger.warning("Unknown observable_type '%s'", observable_type)
             return None
 
-        response = requests.get(url, headers=headers, proxies=proxies, verify=False)
+        response = requests.get(url, headers=headers, proxies=proxies, verify=False, timeout=5)
         response.raise_for_status()
 
         data = response.json()
