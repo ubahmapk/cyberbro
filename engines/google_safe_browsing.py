@@ -60,7 +60,7 @@ def query_google_safe_browsing(
             }
         }
 
-        response = requests.post(url, json=body, proxies=proxies, verify=False)
+        response = requests.post(url, json=body, proxies=proxies, verify=False, timeout=5)
         response.raise_for_status()
 
         data = response.json()

@@ -32,7 +32,7 @@ def query_ipinfo(ip: str, api_key: str, proxies: Dict[str, str]) -> Optional[Dic
     """
     try:
         url = f"https://ipinfo.io/{ip}/json?token={api_key}"
-        response = requests.get(url, proxies=proxies, verify=False)
+        response = requests.get(url, proxies=proxies, verify=False, timeout=5)
         response.raise_for_status()
 
         data = response.json()

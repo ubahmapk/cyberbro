@@ -35,7 +35,8 @@ def get_spur(
             spur_url,
             proxies=proxies,
             verify=False,
-            headers={"User-Agent": ua.random}
+            headers={"User-Agent": ua.random},
+            timeout=5
         )
         response.raise_for_status()
 
