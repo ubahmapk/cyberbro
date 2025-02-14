@@ -3,9 +3,11 @@ import json
 
 import logging
 
+logger = logging.getLogger(__name__)
+
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-logging.debug("BASE_DIR: %s", BASE_DIR)
+logger.debug("BASE_DIR: %s", BASE_DIR)
 
 # Define the path to the secrets file
 SECRETS_FILE = os.path.join(BASE_DIR, 'secrets.json')
@@ -38,7 +40,7 @@ try:
             secrets.update(json.load(f))
     else:
         print("Secrets file not found. Reading environment variables anyway...")
-        logging.info("Secrets file not found. Reading environment variables anyway...")
+        logger.info("Secrets file not found. Reading environment variables anyway...")
 
     # Load secrets from environment variables - override the ones from secrets.json if provided
     env_configured = False
@@ -57,11 +59,11 @@ try:
     # Check if proxy variable is set
     if not secrets["proxy_url"]:
         print("No proxy URL was set. Using no proxy.")
-        logging.info("No proxy URL was set. Using no proxy.")
+        logger.info("No proxy URL was set. Using no proxy.")
 
     if not env_configured:
         print("No environment variables were configured. You can configure secrets later in secrets.json.")
-        logging.info("No environment variables were configured. You can configure secrets later in secrets.json.")
+        logger.info("No environment variables were configured. You can configure secrets later in secrets.json.")
 
     # Dump the variables and create the secrets.json file
     with open(SECRETS_FILE, 'w') as f:
@@ -69,11 +71,11 @@ try:
         
     if not secrets_file_exists:
         print("Secrets file was automatically generated.")
-        logging.info("Secrets file was automatically generated.")
+        logger.info("Secrets file was automatically generated.")
 
 except Exception as e:
     print("Error while loading secrets:", e)
-    logging.error("Error while loading secrets: %s", e)
+    logger.error("Error while loading secrets: %s", e)
     exit(1)
 
 def get_config():

@@ -29,7 +29,8 @@ def query_github(observable: str, proxies: Dict[str, str]) -> Optional[Dict[str,
         response = requests.get(
             f"https://grep.app/api/search?q={observable}",
             proxies=proxies,
-            verify=False
+            verify=False,
+            timeout=5
         )
         response.raise_for_status()
         data = response.json()

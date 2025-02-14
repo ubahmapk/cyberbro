@@ -47,7 +47,8 @@ def query_phishtank(
             data=data,
             headers=headers,
             proxies=proxies,
-            verify=False
+            verify=False,
+            timeout=5
         )
         response.raise_for_status()
         json_data = response.json()

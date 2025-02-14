@@ -30,7 +30,7 @@ def query_ioc_one_html(observable: str, proxies: Dict[str, str]) -> Optional[Dic
     """
     try:
         url = f"https://ioc.one/auth/deep_search?search={observable}"
-        response = requests.get(url, proxies=proxies, verify=False, headers={"User-Agent": "cyberbro"})
+        response = requests.get(url, proxies=proxies, verify=False, headers={"User-Agent": "cyberbro"}, timeout=5)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, "html.parser")
@@ -65,7 +65,7 @@ def query_ioc_one_pdf(observable: str, proxies: Dict[str, str]) -> Optional[Dict
     """
     try:
         url = f"https://ioc.one/auth/deep_search/pdf?search={observable}"
-        response = requests.get(url, proxies=proxies, verify=False, headers={"User-Agent": "cyberbro"})
+        response = requests.get(url, proxies=proxies, verify=False, headers={"User-Agent": "cyberbro"}, timeout=5)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, "html.parser")

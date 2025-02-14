@@ -51,7 +51,7 @@ def query_openrdap(
             return None
 
         api_url = f"https://rdap.net/domain/{domain}"
-        response = requests.get(api_url, verify=False, proxies=proxies)
+        response = requests.get(api_url, verify=False, proxies=proxies, timeout=5)
         response.raise_for_status()
 
         data = response.json()
