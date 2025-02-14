@@ -116,7 +116,7 @@ def query_opencti(
         }
         search_link = f"{base_url}/dashboard/search/knowledge/{observable}"
 
-        response = requests.post(url, headers=headers, json=payload, proxies=proxies, verify=False)
+        response = requests.post(url, headers=headers, json=payload, proxies=proxies, verify=False, timeout=5)
         response.raise_for_status()
         data = response.json()
 
@@ -190,7 +190,7 @@ def query_opencti(
                 "query": additional_query,
                 "variables": {"id": first_id}
             }
-            add_response = requests.post(url, headers=headers, json=additional_payload, proxies=proxies, verify=False)
+            add_response = requests.post(url, headers=headers, json=additional_payload, proxies=proxies, verify=False, timeout=5)
             add_response.raise_for_status()
             additional_data = add_response.json()
             indicator_data = additional_data.get("data", {}).get("indicator", {})

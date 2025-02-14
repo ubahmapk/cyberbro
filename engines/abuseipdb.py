@@ -35,7 +35,7 @@ def query_abuseipdb(ip: str, api_key: str, proxies: Optional[Dict[str, str]]) ->
     params = {"ipAddress": ip}
 
     try:
-        response = requests.get(url, headers=headers, params=params, proxies=proxies, verify=False)
+        response = requests.get(url, headers=headers, params=params, proxies=proxies, verify=False, timeout=5)
         response.raise_for_status()  # Raises an HTTPError for 4xx/5xx statuses
 
         json_response = response.json()

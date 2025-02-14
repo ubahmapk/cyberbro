@@ -24,7 +24,7 @@ def get_name_from_id(extension_id: str, proxies: Dict[str, str]) -> Optional[Dic
     
     def fetch_extension_name(url: str) -> Optional[Dict[str, str]]:
         try:
-            response = requests.get(url, proxies=proxies, verify=False)
+            response = requests.get(url, proxies=proxies, verify=False, timeout=5)
             response.raise_for_status()
             
             soup = BeautifulSoup(response.content, 'html.parser')

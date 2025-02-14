@@ -34,7 +34,7 @@ def query_ipquery(ip: str, proxies: Dict[str, str]) -> Optional[Dict[str, Any]]:
     """
     try:
         url = f"https://api.ipquery.io/{ip}"
-        response = requests.get(url, proxies=proxies, verify=False)
+        response = requests.get(url, proxies=proxies, verify=False, timeout=5)
         response.raise_for_status()
 
         data = response.json()
