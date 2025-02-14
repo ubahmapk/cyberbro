@@ -4,6 +4,7 @@ import time
 import uuid
 import threading
 import requests
+import logging
 from flask import Flask, request, render_template, jsonify, send_from_directory
 from flask_cors import CORS
 
@@ -16,6 +17,8 @@ from utils.stats import get_analysis_stats
 from utils.analysis import perform_analysis, check_analysis_in_progress
 
 app = Flask(__name__)
+
+logger = logging.getLogger(__name__)
 
 # Enable CORS, very permisive. If you want to restrict it, you can use the origins parameter (can break the GUI)
 CORS(app)
@@ -50,7 +53,7 @@ app.config['SQLALCHEMY_POOL_SIZE'] = 10
 app.config['SQLALCHEMY_MAX_OVERFLOW'] = 20
 
 # Set version 
-app.config['VERSION'] = "v0.4.3"
+app.config['VERSION'] = "v0.4.4"
 
 # Initialize the database
 db.init_app(app)
@@ -65,24 +68,28 @@ def check_new_version(current_version):
     url = "https://api.github.com/repos/stanfrbd/cyberbro/releases/latest"
     cache_file = os.path.join(DATA_DIR, 'version_cache.json')
 
-    # Check if cache file exists and is not older than a day
-    if os.path.exists(cache_file):
-        with open(cache_file, 'r') as f:
-            cache_data = json.load(f)
-            last_checked = cache_data.get('last_checked')
-            if last_checked and time.time() - last_checked < 86400:
-                return cache_data.get('latest_version') != current_version
+    try:
+        # Check if cache file exists and is not older than a day
+        if os.path.exists(cache_file):
+            with open(cache_file, 'r') as f:
+                cache_data = json.load(f)
+                last_checked = cache_data.get('last_checked')
+                if last_checked and time.time() - last_checked < 86400:
+                    return cache_data.get('latest_version') != current_version
 
-    # If cache is older than a day or doesn't exist, fetch the latest version
-    response = requests.get(url, proxies=PROXIES, verify=False)
-    latest_release = response.json()
-    latest_version = latest_release["tag_name"]
+        # If cache is older than a day or doesn't exist, fetch the latest version
+        response = requests.get(url, proxies=PROXIES, verify=False)
+        latest_release = response.json()
+        latest_version = latest_release["tag_name"]
 
-    # Update the cache
-    with open(cache_file, 'w') as f:
-        json.dump({'last_checked': time.time(), 'latest_version': latest_version}, f)
+        # Update the cache
+        with open(cache_file, 'w') as f:
+            json.dump({'last_checked': time.time(), 'latest_version': latest_version}, f)
 
-    return latest_version != current_version
+        return latest_version != current_version
+    except Exception as e:
+        logger.error(f"Error checking for new version: {e}")
+        return False
 
 @app.route('/')
 def index():
