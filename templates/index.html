@@ -928,6 +928,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         high-risk
                     {% elif result.opencti and result.opencti.latest_indicator_link and not result.opencti.revoked %}
                         warning-row
+                    {% elif result.crowdstrike.indicator_found %}
+                        high-risk
                     {% endif %}
                     ">
                     <td title="{{ result.observable }}">{{ result.observable[:64] }}{% if result.observable | length >
@@ -1588,7 +1590,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 </div>
                 {% endif %}
                 {% if analysis_results.results[0].crowdstrike %}
-                <div class="card">
+                <div class="card{% if analysis_results.results[0].crowdstrike.indicator_found %} high-risk" style="background-color: red;"{% else %}"{% endif %}>
                     <h3>CrowdStrike</h3>
                     <p><strong>Device Count: </strong>{{ analysis_results.results[0].crowdstrike.device_count }}</p>
                     <p><strong>Link: </strong><a href="{{ analysis_results.results[0].crowdstrike.link }}" target="_blank">See on CrowdStrike</a></p>
