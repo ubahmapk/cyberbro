@@ -53,7 +53,7 @@ app.config['SQLALCHEMY_POOL_SIZE'] = 10
 app.config['SQLALCHEMY_MAX_OVERFLOW'] = 20
 
 # Set version 
-app.config['VERSION'] = "v0.4.4"
+app.config['VERSION'] = "v0.5.0"
 
 # Initialize the database
 db.init_app(app)
