@@ -461,6 +461,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             { name: "virustotal", label: "VirusTotal", supports: "hash risk ip domain url", checked: false, title: "Checks VirusTotal for IP, domain, URL, hash, free API key required" },
                             { name: "spur", label: "Spur.us", supports: "vpn proxy free_no_key scraping", checked: false, title: "Scraps Spur.us for IP, reversed obtained IP for a given domain / URL, free, no API key" },
                             { name: "mde", label: "Microsoft Defender for Endpoint", supports: "hash ip domain url", checked: false, title: "Checks Microsoft Defender for Endpoint, paid API info on Azure required" },
+                            { name: "crowdstrike", label: "CrowdStrike", supports: "hash ip domain url", checked: false, title: "Checks CrowdStrike for IP, domain, URL, hash - only MD5 and SHA256, paid API key required" },
                             { name: "google_safe_browsing", label: "Google Safe Browsing", supports: "risk domain ip", checked: false, title: "Checks Google Safe Browsing, free API key required" },
                             { name: "shodan", label: "Shodan", supports: "ports ip", checked: false, title: "Checks Shodan, reversed obtained IP for a given domain / URL, free API key required" },
                             { name: "phishtank", label: "Phishtank", supports: "risk domain url free_no_key", checked: false, title: "Checks Phishtank for domains, URL, free, no API key" },
@@ -735,6 +736,30 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                                     }
                                 }
                             }
+
+                            if (result.crowdstrike) {
+                                plainText += `CrowdStrike:\n`;
+                                plainText += `  - Device Count: ${result.crowdstrike.device_count}\n`;
+                                if (result.crowdstrike.indicator_found) {
+                                    plainText += `  - Published Date: ${result.crowdstrike.published_date}\n`;
+                                    plainText += `  - Last Updated: ${result.crowdstrike.last_updated}\n`;
+                                    if (result.crowdstrike.actors.length > 0) {
+                                        plainText += `  - Actors: ${result.crowdstrike.actors.join(', ')}\n`;
+                                    }
+                                    if (result.crowdstrike.malicious_confidence) {
+                                        plainText += `  - Malicious Confidence: ${result.crowdstrike.malicious_confidence}\n`;
+                                    }
+                                    if (result.crowdstrike.threat_types.length > 0) {
+                                        plainText += `  - Threat Types: ${result.crowdstrike.threat_types.join(', ')}\n`;
+                                    }
+                                    if (result.crowdstrike.kill_chain.length > 0) {
+                                        plainText += `  - Kill Chain: ${result.crowdstrike.kill_chain.join(', ')}\n`;
+                                    }
+                                    if (result.crowdstrike.vulnerabilities.length > 0) {
+                                        plainText += `  - Vulnerabilities: ${result.crowdstrike.vulnerabilities.join(', ')}\n`;
+                                    }
+                                }
+                            }
                             plainText += '\n';
                         });
 
@@ -878,6 +903,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% endif %}
                     {% if "hudsonrock" in analysis_results.selected_engines %}
                     <th>Hudson Rock</th>
+                    {% endif %}
+                    {% if "crowdstrike" in analysis_results.selected_engines %}
+                    <th>CrowdStrike</th>
                     {% endif %}
                 </tr>
             </thead>
@@ -1325,6 +1353,31 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% endif %}
                     </td>
                     {% endif %}
+                    {% if "crowdstrike" in analysis_results.selected_engines %}
+                    <td>
+                        <strong>Device Count: </strong>{{ result.crowdstrike.device_count }}<br>
+                        <strong>Link: </strong><a href="{{ result.crowdstrike.link }}" target="_blank">See on CrowdStrike</a><br>
+                        {% if result.crowdstrike.indicator_found %}
+                            <strong>Published Date: </strong>{{ result.crowdstrike.published_date }}<br>
+                            <strong>Last Updated: </strong>{{ result.crowdstrike.last_updated }}<br>
+                            {% if result.crowdstrike.actors %}
+                                <strong>Actors: </strong>{{ result.crowdstrike.actors | join(', ') }}<br>
+                            {% endif %}
+                            {% if result.crowdstrike.malicious_confidence %}
+                                <strong>Malicious Confidence: </strong>{{ result.crowdstrike.malicious_confidence }}<br>
+                            {% endif %}
+                            {% if result.crowdstrike.threat_types %}
+                                <strong>Threat Types: </strong>{{ result.crowdstrike.threat_types | join(', ') }}<br>
+                            {% endif %}
+                            {% if result.crowdstrike.kill_chain %}
+                                <strong>Kill Chain: </strong>{{ result.crowdstrike.kill_chain | join(', ') }}<br>
+                            {% endif %}
+                            {% if result.crowdstrike.vulnerabilities | length > 0 %}
+                                <strong>Vulnerabilities: </strong>{{ result.crowdstrike.vulnerabilities | join(', ') }}<br>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
@@ -1531,6 +1584,32 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             analysis_results.results[0].mde.orgPrevalence }}</a></p>
                     <p><strong>First seen: </strong>{{ analysis_results.results[0].mde.orgFirstSeen }}</p>
                     <p><strong>Last seen: </strong>{{ analysis_results.results[0].mde.orgLastSeen }}</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% if analysis_results.results[0].crowdstrike %}
+                <div class="card">
+                    <h3>CrowdStrike</h3>
+                    <p><strong>Device Count: </strong>{{ analysis_results.results[0].crowdstrike.device_count }}</p>
+                    <p><strong>Link: </strong><a href="{{ analysis_results.results[0].crowdstrike.link }}" target="_blank">See on CrowdStrike</a></p>
+                    {% if analysis_results.results[0].crowdstrike.indicator_found %}
+                        <p><strong>Published Date: </strong>{{ analysis_results.results[0].crowdstrike.published_date }}</p>
+                        <p><strong>Last Updated: </strong>{{ analysis_results.results[0].crowdstrike.last_updated }}</p>
+                        {% if analysis_results.results[0].crowdstrike.actors %}
+                            <p><strong>Actors: </strong>{{ analysis_results.results[0].crowdstrike.actors | join(', ') }}</p>
+                        {% endif %}
+                        {% if analysis_results.results[0].crowdstrike.malicious_confidence %}
+                            <p><strong>Malicious Confidence: </strong>{{ analysis_results.results[0].crowdstrike.malicious_confidence }}</p>
+                        {% endif %}
+                        {% if analysis_results.results[0].crowdstrike.threat_types %}
+                            <p><strong>Threat Types: </strong>{{ analysis_results.results[0].crowdstrike.threat_types | join(', ') }}</p>
+                        {% endif %}
+                        {% if analysis_results.results[0].crowdstrike.kill_chain %}
+                            <p><strong>Kill Chain: </strong>{{ analysis_results.results[0].crowdstrike.kill_chain | join(', ') }}</p>
+                        {% endif %}
+                        {% if analysis_results.results[0].crowdstrike.vulnerabilities | length > 0 %}
+                            <p><strong>Vulnerabilities: </strong>{{ analysis_results.results[0].crowdstrike.vulnerabilities | join(', ') }}</p>
+                        {% endif %}
                     {% endif %}
                 </div>
                 {% endif %}
