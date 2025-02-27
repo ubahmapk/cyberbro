@@ -24,7 +24,9 @@ secrets = {
     "mde_client_secret": "",
     "shodan": "",
     "opencti_api_key": "",
-    "opencti_url": "", 
+    "opencti_url": "",
+    "crowdstrike_client_id": "",
+    "crowdstrike_client_secret": "",
     "api_prefix": "api",
     "config_page_enabled": False,
     "gui_enabled_engines": []
