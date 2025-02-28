@@ -56,6 +56,7 @@ without having to deploy a **complex** solution.
 * **Abuse Contact Lookup**: Accurately find abuse contacts for IPs, URLs, and domains.
 * **Export Options**: Export results to CSV and **autofiltered well formatted** Excel files.
 * **MDE Integration**: Check if observables are flagged on your Microsoft Defender for Endpoint (MDE) tenant.
+* **CrowdStrike Integration**: Check if observables are flagged on your CrowdStrike tenant.
 * **OpenCTI Integration**: Get stats (number of incidents, indicators) from OpenCTI and the latest Indicator if available.
 * **Proxy Support**: Use a proxy if required.
 * **Data Storage**: Store results in a SQLite database.
@@ -71,7 +72,7 @@ without having to deploy a **complex** solution.
 * **Advanced TLD Verification**: Uses `tldextract` to accurately extract root domains, helping RDAP lookups.
 * **Pragmatic Information Gathering**: Utilizes GitHub and Google indexed results to catch what other engines might miss.
 * **CTI Report Integration**: Leverages IoC.One for IoC-related **CTI reports** in HTML or PDF.
-* **EDR Integration**: Integrates with solutions like Microsoft Defender for Endpoint to check if observables were seen in YOUR environment.
+* **EDR Integration**: Integrates with solutions like Microsoft Defender for Endpoint or CrowdStrike to check if observables were seen in YOUR environment.
 
 
 # Getting Started - TL;DR
@@ -113,8 +114,11 @@ cp secrets-sample.json secrets.json
     "mde_client_secret": "client_secret_here",
     "shodan": "token_here",
     "opencti_api_key": "token_here",
-    "opencti_url": "https://demo.opencti.io"
+    "opencti_url": "https://demo.opencti.io",
+    "crowdstrike_client_id": "client_id_here",
+    "crowdstrike_client_secret": "client_secret_here"
 }
+
 ```
 
 * Obtain API keys from the official documentation of each service.
@@ -285,6 +289,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 * [OpenCTI](https://www.opencti.io/)
 * [Grep.App](https://grep.app/)
 * [Hudson Rock](https://hudsonrock.com/)
+* [CrowdStrike](https://www.crowdstrike.com/)
 
 > [!NOTE]
 > Any questions? Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki) or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new) \

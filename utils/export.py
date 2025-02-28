@@ -125,6 +125,16 @@ def prepare_row(result, selected_engines):
         row["hr_users"] = hudsonrock_data.get("users") if hudsonrock_data else None
         row["hr_third_parties"] = hudsonrock_data.get("third_parties") if hudsonrock_data else None
         row["hr_stealer_families"] = hudsonrock_data.get("stealerFamilies") if hudsonrock_data else None
+
+    if "crowdstrike" in selected_engines:
+        crowdstrike_data = result.get("crowdstrike", {})
+        row["cs_device_count"] = crowdstrike_data.get("device_count") if crowdstrike_data else None
+        row["cs_actor"] = crowdstrike_data.get("actors") if crowdstrike_data else None
+        row["cs_confidence"] = crowdstrike_data.get("malicious_confidence") if crowdstrike_data else None
+        row["cs_threat_types"] = crowdstrike_data.get("threat_types") if crowdstrike_data else None
+        row["cs_malwares"] = crowdstrike_data.get("malware_families") if crowdstrike_data else None
+        row["cs_kill_chain"] = crowdstrike_data.get("kill_chain") if crowdstrike_data else None
+        row["cs_vulns"] = crowdstrike_data.get("vulnerabilities") if crowdstrike_data else None
     
     return row
 

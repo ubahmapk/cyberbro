@@ -5,7 +5,7 @@ import time
 from engines import (
     abuseipdb, virustotal, ipinfo, reverse_dns, google_safe_browsing,
     microsoft_defender_for_endpoint, spur_us_free, shodan, phishtank, 
-    abusix, rdap, threatfox, google, github, ioc_one, ipquery, urlscan, opencti, extension, hudsonrock
+    abusix, rdap, threatfox, google, github, ioc_one, ipquery, urlscan, opencti, extension, hudsonrock, crowdstrike
 )
 
 from models.analysis_result import AnalysisResult
@@ -86,6 +86,11 @@ def perform_engine_queries(observable, selected_engines, result):
     if "mde" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6", "BOGON"]:
         result['mde'] = microsoft_defender_for_endpoint.query_microsoft_defender_for_endpoint(
             observable["value"], observable["type"], secrets["mde_tenant_id"], secrets["mde_client_id"], secrets["mde_client_secret"], PROXIES
+        )
+    
+    if "crowdstrike" in selected_engines and observable["type"] in ["MD5", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+        result['crowdstrike'] = crowdstrike.query_crowdstrike(
+            observable["value"], observable["type"], secrets["crowdstrike_client_id"], secrets["crowdstrike_client_secret"], PROXIES
         )
     
     if "opencti" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6", "CHROME_EXTENSION"]:
