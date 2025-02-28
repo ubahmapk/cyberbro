@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Deletes the version cache file if it exists - useful after updating the app
+if [ -f "data/version_cache.json" ]; then
+    rm "data/version_cache.json"
+fi
+
 # Launch advanced_config.py
 python prod/advanced_config.py
 
