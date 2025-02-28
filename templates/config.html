@@ -327,7 +327,7 @@
 
                     
                     <tr>
-                        {% if key not in ["gui_enabled_engines", "api_prefix", "config_page_enabled"] %}
+                        {% if key not in ["gui_enabled_engines", "api_prefix", "config_page_enabled", "ssl_verify"] and not key.startswith("supervisor") %}
                         <td style="width: 15%;">
                             <label class="secrets_key" for="secret_{{ key }}">{{ key }}</label>
                         </td>

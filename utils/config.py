@@ -27,9 +27,11 @@ secrets = {
     "opencti_url": "",
     "crowdstrike_client_id": "",
     "crowdstrike_client_secret": "",
+    "crowdstrike_falcon_base_url": "https://falcon.crowdstrike.com",
     "api_prefix": "api",
     "config_page_enabled": False,
-    "gui_enabled_engines": []
+    "gui_enabled_engines": [],
+    "ssl_verify": True
 }
 
 secrets_file_exists = False
@@ -55,6 +57,8 @@ try:
                 secrets[key] = [engine.strip().lower() for engine in env_value.split(",")]
             elif key == "config_page_enabled":
                 secrets[key] = env_value.lower() in ["true", "1", "yes"]
+            elif key == "ssl_verify":
+                secrets[key] = env_value.lower() in ["true", "1", "yes"]
             else:
                 secrets[key] = env_value
 
@@ -67,7 +71,7 @@ try:
         print("No environment variables were configured. You can configure secrets later in secrets.json.")
         logger.info("No environment variables were configured. You can configure secrets later in secrets.json.")
 
-    # Dump the variables and create the secrets.json file
+    # Dump all the variables and create the secrets.json file - this will overwrite the existing file
     with open(SECRETS_FILE, 'w') as f:
         json.dump(secrets, f, indent=4)
         
