@@ -53,7 +53,7 @@ app.config['SQLALCHEMY_POOL_SIZE'] = 10
 app.config['SQLALCHEMY_MAX_OVERFLOW'] = 20
 
 # Set version 
-app.config['VERSION'] = "v0.4.4"
+app.config['VERSION'] = "v0.5.0"
 
 # Initialize the database
 db.init_app(app)
@@ -167,7 +167,7 @@ def stats():
 @app.route('/about')
 def about():
     """Render the about page."""
-    return render_template('about.html')
+    return render_template('about.html', version=app.config['VERSION'])
 
 @app.route('/config')
 def config():
