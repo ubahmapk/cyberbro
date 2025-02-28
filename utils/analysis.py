@@ -88,7 +88,7 @@ def perform_engine_queries(observable, selected_engines, result):
             observable["value"], observable["type"], secrets["mde_tenant_id"], secrets["mde_client_id"], secrets["mde_client_secret"], PROXIES
         )
     
-    if "crowdstrike" in selected_engines and observable["type"] in ["MD5", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+    if "crowdstrike" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
         result['crowdstrike'] = crowdstrike.query_crowdstrike(
             observable["value"], observable["type"], secrets["crowdstrike_client_id"], secrets["crowdstrike_client_secret"], PROXIES
         )
