@@ -3,15 +3,13 @@ import json
 import requests
 from typing import Optional, Dict, Any, List
 
-# Disable SSL warning
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
 def query_threatfox(
     observable: str,
     observable_type: str,
-    proxies: Dict[str, str]
+    proxies: Dict[str, str],
+    ssl_verify: bool = True
 ) -> Optional[Dict[str, Any]]:
     """
     Queries the ThreatFox API for information about a given observable (URL, IP, hash).
@@ -47,7 +45,7 @@ def query_threatfox(
             url,
             data=json.dumps(payload),
             proxies=proxies,
-            verify=False,
+            verify=ssl_verify,
             timeout=5
         )
         response.raise_for_status()

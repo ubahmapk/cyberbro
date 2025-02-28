@@ -4,15 +4,13 @@ from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from typing import Optional, Dict, Any
 
-# Disable SSL warning in case of proxy like Zscaler which breaks SSL...
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 ua = UserAgent()
 
 def get_spur(
     ip: str,
-    proxies: Dict[str, str]
+    proxies: Dict[str, str],
+    ssl_verify: bool = True
 ) -> Optional[Dict[str, str]]:
     """
     Retrieves information about the given IP address from the spur.us website.
@@ -34,7 +32,7 @@ def get_spur(
         response = requests.get(
             spur_url,
             proxies=proxies,
-            verify=False,
+            verify=ssl_verify,
             headers={"User-Agent": ua.random},
             timeout=5
         )

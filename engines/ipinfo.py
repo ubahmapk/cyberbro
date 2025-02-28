@@ -3,12 +3,9 @@ import requests
 import pycountry
 from typing import Optional, Dict, Any
 
-# Disable SSL warnings in case of proxies like Zscaler which break SSL...
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
-def query_ipinfo(ip: str, api_key: str, proxies: Dict[str, str]) -> Optional[Dict[str, Any]]:
+def query_ipinfo(ip: str, api_key: str, proxies: Dict[str, str], ssl_verify: bool = True) -> Optional[Dict[str, Any]]:
     """
     Queries the IP information from the ipinfo.io API.
 
@@ -32,7 +29,7 @@ def query_ipinfo(ip: str, api_key: str, proxies: Dict[str, str]) -> Optional[Dic
     """
     try:
         url = f"https://ipinfo.io/{ip}/json?token={api_key}"
-        response = requests.get(url, proxies=proxies, verify=False, timeout=5)
+        response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
 
         data = response.json()

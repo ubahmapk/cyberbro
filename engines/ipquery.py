@@ -2,12 +2,9 @@ import logging
 import requests
 from typing import Optional, Dict, Any
 
-# Disable SSL warnings in case of proxies like Zscaler which break SSL...
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
-def query_ipquery(ip: str, proxies: Dict[str, str]) -> Optional[Dict[str, Any]]:
+def query_ipquery(ip: str, proxies: Dict[str, str], ssl_verify: bool = True) -> Optional[Dict[str, Any]]:
     """
     Queries the IP information from the ipquery.io API.
 

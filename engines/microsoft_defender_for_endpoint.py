@@ -5,9 +5,6 @@ import jwt
 import time
 from typing import Optional, Dict, Any
 
-# Disable SSL warnings in case of proxies like Zscaler which break SSL...
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
 def check_token_validity(token: str) -> bool:
@@ -36,7 +33,7 @@ def read_token() -> Optional[str]:
         logger.error("Failed to read token from file: %s", e, exc_info=True)
     return None
 
-def get_token(tenant_id: str, client_id: str, client_secret: str, proxies: Dict[str, str]) -> str:
+def get_token(tenant_id: str, client_id: str, client_secret: str, proxies: Dict[str, str], ssl_verify: bool = True) -> str:
     url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/token"
     resource_app_id_uri = "https://api.securitycenter.microsoft.com"
     body = {
@@ -46,7 +43,7 @@ def get_token(tenant_id: str, client_id: str, client_secret: str, proxies: Dict[
         "grant_type": "client_credentials"
     }
     try:
-        response = requests.post(url, data=body, proxies=proxies, verify=False)
+        response = requests.post(url, data=body, proxies=proxies, verify=ssl_verify)
         response.raise_for_status()
         json_response = response.json()
     except Exception as err:
@@ -68,7 +65,8 @@ def query_microsoft_defender_for_endpoint(
     tenant_id: str,
     client_id: str,
     client_secret: str,
-    proxies: Dict[str, str]
+    proxies: Dict[str, str],
+    ssl_verify: bool = True
 ) -> Optional[Dict[str, Any]]:
     """
     Queries Microsoft Defender for Endpoint for information about a given observable.
@@ -86,7 +84,7 @@ def query_microsoft_defender_for_endpoint(
         None: If the request fails or any exception occurs.
     """
     try:
-        jwt_token = read_token() or get_token(tenant_id, client_id, client_secret, proxies)
+        jwt_token = read_token() or get_token(tenant_id, client_id, client_secret, proxies, ssl_verify)
         if jwt_token == "invalid":
             logger.error("No valid token available for Microsoft Defender for Endpoint.")
             return None
@@ -113,7 +111,7 @@ def query_microsoft_defender_for_endpoint(
             logger.warning("Unknown observable_type '%s'", observable_type)
             return None
 
-        response = requests.get(url, headers=headers, proxies=proxies, verify=False, timeout=5)
+        response = requests.get(url, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
 
         data = response.json()
@@ -121,7 +119,7 @@ def query_microsoft_defender_for_endpoint(
 
         # If it's a file hash, we also retrieve extended file info
         if file_info_url:
-            file_info_response = requests.get(file_info_url, headers=headers, proxies=proxies, verify=False)
+            file_info_response = requests.get(file_info_url, headers=headers, proxies=proxies, verify=ssl_verify)
             file_info_response.raise_for_status()
             file_info = file_info_response.json()
             data["issuer"] = file_info.get("issuer", "Unknown")

@@ -4,12 +4,9 @@ from typing import Optional, Dict, Any, List
 import requests
 from bs4 import BeautifulSoup
 
-# Disable SSL warnings in case of proxies like Zscaler which break SSL...
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
-def query_ioc_one_html(observable: str, proxies: Dict[str, str]) -> Optional[Dict[str, Any]]:
+def query_ioc_one_html(observable: str, proxies: Dict[str, str], ssl_verify: bool = True) -> Optional[Dict[str, Any]]:
     """
     Perform a deep search query on ioc.one (HTML).
 
@@ -30,7 +27,7 @@ def query_ioc_one_html(observable: str, proxies: Dict[str, str]) -> Optional[Dic
     """
     try:
         url = f"https://ioc.one/auth/deep_search?search={observable}"
-        response = requests.get(url, proxies=proxies, verify=False, headers={"User-Agent": "cyberbro"}, timeout=5)
+        response = requests.get(url, proxies=proxies, verify=ssl_verify, headers={"User-Agent": "cyberbro"}, timeout=5)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, "html.parser")
@@ -51,7 +48,7 @@ def query_ioc_one_html(observable: str, proxies: Dict[str, str]) -> Optional[Dic
     return None
 
 
-def query_ioc_one_pdf(observable: str, proxies: Dict[str, str]) -> Optional[Dict[str, Any]]:
+def query_ioc_one_pdf(observable: str, proxies: Dict[str, str], ssl_verify: bool = True) -> Optional[Dict[str, Any]]:
     """
     Perform a deep search query on ioc.one (PDF).
 
@@ -65,7 +62,7 @@ def query_ioc_one_pdf(observable: str, proxies: Dict[str, str]) -> Optional[Dict
     """
     try:
         url = f"https://ioc.one/auth/deep_search/pdf?search={observable}"
-        response = requests.get(url, proxies=proxies, verify=False, headers={"User-Agent": "cyberbro"}, timeout=5)
+        response = requests.get(url, proxies=proxies, verify=ssl_verify, headers={"User-Agent": "cyberbro"}, timeout=5)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, "html.parser")
