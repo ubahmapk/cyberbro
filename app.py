@@ -167,7 +167,7 @@ def stats():
 @app.route('/about')
 def about():
     """Render the about page."""
-    return render_template('about.html')
+    return render_template('about.html', version=app.config['VERSION'])
 
 @app.route('/config')
 def config():
