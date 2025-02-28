@@ -132,6 +132,7 @@ def prepare_row(result, selected_engines):
         row["cs_actor"] = crowdstrike_data.get("actors") if crowdstrike_data else None
         row["cs_confidence"] = crowdstrike_data.get("malicious_confidence") if crowdstrike_data else None
         row["cs_threat_types"] = crowdstrike_data.get("threat_types") if crowdstrike_data else None
+        row["cs_malwares"] = crowdstrike_data.get("malware_families") if crowdstrike_data else None
         row["cs_kill_chain"] = crowdstrike_data.get("kill_chain") if crowdstrike_data else None
         row["cs_vulns"] = crowdstrike_data.get("vulnerabilities") if crowdstrike_data else None
     
