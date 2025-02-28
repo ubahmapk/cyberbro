@@ -1360,6 +1360,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% endif %}
                     {% if "crowdstrike" in analysis_results.selected_engines %}
                     <td>
+                        {% if result.crowdstrike %}
                         <strong>Device Count: </strong>{{ result.crowdstrike.device_count }}<br>
                         <strong>Link: </strong><a href="{{ result.crowdstrike.link }}" target="_blank">See on CrowdStrike</a><br>
                         {% if result.crowdstrike.indicator_found %}
@@ -1383,6 +1384,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             {% if result.crowdstrike.vulnerabilities | length > 0 %}
                                 <strong>Vulnerabilities: </strong>{{ result.crowdstrike.vulnerabilities | join(', ') }}<br>
                             {% endif %}
+                        {% endif %}
+                        {% else %}
+                        Not applicable
                         {% endif %}
                     </td>
                     {% endif %}
