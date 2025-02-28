@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 logger = logging.getLogger(__name__)
 
 def map_observable_type(observable_type: str) -> str:
-    if observable_type in ["MD5", "SHA256"]:
+    if observable_type in ["MD5", "SHA256", "SHA1"]:
         return observable_type.lower()
     elif observable_type in ["IPv4", "IPv6"]:
         return observable_type.lower()
@@ -22,6 +22,8 @@ def generate_ioc_id(observable: str, observable_type: str) -> str:
         return f"hash_md5_{observable}"
     elif observable_type == "sha256":
         return f"hash_sha256_{observable}"
+    elif observable_type == "sha1":
+        return f"hash_sha1_{observable}"
 
 def get_falcon_client(client_id: str, client_secret: str, proxies: Dict[str, str]) -> APIHarnessV2:
     return APIHarnessV2(client_id=client_id, client_secret=client_secret, proxy=proxies)
@@ -32,7 +34,7 @@ def query_crowdstrike(observable: str, observable_type: str, client_id: str, cli
 
     Args:
         observable (str): The observable to query.
-        observable_type (str): The type of the observable (e.g., 'URL', 'MD5', 'SHA256'). Note: SHA1 are not supported (official doc).
+        observable_type (str): The type of the observable (e.g., 'URL', 'MD5', 'SHA1', 'SHA256').
         client_id (str): The client ID for CrowdStrike API authentication.
         client_secret (str): The client secret for CrowdStrike API authentication.
         proxies (Dict[str, str]): Proxy settings for the API client.
