@@ -931,7 +931,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         high-risk
                     {% elif result.opencti and result.opencti.latest_indicator_link and not result.opencti.revoked %}
                         warning-row
-                    {% elif result.crowdstrike.indicator_found and result.crowdstrike.malicious_confidence == 'high' %}
+                    {% elif result.crowdstrike and result.crowdstrike.indicator_found and result.crowdstrike.malicious_confidence == 'high' %}
                         high-risk
                     {% endif %}
                     ">
