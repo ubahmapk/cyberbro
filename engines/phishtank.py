@@ -4,15 +4,13 @@ import requests
 from typing import Optional, Dict, Any
 from urllib.parse import urlparse
 
-# Disable SSL warning in case of proxies that break SSL
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
 def query_phishtank(
     observable: str,
     observable_type: str,
-    proxies: Dict[str, str]
+    proxies: Dict[str, str],
+    ssl_verify: bool = True
 ) -> Optional[Dict[str, Any]]:
     """
     Query the PhishTank API to check if a given observable is a known phishing URL.
@@ -47,7 +45,7 @@ def query_phishtank(
             data=data,
             headers=headers,
             proxies=proxies,
-            verify=False,
+            verify=ssl_verify,
             timeout=5
         )
         response.raise_for_status()

@@ -3,16 +3,14 @@ import base64
 import requests
 from typing import Optional, Dict, Any
 
-# Disable SSL warning in case of proxies that break SSL
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
 def query_virustotal(
     observable: str,
     observable_type: str,
     api_key: str,
-    proxies: Dict[str, str]
+    proxies: Dict[str, str],
+    ssl_verify: bool = True
 ) -> Optional[Dict[str, Any]]:
     """
     Queries the VirusTotal API for information about a given observable (IP, domain, URL, or file hash).
@@ -50,7 +48,7 @@ def query_virustotal(
             url = f"https://www.virustotal.com/api/v3/files/{observable}"
             link = f"https://www.virustotal.com/gui/file/{observable}/detection"
 
-        response = requests.get(url, headers=headers, proxies=proxies, verify=False, timeout=5)
+        response = requests.get(url, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
 
         data = response.json()

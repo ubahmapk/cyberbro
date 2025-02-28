@@ -2,12 +2,9 @@ import logging
 import requests
 from typing import Optional, Dict, Any
 
-# Disable SSL warnings in case of proxies like Zscaler which break SSL...
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
-def query_github(observable: str, proxies: Dict[str, str]) -> Optional[Dict[str, Any]]:
+def query_github(observable: str, proxies: Dict[str, str], ssl_verify: bool = True) -> Optional[Dict[str, Any]]:
     """
     Perform a search query using Grep API, limited to 5 search results, restricted to GitHub domains.
 
@@ -29,7 +26,7 @@ def query_github(observable: str, proxies: Dict[str, str]) -> Optional[Dict[str,
         response = requests.get(
             f"https://grep.app/api/search?q={observable}",
             proxies=proxies,
-            verify=False,
+            verify=ssl_verify,
             timeout=5
         )
         response.raise_for_status()

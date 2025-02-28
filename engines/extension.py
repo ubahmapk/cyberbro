@@ -5,7 +5,7 @@ from typing import Optional, Dict
 
 logger = logging.getLogger(__name__)
 
-def get_name_from_id(extension_id: str, proxies: Dict[str, str]) -> Optional[Dict[str, str]]:
+def get_name_from_id(extension_id: str, proxies: Dict[str, str], ssl_verify: bool = True) -> Optional[Dict[str, str]]:
     """
     Fetch the name of a Chrome or Edge extension using its ID.
     
@@ -24,7 +24,7 @@ def get_name_from_id(extension_id: str, proxies: Dict[str, str]) -> Optional[Dic
     
     def fetch_extension_name(url: str) -> Optional[Dict[str, str]]:
         try:
-            response = requests.get(url, proxies=proxies, verify=False, timeout=5)
+            response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
             response.raise_for_status()
             
             soup = BeautifulSoup(response.content, 'html.parser')
