@@ -2,15 +2,13 @@ import logging
 import requests
 from typing import Optional, Dict, Any
 
-# Disable SSL warnings for proxies like Zscaler which break SSL
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
 def query_shodan(
     observable: str,
     api_key: str,
-    proxies: Dict[str, str]
+    proxies: Dict[str, str],
+    ssl_verify: bool = True
 ) -> Optional[Dict[str, Any]]:
     """
     Queries the Shodan API for information about a given observable (typically an IP).
@@ -37,7 +35,7 @@ def query_shodan(
     url = f"https://api.shodan.io/shodan/host/{observable}"
 
     try:
-        response = requests.get(url, headers=headers, proxies=proxies, verify=False, timeout=5)
+        response = requests.get(url, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
 
         data = response.json()

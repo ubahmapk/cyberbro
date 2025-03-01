@@ -1,15 +1,11 @@
 import logging
 import requests
 from typing import Optional, Dict, Any
-# We assume there's a 'search' function from a library named 'googlesearch'.
 from googlesearch import search
-
-# Disable SSL warnings in case of proxies like Zscaler which break SSL...
-requests.packages.urllib3.disable_warnings()
 
 logger = logging.getLogger(__name__)
 
-def query_google(observable: str, proxies: Dict[str, str]) -> Optional[Dict[str, Any]]:
+def query_google(observable: str, proxies: Dict[str, str], ssl_verify: bool = True) -> Optional[Dict[str, Any]]:
     """
     Perform a Google search query limited to 5 search results.
 
@@ -32,7 +28,7 @@ def query_google(observable: str, proxies: Dict[str, str]) -> Optional[Dict[str,
             f"\"{observable}\"",
             num_results=5,
             proxy=proxies.get("http"),
-            ssl_verify=False,
+            ssl_verify=ssl_verify,
             advanced=True,
             lang="en",
             region="US"

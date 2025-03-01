@@ -2,15 +2,13 @@ import logging
 import requests
 from typing import Optional, Dict, Any
 
-# Disable SSL warning
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
 def query_urlscan(
     observable: str,
     observable_type: str,
-    proxies: Dict[str, str]
+    proxies: Dict[str, str],
+    ssl_verify: bool = True
 ) -> Optional[Dict[str, Any]]:
     """
     Queries the urlscan.io API for information about a given observable (URL, IP, or file hash).
@@ -48,7 +46,7 @@ def query_urlscan(
 
         url = f"https://urlscan.io/api/v1/search/?q={query_field}:{observable}"
 
-        response = requests.get(url, proxies=proxies, verify=False, timeout=5)
+        response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
 
         result = response.json()

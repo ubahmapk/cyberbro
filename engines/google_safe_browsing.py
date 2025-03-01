@@ -2,16 +2,14 @@ import logging
 import requests
 from typing import Optional, Dict, Any
 
-# Disable SSL warning
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
 def query_google_safe_browsing(
     observable: str,
     observable_type: str,
     api_key: str,
-    proxies: Dict[str, str]
+    proxies: Dict[str, str],
+    ssl_verify: bool = True
 ) -> Optional[Dict[str, Any]]:
     """
     Queries the Google Safe Browsing API to check if the given observable is associated with any threats.
@@ -60,7 +58,7 @@ def query_google_safe_browsing(
             }
         }
 
-        response = requests.post(url, json=body, proxies=proxies, verify=False, timeout=5)
+        response = requests.post(url, json=body, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
 
         data = response.json()
