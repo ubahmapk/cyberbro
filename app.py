@@ -53,7 +53,7 @@ app.config['SQLALCHEMY_POOL_SIZE'] = 10
 app.config['SQLALCHEMY_MAX_OVERFLOW'] = 20
 
 # Set version 
-app.config['VERSION'] = "v0.5.0"
+app.config['VERSION'] = "v0.6.0"
 
 # Initialize the database
 db.init_app(app)
@@ -63,6 +63,8 @@ with app.app_context():
     db.create_all()
 
 PROXIES = { "https": secrets["proxy_url"], "http": secrets["proxy_url"] }
+
+SSL_VERIFY = secrets.get("ssl_verify", True)
 
 def check_new_version(current_version):
     url = "https://api.github.com/repos/stanfrbd/cyberbro/releases/latest"
@@ -78,7 +80,7 @@ def check_new_version(current_version):
                     return cache_data.get('latest_version') != current_version
 
         # If cache is older than a day or doesn't exist, fetch the latest version
-        response = requests.get(url, proxies=PROXIES, verify=False)
+        response = requests.get(url, proxies=PROXIES, verify=SSL_VERIFY, timeout=5)
         latest_release = response.json()
         latest_version = latest_release["tag_name"]
 
@@ -193,6 +195,9 @@ def update_config():
         secrets["shodan"] = request.form.get("shodan", secrets.get("shodan", ""))
         secrets["opencti_api_key"] = request.form.get("opencti_api_key", secrets.get("opencti_api_key", ""))
         secrets["opencti_url"] = request.form.get("opencti_url", secrets.get("opencti_url", ""))
+        secrets["crowdstrike_client_id"] = request.form.get("crowdstrike_client_id", secrets.get("crowdstrike_client_id", ""))
+        secrets["crowdstrike_client_secret"] = request.form.get("crowdstrike_client_secret", secrets.get("crowdstrike_client_secret", ""))
+        secrets["crowdstrike_falcon_base_url"] = request.form.get("crowdstrike_falcon_base_url", secrets.get("crowdstrike_falcon_base_url", "https://falcon.crowdstrike.com"))
         
         # Apply the GUI_ENABLED_ENGINES configuration directly to the GUI to avoid restarting the app
         global GUI_ENABLED_ENGINES

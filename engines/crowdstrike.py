@@ -2,6 +2,7 @@ import logging
 from falconpy import APIHarnessV2
 from typing import Optional, Dict, Any
 from datetime import datetime, timezone
+from urllib.parse import urljoin
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +26,10 @@ def generate_ioc_id(observable: str, observable_type: str) -> str:
     elif observable_type == "sha1":
         return f"hash_sha1_{observable}"
 
-def get_falcon_client(client_id: str, client_secret: str, proxies: Dict[str, str]) -> APIHarnessV2:
-    return APIHarnessV2(client_id=client_id, client_secret=client_secret, proxy=proxies)
+def get_falcon_client(client_id: str, client_secret: str, proxies: Dict[str, str], ssl_verify: bool = True) -> APIHarnessV2:
+    return APIHarnessV2(client_id=client_id, client_secret=client_secret, proxy=proxies, user_agent="cyberbro", ssl_verify=ssl_verify, timeout=5)
 
-def query_crowdstrike(observable: str, observable_type: str, client_id: str, client_secret: str, proxies: Dict[str, str]) -> Optional[Dict[str, Any]]:
+def query_crowdstrike(observable: str, observable_type: str, client_id: str, client_secret: str, falcon_url: str = "https://falcon.crowdstrike.com", ssl_verify: bool = True, proxies: Dict[str, str] = None) -> Optional[Dict[str, Any]]:
     """
     Queries CrowdStrike Falcon for information about a given observable.
 
@@ -37,14 +38,20 @@ def query_crowdstrike(observable: str, observable_type: str, client_id: str, cli
         observable_type (str): The type of the observable (e.g., 'URL', 'MD5', 'SHA1', 'SHA256').
         client_id (str): The client ID for CrowdStrike API authentication.
         client_secret (str): The client secret for CrowdStrike API authentication.
+        falcon_url (str): The base URL for the CrowdStrike Falcon API.
+        ssl_verify (bool): Whether to verify SSL certificates.
         proxies (Dict[str, str]): Proxy settings for the API client.
 
     Returns:
         Optional[Dict[str, Any]]: A dictionary with the query results or None if an error occurs.
     """
-    falcon = get_falcon_client(client_id, client_secret, proxies)
 
     try:
+        falcon = get_falcon_client(client_id, client_secret, proxies, ssl_verify)
+
+        # Ensure the URL is properly formatted
+        falcon_url = urljoin(falcon_url, "/").rstrip("/")
+
         if observable_type == "URL":
             observable = observable.split("/")[2].split(":")[0]
 
@@ -79,7 +86,7 @@ def query_crowdstrike(observable: str, observable_type: str, client_id: str, cli
                 "kill_chain": [],
                 "malware_families": [],
                 "vulnerabilities": [],
-                "link": f"https://falcon.crowdstrike.com/search/?term=_all%3A~%27{observable}%27"
+                "link": f"{falcon_url}/search/?term=_all%3A~%27{observable}%27"
             })
             return result
 
@@ -94,7 +101,7 @@ def query_crowdstrike(observable: str, observable_type: str, client_id: str, cli
             "kill_chain": resource.get('kill_chains', []),
             "malware_families": resource.get('malware_families', []),
             "vulnerabilities": resource.get('vulnerabilities', []),
-            "link": f"https://falcon.crowdstrike.com/search/?term=_all%3A~%27{observable}%27"
+            "link": f"{falcon_url}/search/?term=_all%3A~%27{observable}%27"
         })
 
         return result

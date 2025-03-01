@@ -3,16 +3,14 @@ import requests
 from typing import Optional, Dict, Any
 from urllib.parse import urljoin
 
-# Disable SSL warnings in case of proxies like Zscaler which break SSL...
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
 def query_opencti(
     observable: str,
     api_key: str,
     opencti_url: str,
-    proxies: Dict[str, str]
+    proxies: Dict[str, str],
+    ssl_verify: bool = True
 ) -> Optional[Dict[str, Any]]:
     """
     Queries the OpenCTI API for information about a given observable.
@@ -116,7 +114,7 @@ def query_opencti(
         }
         search_link = f"{base_url}/dashboard/search/knowledge/{observable}"
 
-        response = requests.post(url, headers=headers, json=payload, proxies=proxies, verify=False, timeout=5)
+        response = requests.post(url, headers=headers, json=payload, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
         data = response.json()
 
@@ -190,7 +188,7 @@ def query_opencti(
                 "query": additional_query,
                 "variables": {"id": first_id}
             }
-            add_response = requests.post(url, headers=headers, json=additional_payload, proxies=proxies, verify=False, timeout=5)
+            add_response = requests.post(url, headers=headers, json=additional_payload, proxies=proxies, verify=ssl_verify, timeout=5)
             add_response.raise_for_status()
             additional_data = add_response.json()
             indicator_data = additional_data.get("data", {}).get("indicator", {})

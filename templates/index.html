@@ -496,7 +496,6 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         });
                         
                         document.querySelector('#analyzeForm div').appendChild(document.createElement('br'));
-
                     </script>
                 </div>
 
@@ -562,9 +561,46 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             checkbox.checked = checkbox.dataset.supports.includes('extension');
                         });
                     }
-                </script>
 
-                <button type="submit" class="btn" style="position: relative; bottom: 20px;">Start Analysis</button>
+                    function saveSelection() {
+                        const selectedEngines = Array.from(document.querySelectorAll('input[name="engines"]:checked')).map(checkbox => checkbox.value);
+                        localStorage.setItem('selectedEngines', JSON.stringify(selectedEngines));
+                        console.log('Selection saved');
+                        console.log(selectedEngines);
+
+                        const saveLabel = document.getElementById('saveSelectionLabel');
+                        saveLabel.innerHTML = 'Saved ✅';
+                        setTimeout(() => {
+                            saveLabel.innerHTML = 'Save selection';
+                        }, 1000);
+                    }
+
+                    function restoreSelection() {
+                        const savedEngines = JSON.parse(localStorage.getItem('selectedEngines'));
+                        if (savedEngines) {
+                            document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                                checkbox.checked = savedEngines.includes(checkbox.value);
+                            });
+                        }
+                    }
+
+                    document.addEventListener('DOMContentLoaded', restoreSelection);
+                    </script>
+
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button type="submit" class="btn">Start Analysis</button>
+                        <label for="saveSelection" id="saveSelectionLabel" onclick="saveSelection()" style="cursor: pointer; font-size: 0.875rem; margin-left: 10px;">
+                            Save selection
+                        </label>
+                        <script>
+                            document.getElementById('saveSelectionLabel').addEventListener('mouseover', function() {
+                                this.style.textDecoration = 'underline';
+                            });
+                            document.getElementById('saveSelectionLabel').addEventListener('mouseout', function() {
+                                this.style.textDecoration = 'none';
+                            });
+                        </script>
+                    </div>
             </form>
         </div>
 

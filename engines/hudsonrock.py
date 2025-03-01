@@ -3,12 +3,9 @@ import requests
 from typing import Optional, Dict, Any
 from urllib.parse import urlparse
 
-# Disable SSL warnings in case of proxies like Zscaler which break SSL...
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
-def query_hudsonrock(observable: str, observable_type: str, proxies: Dict[str, str]) -> Optional[Dict[str, Any]]:
+def query_hudsonrock(observable: str, observable_type: str, proxies: Dict[str, str], ssl_verify: bool = True) -> Optional[Dict[str, Any]]:
     """
     Perform a search query using Hudson Rock API for email or domain observables.
 
@@ -35,7 +32,7 @@ def query_hudsonrock(observable: str, observable_type: str, proxies: Dict[str, s
             logger.error("Unsupported observable type: %s", observable_type)
             return None
 
-        response = requests.get(url, proxies=proxies, verify=False, timeout=5)
+        response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
         data = response.json()
 

@@ -3,15 +3,13 @@ import requests
 import tldextract
 from typing import Optional, Dict, Any
 
-# Disable SSL warnings in case of proxies like Zscaler which break SSL...
-requests.packages.urllib3.disable_warnings()
-
 logger = logging.getLogger(__name__)
 
 def query_openrdap(
     observable: str,
     observable_type: str,
-    proxies: Dict[str, str]
+    proxies: Dict[str, str],
+    ssl_verify: bool = True
 ) -> Optional[Dict[str, Any]]:
     """
     Queries the Open RDAP service for information about a given domain.
@@ -51,7 +49,7 @@ def query_openrdap(
             return None
 
         api_url = f"https://rdap.net/domain/{domain}"
-        response = requests.get(api_url, verify=False, proxies=proxies, timeout=5)
+        response = requests.get(api_url, verify=ssl_verify, proxies=proxies, timeout=5)
         response.raise_for_status()
 
         data = response.json()
