@@ -147,6 +147,8 @@ docker compose up # use -d to run in background and use --build to rebuild the i
 
 > Don't forget to edit the `secrets.json` before building the image.
 
+See [Advanced options for deployment](https://github.com/stanfrbd/cyberbro/wiki/4.-Advanced-options-for-deployment) in the wiki to get all Docker deployment options.
+
 ## The old way
 
 * Clone the repository and install the requirements.
