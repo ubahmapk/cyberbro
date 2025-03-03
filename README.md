@@ -127,7 +127,7 @@ cp secrets-sample.json secrets.json
 > [!IMPORTANT]
 > You can modify the configuration via the GUI at [http://127.0.0.1:5000/config](http://127.0.0.1:5000/config). \
 > This endpoint is disabled by default for security reasons, as it is not protected. \
-> To enable it, set `app.config['CONFIG_PAGE_ENABLED'] = True` at the beginning of `app.py`. \
+> To enable it, set `"config_page_enabled":true` in `secrets.json` or use `CONFIG_PAGE_ENABLED=true` as environment variable. \
 > **This is not recommended for public or team use, as it exposes your API keys.**
 
 # Launch the app
