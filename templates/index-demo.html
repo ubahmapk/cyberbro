@@ -1641,7 +1641,15 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 </div>
                 {% endif %}
                 {% if analysis_results.results[0].webscout %}
-                <div class="card">
+                <div class="card
+                {% if 'vpn' in analysis_results.results[0].webscout.network_provider_services | map('lower') or 'proxy' in analysis_results.results[0].webscout.network_provider_services | map('lower') %}
+                    warning-row" style="background-color: orange;" 
+                {% elif analysis_results.results[0].webscout.risk_score > 50 %}
+                    high-risk" style="background-color: red;" 
+                {% else %}
+                    "
+                {% endif %}
+                >
                     <h3>WebScout</h3>
                     {% if analysis_results.results[0].webscout.ip %}
                     <p><strong>IP: </strong>{{ analysis_results.results[0].webscout.ip }}</p>
