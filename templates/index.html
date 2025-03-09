@@ -655,6 +655,24 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             if (result.spur) {
                                 plainText += `Spur: Tunnels: ${result.spur.tunnels}\n`;
                             }
+                            if (result.webscout) {
+                                plainText += `WebScout: `;
+                                if (result.webscout.risk_score) plainText += `Risk Score: ${result.webscout.risk_score}, `;
+                                if (result.webscout.country_name) plainText += `Country: ${result.webscout.country_name}, `;
+                                if (result.webscout.hostnames) plainText += `Hostnames: ${result.webscout.hostnames.join(', ')}, `;
+                                if (result.webscout.asn) plainText += `ASN: ${result.webscout.asn.join(', ')} ${result.webscout.as_org}\n`;
+                                if (result.webscout.domains_on_ip) plainText += ` - Domains on IP: ${result.webscout.domains_on_ip}\n`;
+                                if (result.webscout.operator) plainText += ` - Operator: ${result.webscout.operator}\n`;
+                                if (result.webscout.network_type) plainText += ` - Type: ${result.webscout.network_type}\n`;
+                                if (result.webscout.network_service) plainText += ` - Network Service: ${result.webscout.network_service}\n`;
+                                if (result.webscout.network_service_region) plainText += ` - Network Service Region: ${result.webscout.network_service_region}\n`;
+                                if (result.webscout.network_provider_services.length > 0) plainText += ` - Services: ${result.webscout.network_provider_services.join(', ')}\n`;
+                                if (result.webscout.behavior) plainText += ` - Behavior: ${result.webscout.behavior.join(', ')}\n`;
+                                if (result.webscout.open_ports) plainText += ` - Open Ports: ${result.webscout.open_ports.join(', ')}\n`;
+                                if (result.webscout.operator_description) plainText += ` - Operator Description: ${result.webscout.operator_description}\n`;
+                                if (result.webscout.provider_description) plainText += ` - Provider Description: ${result.webscout.provider_description}\n`;
+                            }
+
                             if (result.virustotal) {
                                 plainText += `VirusTotal: Detection Ratio: ${result.virustotal.detection_ratio}, Community Score: ${result.virustotal.community_score}\n`;
                             }
@@ -840,8 +858,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 <option value="all">All Countries</option>
                 {% set countries = [] %}
                 {% for result in analysis_results.results %}
-                {% if (result.ipinfo and result.ipinfo.country_name not in countries) or (result.ipquery and
-                result.ipquery.country_name not in countries) %}
+                {% if (result.ipinfo and result.ipinfo.country_name not in countries) or (result.ipquery and result.ipquery.country_name not in countries) or (result.webscout and result.webscout.country_name not in countries) %}
                 {% if result.ipinfo and result.ipinfo.country_name not in countries %}
                 {% set _ = countries.append(result.ipinfo.country_name) %}
                 <option value="{{ result.ipinfo.country_name | lower }}">{{ result.ipinfo.country_name }}</option>
@@ -849,6 +866,10 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 {% if result.ipquery and result.ipquery.country_name not in countries %}
                 {% set _ = countries.append(result.ipquery.country_name) %}
                 <option value="{{ result.ipquery.country_name | lower }}">{{ result.ipquery.country_name }}</option>
+                {% endif %}
+                {% if result.webscout and result.webscout.country_name not in countries %}
+                {% set _ = countries.append(result.webscout.country_name) %}
+                <option value="{{ result.webscout.country_name | lower }}">{{ result.webscout.country_name }}</option>
                 {% endif %}
                 {% endif %}
                 {% endfor %}
