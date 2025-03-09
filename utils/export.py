@@ -84,6 +84,24 @@ def prepare_row(result, selected_engines):
     if "spur" in selected_engines:
         spur_data = result.get("spur", {})
         row["spur_us_anon"] = spur_data.get("tunnels") if spur_data else None
+    
+    if "webscout" in selected_engines:
+        webscout_data = result.get("webscout", {})
+        row["ws_risk"] = webscout_data.get("risk_score") if webscout_data else None
+        row["ws_location"] = webscout_data.get("location") if webscout_data else None
+        row["ws_hostnames"] = webscout_data.get("hostnames") if webscout_data else None
+        row["ws_domains_on_ip"] = webscout_data.get("domains_on_ip") if webscout_data else None
+        row["ws_operator"] = webscout_data.get("operator") if webscout_data else None
+        row["ws_network_type"] = webscout_data.get("network_type") if webscout_data else None
+        row["ws_network_provider"] = webscout_data.get("network_provider") if webscout_data else None
+        row["ws_network_service"] = webscout_data.get("network_service") if webscout_data else None
+        row["ws_network_service_region"] = webscout_data.get("network_service_region") if webscout_data else None
+        row["ws_network_provider_services"] = webscout_data.get("network_provider_services") if webscout_data else None
+        row["ws_behavior"] = webscout_data.get("behavior") if webscout_data else None
+        row["ws_as_org"] = webscout_data.get("as_org") if webscout_data else None
+        row["ws_asn"] = webscout_data.get("asn") if webscout_data else None
+        row["ws_provider_desc"] = webscout_data.get("provider_description") if webscout_data else None
+        row["ws_operator_desc"] = webscout_data.get("operator_description") if webscout_data else None
 
     if "google_safe_browsing" in selected_engines:
         google_safe_browsing_data = result.get("google_safe_browsing", {})

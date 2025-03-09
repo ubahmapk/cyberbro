@@ -28,6 +28,7 @@ secrets = {
     "crowdstrike_client_id": "",
     "crowdstrike_client_secret": "",
     "crowdstrike_falcon_base_url": "https://falcon.crowdstrike.com",
+    "webscout": "",
     "api_prefix": "api",
     "config_page_enabled": False,
     "gui_enabled_engines": [],
