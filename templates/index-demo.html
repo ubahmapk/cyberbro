@@ -460,6 +460,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             { name: "ipinfo", label: "IPinfo", supports: "ip", checked: false, title: "Checks IPinfo for IP, reversed obtained IP for a given domain / URL, free API key required" },
                             { name: "virustotal", label: "VirusTotal", supports: "hash risk ip domain url", checked: false, title: "Checks VirusTotal for IP, domain, URL, hash, free API key required" },
                             { name: "spur", label: "Spur.us", supports: "vpn proxy free_no_key scraping", checked: false, title: "Scraps Spur.us for IP, reversed obtained IP for a given domain / URL, free, no API key" },
+                            { name: "webscout", label: "WebScout", supports: "ip vpn proxy risk", checked: false, title: "Checks WebScout for IP, reversed obtained IP for a given domain / URL, free or paid API key required" },
                             { name: "mde", label: "Microsoft Defender for Endpoint", supports: "hash ip domain url", checked: false, title: "Checks Microsoft Defender for Endpoint, paid API info on Azure required" },
                             { name: "crowdstrike", label: "CrowdStrike", supports: "hash ip domain url", checked: false, title: "Checks CrowdStrike for IP, domain, URL, hash, paid API key required" },
                             { name: "google_safe_browsing", label: "Google Safe Browsing", supports: "risk domain ip", checked: false, title: "Checks Google Safe Browsing, free API key required" },
@@ -654,6 +655,24 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             if (result.spur) {
                                 plainText += `Spur: Tunnels: ${result.spur.tunnels}\n`;
                             }
+                            if (result.webscout) {
+                                plainText += `WebScout: `;
+                                if (result.webscout.risk_score) plainText += `Risk Score: ${result.webscout.risk_score}, `;
+                                if (result.webscout.country_name) plainText += `Country: ${result.webscout.country_name}, `;
+                                if (result.webscout.hostnames) plainText += `Hostnames: ${result.webscout.hostnames.join(', ')}, `;
+                                if (result.webscout.asn) plainText += `ASN: ${result.webscout.asn.join(', ')} ${result.webscout.as_org}\n`;
+                                if (result.webscout.domains_on_ip) plainText += ` - Domains on IP: ${result.webscout.domains_on_ip}\n`;
+                                if (result.webscout.operator) plainText += ` - Operator: ${result.webscout.operator}\n`;
+                                if (result.webscout.network_type) plainText += ` - Type: ${result.webscout.network_type}\n`;
+                                if (result.webscout.network_service) plainText += ` - Network Service: ${result.webscout.network_service}\n`;
+                                if (result.webscout.network_service_region) plainText += ` - Network Service Region: ${result.webscout.network_service_region}\n`;
+                                if (result.webscout.network_provider_services.length > 0) plainText += ` - Services: ${result.webscout.network_provider_services.join(', ')}\n`;
+                                if (result.webscout.behavior) plainText += ` - Behavior: ${result.webscout.behavior.join(', ')}\n`;
+                                if (result.webscout.open_ports) plainText += ` - Open Ports: ${result.webscout.open_ports.join(', ')}\n`;
+                                if (result.webscout.operator_description) plainText += ` - Operator Description: ${result.webscout.operator_description}\n`;
+                                if (result.webscout.provider_description) plainText += ` - Provider Description: ${result.webscout.provider_description}\n`;
+                            }
+
                             if (result.virustotal) {
                                 plainText += `VirusTotal: Detection Ratio: ${result.virustotal.detection_ratio}, Community Score: ${result.virustotal.community_score}\n`;
                             }
@@ -839,8 +858,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 <option value="all">All Countries</option>
                 {% set countries = [] %}
                 {% for result in analysis_results.results %}
-                {% if (result.ipinfo and result.ipinfo.country_name not in countries) or (result.ipquery and
-                result.ipquery.country_name not in countries) %}
+                {% if (result.ipinfo and result.ipinfo.country_name not in countries) or (result.ipquery and result.ipquery.country_name not in countries) or (result.webscout and result.webscout.country_name not in countries) %}
                 {% if result.ipinfo and result.ipinfo.country_name not in countries %}
                 {% set _ = countries.append(result.ipinfo.country_name) %}
                 <option value="{{ result.ipinfo.country_name | lower }}">{{ result.ipinfo.country_name }}</option>
@@ -848,6 +866,10 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 {% if result.ipquery and result.ipquery.country_name not in countries %}
                 {% set _ = countries.append(result.ipquery.country_name) %}
                 <option value="{{ result.ipquery.country_name | lower }}">{{ result.ipquery.country_name }}</option>
+                {% endif %}
+                {% if result.webscout and result.webscout.country_name not in countries %}
+                {% set _ = countries.append(result.webscout.country_name) %}
+                <option value="{{ result.webscout.country_name | lower }}">{{ result.webscout.country_name }}</option>
                 {% endif %}
                 {% endif %}
                 {% endfor %}
@@ -946,6 +968,9 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if "crowdstrike" in analysis_results.selected_engines %}
                     <th>CrowdStrike</th>
                     {% endif %}
+                    {% if "webscout" in analysis_results.selected_engines %}
+                    <th>WebScout</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -954,9 +979,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     {% if result.abuseipdb and result.abuseipdb.risk_score > 50 %}
                         high-risk
                     {% elif result.virustotal and (result.virustotal.total_malicious > 10 or result.virustotal.community_score < -10) %}
-                        high-detection
-                    {% elif result.virustotal and result.virustotal.community_score > 100 %}
-                        clean-detection
+                        high-detection high-risk
                     {% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}
                         warning-row
                     {% elif result.ipquery and (result.ipquery.is_proxy or result.ipquery.is_vpn or result.ipquery.is_tor) %}
@@ -969,6 +992,12 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         warning-row
                     {% elif result.crowdstrike and result.crowdstrike.indicator_found and result.crowdstrike.malicious_confidence == 'high' %}
                         high-risk
+                    {% elif result.webscout and 'vpn' in result.webscout.network_provider_services | map('lower') or 'proxy' in result.webscout.network_provider_services | map('lower') %}
+                        warning-row
+                    {% elif result.webscout and result.webscout.risk_score > 50 %}
+                        high-risk
+                    {% elif result.virustotal and result.virustotal.community_score > 100 %}
+                        clean-detection
                     {% endif %}
                     ">
                     <td title="{{ result.observable }}">{{ result.observable[:64] }}{% if result.observable | length >
@@ -1426,6 +1455,41 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% endif %}
                     </td>
                     {% endif %}
+                    {% if "webscout" in analysis_results.selected_engines %}
+                    <td>
+                        {% if result.webscout %}
+                        {% if result.webscout.ip %}<strong>IP: </strong>{{ result.webscout.ip }}<br>{% endif %}
+                        {% if result.webscout.risk_score %}<strong>Risk Score: </strong>{{ result.webscout.risk_score }}<br>{% endif %}
+                        {% if result.webscout.country_name %}<strong>Country: </strong>{{ result.webscout.country_name }} <span class="fi fi-{{ result.webscout.country_code | lower }}"></span><br>{% endif %}
+                        {% if result.webscout.hostnames %}<strong>Hostnames: </strong>{{ result.webscout.hostnames | join(', ') }}<br>{% endif %}
+                        {% if result.webscout.asn %}
+                            <span title="{% if result.webscout.provider_description %}{{ result.webscout.provider_description }}{% endif %}{% if result.webscout.operator_description %}{{ result.webscout.operator_description }}{% endif %}">
+                                <strong>ASN: </strong>
+                            {% if result.webscout.asn and result.webscout.asn != "" %}
+                                {{ result.webscout.asn | join(', ') }}
+                            {% endif %}
+                            {% if result.webscout.as_org and result.webscout.as_org != "" %}
+                                {{ result.webscout.as_org }}
+                            {% endif %}
+                            {% if (result.webscout.provider_description and result.webscout.provider_description != "") or (result.webscout.operator_description and result.webscout.operator_description != "") %}
+                                ℹ️
+                            {% endif %}
+                            </span>
+                            <br>
+                        {% endif %}
+                        {% if result.webscout.domains_on_ip %}<strong>Domains on IP: </strong>{{ result.webscout.domains_on_ip }}<br>{% endif %}
+                        {% if result.webscout.operator %}<strong>Operator: </strong>{{ result.webscout.operator }}<br>{% endif %}
+                        {% if result.webscout.network_type %}<strong>Type: </strong>{{ result.webscout.network_type }}<br>{% endif %}
+                        {% if result.webscout.network_service %}<strong>Network Service: </strong>{{ result.webscout.network_service }}<br>{% endif %}
+                        {% if result.webscout.network_service_region %}<strong>Network Service Region: </strong>{{ result.webscout.network_service_region }}<br>{% endif %}
+                        {% if result.webscout.network_provider_services %}<strong>Services: </strong>{{ result.webscout.network_provider_services | join(', ') }}<br>{% endif %}
+                        {% if result.webscout.behavior %}<strong>Behavior: </strong>{{ result.webscout.behavior | join(', ') }}<br>{% endif %}
+                        {% if result.webscout.open_ports %}<strong>Open Ports: </strong>{{ result.webscout.open_ports | join(', ') }}{% endif %}
+                        {% else %}
+                        Not applicable
+                        {% endif %}
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
@@ -1574,6 +1638,63 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <h3>Spur.us</h3>
                     <p><a href="{{ analysis_results.results[0].spur.link }}" target="_blank">{{
                             analysis_results.results[0].spur.tunnels }}</a></p>
+                </div>
+                {% endif %}
+                {% if analysis_results.results[0].webscout %}
+                <div class="card">
+                    <h3>WebScout</h3>
+                    {% if analysis_results.results[0].webscout.ip %}
+                    <p><strong>IP: </strong>{{ analysis_results.results[0].webscout.ip }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].webscout.risk_score %}
+                    <p><strong>Risk Score: </strong>{{ analysis_results.results[0].webscout.risk_score }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].webscout.country_name %}
+                    <p><strong>Country: </strong>{{ analysis_results.results[0].webscout.country_name }} <span class="fi fi-{{ analysis_results.results[0].webscout.country_code | lower }}"></span></p>
+                    {% endif %}
+                    {% if analysis_results.results[0].webscout.hostnames %}
+                    <p><strong>Hostnames: </strong>{{ analysis_results.results[0].webscout.hostnames | join(', ') }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].webscout.asn %}
+                    <p>
+                        <span title="{% if analysis_results.results[0].webscout.provider_description %}{{ analysis_results.results[0].webscout.provider_description }}{% endif %}{% if analysis_results.results[0].webscout.operator_description %}{{ analysis_results.results[0].webscout.operator_description }}{% endif %}">
+                            <strong>ASN: </strong>
+                        {% if analysis_results.results[0].webscout.asn and analysis_results.results[0].webscout.asn != "" %}
+                            {{ analysis_results.results[0].webscout.asn | join(', ') }}
+                        {% endif %}
+                        {% if analysis_results.results[0].webscout.as_org and analysis_results.results[0].webscout.as_org != "" %}
+                            {{ analysis_results.results[0].webscout.as_org }}
+                        {% endif %}
+                        {% if (analysis_results.results[0].webscout.provider_description and analysis_results.results[0].webscout.provider_description != "") or (analysis_results.results[0].webscout.operator_description and analysis_results.results[0].webscout.operator_description != "") %}
+                            ℹ️
+                        {% endif %}
+                        </span>
+                    </p>
+                    {% endif %}
+                    {% if analysis_results.results[0].webscout.domains_on_ip %}
+                    <p><strong>Domains on IP: </strong>{{ analysis_results.results[0].webscout.domains_on_ip }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].webscout.operator %}
+                    <p><strong>Operator: </strong>{{ analysis_results.results[0].webscout.operator }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].webscout.network_type %}
+                    <p><strong>Type: </strong>{{ analysis_results.results[0].webscout.network_type }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].webscout.network_service %}
+                    <p><strong>Network Service: </strong>{{ analysis_results.results[0].webscout.network_service }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].webscout.network_service_region %}
+                    <p><strong>Network Service Region: </strong>{{ analysis_results.results[0].webscout.network_service_region }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].webscout.network_provider_services %}
+                    <p><strong>Services: </strong>{{ analysis_results.results[0].webscout.network_provider_services | join(', ') }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].webscout.behavior %}
+                    <p><strong>Behavior: </strong>{{ analysis_results.results[0].webscout.behavior | join(', ') }}</p>
+                    {% endif %}
+                    {% if analysis_results.results[0].webscout.open_ports %}
+                    <p><strong>Open Ports: </strong>{{ analysis_results.results[0].webscout.open_ports | join(', ') }}</p>
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>
