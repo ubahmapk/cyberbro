@@ -116,7 +116,8 @@ cp secrets-sample.json secrets.json
     "opencti_api_key": "token_here",
     "opencti_url": "https://demo.opencti.io",
     "crowdstrike_client_id": "client_id_here",
-    "crowdstrike_client_secret": "client_secret_here"
+    "crowdstrike_client_secret": "client_secret_here",
+    "webscout": "token_here"
 }
 
 ```
@@ -294,6 +295,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 * [Grep.App](https://grep.app/)
 * [Hudson Rock](https://hudsonrock.com/)
 * [CrowdStrike](https://www.crowdstrike.com/)
+* [WebScout](https://webscout.io/)
 
 > [!NOTE]
 > Any questions? Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki) or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new) \
