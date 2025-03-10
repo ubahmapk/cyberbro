@@ -992,7 +992,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         warning-row
                     {% elif result.crowdstrike and result.crowdstrike.indicator_found and result.crowdstrike.malicious_confidence == 'high' %}
                         high-risk
-                    {% elif result.webscout and 'vpn' in result.webscout.network_provider_services | map('lower') or 'proxy' in result.webscout.network_provider_services | map('lower') %}
+                    {% elif result.webscout and 'vpn' in result.webscout.network_provider_services | map('lower') or result.webscout and 'proxy' in result.webscout.network_provider_services | map('lower') %}
                         warning-row
                     {% elif result.webscout and result.webscout.risk_score > 50 %}
                         high-risk
