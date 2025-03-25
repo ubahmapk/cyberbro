@@ -198,6 +198,7 @@ def update_config():
         secrets["crowdstrike_client_id"] = request.form.get("crowdstrike_client_id", secrets.get("crowdstrike_client_id", ""))
         secrets["crowdstrike_client_secret"] = request.form.get("crowdstrike_client_secret", secrets.get("crowdstrike_client_secret", ""))
         secrets["crowdstrike_falcon_base_url"] = request.form.get("crowdstrike_falcon_base_url", secrets.get("crowdstrike_falcon_base_url", "https://falcon.crowdstrike.com"))
+        secrets["webscout"] = request.form.get("webscout", secrets.get("webscout", ""))
         
         # Apply the GUI_ENABLED_ENGINES configuration directly to the GUI to avoid restarting the app
         global GUI_ENABLED_ENGINES
