@@ -1,5 +1,6 @@
 import logging
 import requests
+import time
 from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,8 @@ def query_webscout(ip: str, api_key: str, proxies: Dict[str, str], ssl_verify: b
         None: If an error occurs or 'status' key isn't 'success'.
     """
     try:
+        # rate limit
+        time.sleep(1)
         url = f"https://api.webscout.io/query/ip/{ip}?apikey={api_key}"
         response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()

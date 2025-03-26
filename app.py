@@ -53,7 +53,7 @@ app.config['SQLALCHEMY_POOL_SIZE'] = 10
 app.config['SQLALCHEMY_MAX_OVERFLOW'] = 20
 
 # Set version 
-app.config['VERSION'] = "v0.6.1"
+app.config['VERSION'] = "v0.6.2"
 
 # Initialize the database
 db.init_app(app)
@@ -198,6 +198,7 @@ def update_config():
         secrets["crowdstrike_client_id"] = request.form.get("crowdstrike_client_id", secrets.get("crowdstrike_client_id", ""))
         secrets["crowdstrike_client_secret"] = request.form.get("crowdstrike_client_secret", secrets.get("crowdstrike_client_secret", ""))
         secrets["crowdstrike_falcon_base_url"] = request.form.get("crowdstrike_falcon_base_url", secrets.get("crowdstrike_falcon_base_url", "https://falcon.crowdstrike.com"))
+        secrets["webscout"] = request.form.get("webscout", secrets.get("webscout", ""))
         
         # Apply the GUI_ENABLED_ENGINES configuration directly to the GUI to avoid restarting the app
         global GUI_ENABLED_ENGINES
