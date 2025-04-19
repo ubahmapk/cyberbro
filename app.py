@@ -36,11 +36,13 @@ secrets = get_config()
 # Cache configuration
 app.config['CACHE_TYPE'] = 'SimpleCache'
 app.config['CACHE_DEFAULT_TIMEOUT'] = secrets.get("api_cache_timeout", 86400)  # Default to 1 day
+logger.debug(f"CACHE_DEFAULT_TIMEOUT: {app.config['CACHE_DEFAULT_TIMEOUT']}")
+
 cache = Cache(app)
 
 # Retrieve from secrets or default to 1MB - MAX_FORM_MEMORY_SIZE is the maximum size of the form data in bytes
 app.config['MAX_FORM_MEMORY_SIZE'] = secrets.get("max_form_memory_size", 1 * 1024 * 1024)
-print(f"MAX_FORM_MEMORY_SIZE: {app.config['MAX_FORM_MEMORY_SIZE']}")
+logger.debug(f"MAX_FORM_MEMORY_SIZE: {app.config['MAX_FORM_MEMORY_SIZE']}")
 
 # Define API_PREFIX
 API_PREFIX = secrets.get("api_prefix", "api")
