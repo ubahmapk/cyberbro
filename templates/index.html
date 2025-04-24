@@ -1467,7 +1467,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         {% if result.webscout %}
                         {% if result.webscout.ip %}<strong>IP: </strong>{{ result.webscout.ip }}<br>{% endif %}
                         {% if result.webscout.risk_score %}<strong>Risk Score: </strong>{{ result.webscout.risk_score }}<br>{% endif %}
-                        {% if result.webscout.country_name %}<strong>Country: </strong>{{ result.webscout.country_name }} <span class="fi fi-{{ result.webscout.country_code | lower }}"></span><br>{% endif %}
+                        {% if result.webscout.country_name %}<strong>Country: </strong> <span class="country country-{{result.webscout.country_name | lower}}">{{result.webscout.country_name}}</span> <span class="fi fi-{{ result.webscout.country_code | lower }}"></span><br>{% endif %}
                         {% if result.webscout.hostnames %}<strong>Hostnames: </strong>{{ result.webscout.hostnames | join(', ') }}<br>{% endif %}
                         {% if result.webscout.asn %}
                             <span title="{% if result.webscout.description %}{{ result.webscout.description }}{% endif %}">
@@ -2124,7 +2124,6 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
             }
 
             if (showRow && countryFilter !== "all") {
-
                 const countrySpan = tr[i].querySelector(".country");
                 const country = countrySpan ? countrySpan.className.split("-")[1] : "";
                 showRow = country === countryFilter;
