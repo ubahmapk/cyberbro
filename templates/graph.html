@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphe Relationnel</title>
+    <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js"></script>
+    <link href="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.css" rel="stylesheet" type="text/css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        #network {
+            width: 100%;
+            height: 80vh;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Générateur de Graphe Relationnel</h1>
+    <form id="jsonForm">
+        <label for="jsonInput">Insérez votre JSON :</label>
+        <textarea id="jsonInput" placeholder="Collez ici votre JSON"></textarea>
+        <button type="button" onclick="generateGraph()">Générer le graphe</button>
+    </form>
+    <div id="network"></div>
+
+    <script>
+        function generateGraph() {
+            const raw = document.getElementById("jsonInput").value;
+            let data;
+            try {
+                data = JSON.parse(raw);
+            } catch (e) {
+                alert("Erreur de parsing JSON !");
+                return;
+            }
+
+            if (!Array.isArray(data)) {
+                alert("Le JSON attendu est une liste d'objets d'observables.");
+                return;
+            }
+
+            const nodes = [];
+            const edges = [];
+            const addedNodes = new Set();
+
+            function addNode(id, label, group = "default") {
+                if (!addedNodes.has(id)) {
+                    nodes.push({ id, label, group });
+                    addedNodes.add(id);
+                }
+            }
+
+            data.forEach(entry => {
+                const obs = entry.observable;
+                if (!obs) return;
+
+                addNode(obs, obs, "observable");
+
+                const providers = ["ipinfo", "ipquery", "webscout"];
+                providers.forEach(provider => {
+                    if (entry[provider]?.asn) {
+                        const asn = entry[provider].asn;
+                        if (entry.type === "FQDN" || entry.type === "URL") {
+                            if (entry.reverse_dns?.reverse_dns) {
+                                entry.reverse_dns.reverse_dns.forEach(reverse => {
+                                    addNode(asn, asn, "asn");
+                                    edges.push({ from: reverse, to: asn, label: `ASN (${provider})` });
+                                });
+                            }
+                        } else {
+                            addNode(asn, asn, "asn");
+                            edges.push({ from: obs, to: asn, label: `ASN (${provider})` });
+                        }
+                    }
+
+                    if (entry[provider]?.country_name) {
+                        const country = entry[provider].country_name;
+                        if (entry.type === "FQDN" || entry.type === "URL") {
+                            if (entry.reverse_dns?.reverse_dns) {
+                                entry.reverse_dns.reverse_dns.forEach(reverse => {
+                                    addNode(country, country, "country_name");
+                                    edges.push({ from: reverse, to: country, label: `Country (${provider})` });
+                                });
+                            }
+                        } else {
+                            addNode(country, country, "country_name");
+                            edges.push({ from: obs, to: country, label: `Country (${provider})` });
+                        }
+                    }
+                });
+
+                if (entry.spur?.tunnels) {
+                    const tunnels = entry.spur.tunnels;
+                    if (entry.type === "FQDN" || entry.type === "URL") {
+                        if (entry.reverse_dns?.reverse_dns) {
+                            entry.reverse_dns.reverse_dns.forEach(reverse => {
+                                addNode(tunnels, tunnels, "tunnels");
+                                edges.push({ from: reverse, to: tunnels, label: "Tunnel (Spur.us)" });
+                            });
+                        }
+                    } else {
+                        addNode(tunnels, tunnels, "tunnels");
+                        edges.push({ from: obs, to: tunnels, label: "Tunnel (Spur.us)" });
+                    }
+                }
+
+                if (entry.shodan?.ports) {
+                    entry.shodan.ports.forEach(port => {
+                        const portNode = `Port ${port}`;
+                        if (entry.type === "FQDN" || entry.type === "URL") {
+                            if (entry.reverse_dns?.reverse_dns) {
+                                entry.reverse_dns.reverse_dns.forEach(reverse => {
+                                    addNode(portNode, portNode, "port");
+                                    edges.push({ from: reverse, to: portNode, label: "Port" });
+                                });
+                            }
+                        } else {
+                            addNode(portNode, portNode, "port");
+                            edges.push({ from: obs, to: portNode, label: "Port" });
+                        }
+                    });
+                }
+
+                if (entry.reverse_dns?.reverse_dns) {
+                    entry.reverse_dns.reverse_dns.forEach(reverse => {
+                        addNode(reverse, reverse, "reverse_dns");
+                        edges.push({ from: obs, to: reverse, label: "Reverse DNS" });
+                    });
+                }
+
+                if (entry.threatfox?.malware_printable) {
+                    entry.threatfox.malware_printable.forEach(malware => {
+                        addNode(malware, malware, "malware");
+                        edges.push({ from: obs, to: malware, label: "Malware" });
+                    });
+                }
+
+                if (entry.urlscan?.top_domains) {
+                    entry.urlscan.top_domains.forEach(domainEntry => {
+                        const domain = domainEntry.domain;
+                        addNode(domain, domain, "domain");
+                        edges.push({ from: obs, to: domain, label: `Related domain (URLscan)` });
+                    });
+                }
+
+                if (entry.github?.results) {
+                    entry.github.results.forEach(githubEntry => {
+                        const githubTitle = githubEntry.title;
+                        addNode(githubTitle, githubTitle, "github");
+                        edges.push({ from: obs, to: githubTitle, label: "GitHub" });
+                    });
+                }
+
+                if (entry.google?.results) {
+                    entry.google.results.forEach(googleEntry => {
+                        const googleTitle = googleEntry.title;
+                        if (googleTitle && googleTitle.trim() !== "") {
+                            addNode(googleTitle, googleTitle, "google");
+                            edges.push({ from: obs, to: googleTitle, label: "Google" });
+                        }
+                    });
+                }
+
+                if (entry.ioc_one_html?.results) {
+                    entry.ioc_one_html.results.forEach(result => {
+                        const htmlTitle = result.title;
+                        if (htmlTitle && htmlTitle.trim() !== "") {
+                            addNode(htmlTitle, htmlTitle, "ioc_one_html");
+                            edges.push({ from: obs, to: htmlTitle, label: "Ioc[.]One" });
+                        }
+                    });
+                }
+
+                if (entry.ioc_one_pdf?.results) {
+                    entry.ioc_one_pdf.results.forEach(result => {
+                        const pdfTitle = result.title;
+                        if (pdfTitle && pdfTitle.trim() !== "") {
+                            addNode(pdfTitle, pdfTitle, "ioc_one_pdf");
+                            edges.push({ from: obs, to: pdfTitle, label: "Ioc[.]One" });
+                        }
+                    });
+                }
+            });
+
+            data.forEach(entry => {
+                if ((entry.type === "FQDN" || entry.type === "URL") && entry.rdap) {
+                    const rdap = entry.rdap;
+
+                    if (rdap.registrar) {
+                        addNode(rdap.registrar, rdap.registrar, "rdap_registrar");
+                        edges.push({ from: entry.observable, to: rdap.registrar, label: "Registrar" });
+                    }
+
+                    if (rdap.organization) {
+                        addNode(rdap.organization, rdap.organization, "rdap_organization");
+                        edges.push({ from: entry.observable, to: rdap.organization, label: "Organization" });
+                    }
+
+                    if (rdap.abuse_contact) {
+                        addNode(rdap.abuse_contact, rdap.abuse_contact, "rdap_abuse_contact");
+                        edges.push({ from: entry.observable, to: rdap.abuse_contact, label: "Abuse Contact" });
+                    }
+
+                    if (rdap.registrant) {
+                        addNode(rdap.registrant, rdap.registrant, "rdap_registrant");
+                        edges.push({ from: entry.observable, to: rdap.registrant, label: "Registrant" });
+                    }
+
+                    if (rdap.registrant_email) {
+                        addNode(rdap.registrant_email, rdap.registrant_email, "rdap_registrant_email");
+                        edges.push({ from: entry.observable, to: rdap.registrant_email, label: "Registrant Email" });
+                    }
+
+                    if (rdap.name_servers && Array.isArray(rdap.name_servers)) {
+                        rdap.name_servers.forEach(nameServer => {
+                            addNode(nameServer, nameServer, "rdap_name_server");
+                            edges.push({ from: entry.observable, to: nameServer, label: "Name Server" });
+                        });
+                    }
+                }
+            });
+
+            const container = document.getElementById("network");
+            const networkData = {
+                nodes: new vis.DataSet(nodes),
+                edges: new vis.DataSet(edges),
+            };
+            const options = {
+                nodes: {
+                    shape: "dot",
+                    size: 12,
+                    font: { size: 12 }
+                },
+                groups: {
+                    observable: { color: { background: "#ff6f61" } },
+                    asn: { color: { background: "#87ceeb" } },
+                    country_name: { color: { background: "#90ee90" } },
+                    port: { color: { background: "#f5b041" } },
+                    reverse_dns: { color: { background: "#d4a6ff" } },
+                    malware: { color: { background: "#ffcccb" } },
+                },
+                physics: {
+                    stabilization: false,
+                    barnesHut: { gravitationalConstant: -20000 }
+                },
+                layout: {
+                    improvedLayout: true
+                }
+            };
+            new vis.Network(container, networkData, options);
+        }
+    </script>
+</body>
+</html>
