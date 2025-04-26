@@ -295,5 +295,14 @@ def analyze_api():
 
     return response, 200
 
+@app.route('/graph/<analysis_id>', methods=['GET'])
+def graph(analysis_id):
+    """Render the graph visualization for the given analysis ID."""
+    analysis_results = db.session.get(AnalysisResult, analysis_id)
+    if analysis_results:
+        return render_template('graph.html', analysis_results=analysis_results.results), 200
+    else:
+        return render_template('404.html'), 404
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
