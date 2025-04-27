@@ -39,7 +39,7 @@ def test_handle_invalid_env_values(mocker: MockerFixture):
     result = read_secrets_from_env(secrets)
 
     assert result.api_cache_timeout == DEFAULT_SECRETS.api_cache_timeout
-    assert result.config_page_enabled is False
+    assert result.config_page_enabled == DEFAULT_SECRETS.config_page_enabled
 
 
 def test_read_secrets_from_env_success(mocker: MockerFixture):
