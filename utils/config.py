@@ -2,12 +2,15 @@ import json
 import logging
 import os
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 
 @dataclass
 class Secrets:
+    """Dataclass to hold the secrets for the application."""
+
     abuseipdb: str = ""
     api_cache_timeout: int = 86400  # Default to 1 day
     api_prefix: str = "api"
@@ -121,14 +124,14 @@ SECRETS_FILE: Path = Path(BASE_DIR / "secrets.json")
 DEFAULT_SECRETS: Secrets = Secrets()
 
 
-def read_secrets_from_file(default_secrets: Secrets, secrets_file: Path) -> Secrets:
+def read_secrets_from_file(secrets_file: Path) -> Secrets:
     """Load secrets from a JSON file, if it exists.
 
     Return a dictionary with any updated secrets.
     """
 
     # Make a copy of the defaults, we can compare for changes later
-    secrets: Secrets = default_secrets
+    secrets: Secrets = Secrets()
 
     # Load secrets from secrets.json if it exists
     if secrets_file.exists():
@@ -149,7 +152,6 @@ def read_secrets_from_file(default_secrets: Secrets, secrets_file: Path) -> Secr
             logger.error(
                 "Error while decoding secrets. Reading environment variables anyway..."
             )
-        # TODO: Create custom Error class to handle invalid updates
     else:
         print("Secrets file not found. Reading environment variables anyway...")
         logger.info("Secrets file not found. Reading environment variables anyway...")
@@ -221,19 +223,19 @@ def save_secrets_to_file(secrets: Secrets, secrets_file: Path) -> None:
     return None
 
 
-# @lru_cache
+@lru_cache
 def get_config() -> Secrets:
     """Get the configuration for the application."""
 
-    secrets: Secrets = read_secrets_from_file(DEFAULT_SECRETS, SECRETS_FILE)
+    secrets: Secrets = read_secrets_from_file(SECRETS_FILE)
     secrets = read_secrets_from_env(secrets)
 
     if not secrets.get("proxy_url"):
         print("No proxy URL was set. Using no proxy.")
         logger.info("No proxy URL was set. Using no proxy.")
 
+    # If the secrets are not the same as the defaults, save them to the file
     if secrets != DEFAULT_SECRETS:
-        # If the secrets are not the same as the defaults, save them to the file
 
         if not SECRETS_FILE.exists():
             print(
