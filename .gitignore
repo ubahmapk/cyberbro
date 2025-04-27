@@ -3,7 +3,6 @@ __pycache__/
 *.csv
 *.xlsx
 *.txt
-*test*
 log*/
 *.db
 data/
