@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -207,7 +207,7 @@ def save_secrets_to_file(secrets: Secrets, secrets_file: Path) -> None:
     # Save the secrets to the secrets.json file
     try:
         with secrets_file.open("w") as f:
-            json.dump(secrets, f, indent=4)
+            json.dump(asdict(secrets), f, indent=4)
     except OSError as e:
         print(f"Unable to write secrets file: {e}")
         logger.error(f"Unable to write secrets file: {e}")
