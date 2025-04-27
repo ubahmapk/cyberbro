@@ -131,8 +131,7 @@ def test_secrets_update_method_invalid_keys(mocker: MockerFixture):
     # Update with invalid key
     secrets.update({"invalid_key": "value"})
 
-    # Check that warning was logged
-    mock_logger.assert_called_once_with("invalid_key is not a valid secret key.")
+    assert secrets == DEFAULT_SECRETS
 
 
 def test_secrets_update_method_invalid_value(mocker: MockerFixture):
