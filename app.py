@@ -36,7 +36,6 @@ class InvalidCachefileError(Exception):
 app: Flask = Flask(__name__)
 
 logger: logging.Logger = logging.getLogger(__name__)
-logger: logging.Logger = logging.getLogger(__name__)
 
 # Enable CORS, very permisive. If you want to restrict it, you can use the origins parameter (can break the GUI)
 CORS(app)
@@ -45,59 +44,42 @@ CORS(app)
 DATA_DIR: Path = Path(BASE_DIR) / "data"
 if not DATA_DIR.exists():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-DATA_DIR: Path = Path(BASE_DIR) / "data"
-if not DATA_DIR.exists():
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Read the secrets from the secrets.json file
-secrets: Secrets = get_config()
 secrets: Secrets = get_config()
 
 # Cache configuration
 app.config["CACHE_TYPE"] = "SimpleCache"
 app.config["CACHE_DEFAULT_TIMEOUT"] = secrets.api_cache_timeout
-app.config["CACHE_TYPE"] = "SimpleCache"
-app.config["CACHE_DEFAULT_TIMEOUT"] = secrets.api_cache_timeout
 logger.debug(f"CACHE_DEFAULT_TIMEOUT: {app.config['CACHE_DEFAULT_TIMEOUT']}")
 
 cache: Cache = Cache(app)
-cache: Cache = Cache(app)
 
 # Retrieve from secrets or default to 1MB - MAX_FORM_MEMORY_SIZE is the maximum size of the form data in bytes
-app.config["MAX_FORM_MEMORY_SIZE"] = secrets.max_form_memory_size
 app.config["MAX_FORM_MEMORY_SIZE"] = secrets.max_form_memory_size
 logger.debug(f"MAX_FORM_MEMORY_SIZE: {app.config['MAX_FORM_MEMORY_SIZE']}")
 
 # Define API_PREFIX
 API_PREFIX: str = secrets.api_prefix
-API_PREFIX: str = secrets.api_prefix
 
 # Enable the config page - not intended for public use since authentication is not implemented
-app.config["CONFIG_PAGE_ENABLED"] = secrets.config_page_enabled
 app.config["CONFIG_PAGE_ENABLED"] = secrets.config_page_enabled
 
 # Define GUI_ENABLED_ENGINES
 GUI_ENABLED_ENGINES: list = secrets.gui_enabled_engines
-GUI_ENABLED_ENGINES: list = secrets.gui_enabled_engines
 
 # Update the database URI to use the data directory
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DATA_DIR / 'results.db'}"
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DATA_DIR / 'results.db'}"
 
 # Disable modification tracking to save memory
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Set the size of the database connection pool
-app.config["SQLALCHEMY_POOL_SIZE"] = 10
 app.config["SQLALCHEMY_POOL_SIZE"] = 10
 
 # Set the maximum overflow size of the connection pool
 app.config["SQLALCHEMY_MAX_OVERFLOW"] = 20
-app.config["SQLALCHEMY_MAX_OVERFLOW"] = 20
 
-# Set version
-app.config["VERSION"] = VERSION
 # Set version
 app.config["VERSION"] = VERSION
 
