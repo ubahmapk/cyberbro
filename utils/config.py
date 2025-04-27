@@ -37,10 +37,45 @@ class Secrets:
 
         yield from self.__dataclass_fields__
 
-    # TODO: Test the get and update methods
+    def _get_field_type(self, field_name: str) -> type:
+        """Get the type of a field by its name."""
+
+        if field_name in self.__dataclass_fields__:
+            return self.__dataclass_fields__[field_name].type
+        raise KeyError(
+            f"Field '{field_name}' does not exist in {self.__class__.__name__}"
+        )
+
+    def _validate_value(self, field_name: str, value: Any) -> bool:
+        """Validate that a value matches the required type of a field.
+
+        Args:
+            field_name: The name of the field to validate against
+            value: The value to validate
+
+        Returns:
+            bool: True if the value matches the required type, False otherwise
+        """
+
+        try:
+            field_type = self._get_field_type(field_name)
+
+            # Special handling for list types
+            if hasattr(field_type, "__origin__") and field_type.__origin__ is list:
+                return isinstance(value, list) and all(
+                    isinstance(item, field_type.__args__[0]) for item in value
+                )
+
+            return isinstance(value, field_type)
+        except KeyError:
+            return False
+
     # Add this get method to allow for a smooth transition from dict to dataclass
     def get(self, value: str) -> Any:
-        """Get the value of a secret by its key."""
+        """Get the value of a secret by its key.
+
+        Return None if the key does not exist.
+        """
 
         if value in self.__dataclass_fields__:
             return self.__dict__[value]
@@ -48,14 +83,29 @@ class Secrets:
         return None
 
     def update(self, updated_secrets: dict[str, Any]) -> None:
-        """Update the secrets with new values."""
+        """Update the secrets with new values.
+
+        Ensure that updated keys exists
+        and the values match the required type of the field.
+        """
 
         for key, value in updated_secrets.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-            else:
-                print(f"Warning: {key} is not a valid secret key.")
+            if key not in self.__dataclass_fields__:
                 logger.warning(f"{key} is not a valid secret key.")
+                continue
+
+            # Convert string to list if needed
+            if isinstance(value, str) and "," in value:
+                value = [item.strip() for item in value.split(",")]
+
+            # Validate the value type
+            if not self._validate_value(key, value):
+                logger.warning(
+                    f"Warning: {value} is not a valid type for {key}. Expected {self._get_field_type(key)}"
+                )
+                continue
+
+            setattr(self, key, value)
 
 
 logger = logging.getLogger(__name__)
