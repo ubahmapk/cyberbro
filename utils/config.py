@@ -236,7 +236,6 @@ def get_config() -> Secrets:
 
     # If the secrets are not the same as the defaults, save them to the file
     if secrets != DEFAULT_SECRETS:
-
         if not SECRETS_FILE.exists():
             print(
                 "Secrets file was not found. Attempting to save current values to a new one."
