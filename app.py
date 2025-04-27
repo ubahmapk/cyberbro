@@ -258,6 +258,7 @@ def export(analysis_id):
         return export_to_csv(data, timestamp)
     if format == "excel":
         return export_to_excel(data, timestamp)
+    return jsonify({"error": "Invalid export format requested."}), 400
 
 
 @app.route("/favicon.ico")
@@ -435,4 +436,4 @@ def graph(analysis_id):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5050, debug=False)
+    app.run(host="0.0.0.0", port=5000, debug=False)
