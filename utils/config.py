@@ -49,29 +49,42 @@ class Secrets:
             f"Field '{field_name}' does not exist in {self.__class__.__name__}"
         )
 
-    def _validate_value(self, field_name: str, value: Any) -> bool:
-        """Validate that a value matches the required type of a field.
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Set the value of a field in the dataclass.
 
-        Args:
-            field_name: The name of the field to validate against
-            value: The value to validate
-
-        Returns:
-            bool: True if the value matches the required type, False otherwise
+        Validate the value against the field type and convert
+        str to bool,int, or list where needed.
         """
 
-        try:
-            field_type = self._get_field_type(field_name)
+        field_type = self._get_field_type(name)
 
-            # Special handling for list types
-            if hasattr(field_type, "__origin__") and field_type.__origin__ is list:
-                return isinstance(value, list) and all(
-                    isinstance(item, field_type.__args__[0]) for item in value
+        # Convert string to list if needed
+        if (
+            hasattr(field_type, "__origin__")
+            and field_type.__origin__ is list
+            and isinstance(value, str)
+            and "," in value
+        ):
+            value = [item.strip() for item in value.split(",")]
+
+        if field_type is int:
+            # Convert string to int
+            try:
+                value = int(value)
+            except ValueError:
+                logger.warning(
+                    f"Invalid value for {name}: {value}. Expected int. {name} not updated."
                 )
+                print(
+                    f"Invalid value for {name}: {value}. Expected int. {name} not updated."
+                )
+                return None
 
-            return isinstance(value, field_type)
-        except KeyError:
-            return False
+        if field_type is bool and isinstance(value, str):
+            # Convert string to bool
+            value = value.lower() in ["true", "1", "yes", "on"]
+
+        super().__setattr__(name, value)
 
     # Add this get method to allow for a smooth transition from dict to dataclass
     def get(self, value: str) -> Any:
@@ -94,18 +107,7 @@ class Secrets:
 
         for key, value in updated_secrets.items():
             if key not in self.__dataclass_fields__:
-                logger.warning(f"{key} is not a valid secret key.")
-                continue
-
-            # Convert string to list if needed
-            if isinstance(value, str) and "," in value:
-                value = [item.strip() for item in value.split(",")]
-
-            # Validate the value type
-            if not self._validate_value(key, value):
-                logger.warning(
-                    f"Warning: {value} is not a valid type for {key}. Expected {self._get_field_type(key)}"
-                )
+                logger.warning(f"{key} is not a secret key.")
                 continue
 
             setattr(self, key, value)
@@ -113,7 +115,7 @@ class Secrets:
 
 logger = logging.getLogger(__name__)
 
-BASE_DIR: Path = Path.resolve(Path(__file__).parent)
+BASE_DIR: Path = Path.resolve(Path(__file__).parent.parent)
 
 logger.debug(f"{BASE_DIR=}")
 
@@ -172,23 +174,7 @@ def read_secrets_from_env(secrets: Secrets) -> Secrets:
         env_value: str | None = os.getenv(key.upper())
         if env_value:
             env_configured: bool = True
-            match key:
-                case "gui_enabled_engines":
-                    # Split the comma-separated list of engines into a list
-                    secrets.gui_enabled_engines = [
-                        engine.strip().lower() for engine in env_value.split(",")
-                    ]
-                case "config_page_enabled":
-                    secrets.config_page_enabled = env_value.lower() in [
-                        "true",
-                        "1",
-                        "yes",
-                    ]
-                case "ssl_verify":
-                    secrets.ssl_verify = env_value.lower() in ["true", "1", "yes"]
-                case _:
-                    # update the dataclass field if it exists
-                    secrets.update({key: env_value})
+            secrets.update({key: env_value})
 
     if not env_configured:
         print(
