@@ -145,7 +145,4 @@ def test_secrets_update_method_invalid_value(mocker: MockerFixture):
     # Update with invalid key
     secrets.update({"api_cache_timeout": "value"})
 
-    # Check that warning was logged
-    mock_logger.assert_called_once_with(
-        "Warning: value is not a valid type for api_cache_timeout. Expected <class 'int'>"
-    )
+    assert secrets.api_cache_timeout == DEFAULT_SECRETS.api_cache_timeout
