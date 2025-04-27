@@ -318,7 +318,6 @@ def config():
     """Render the config page."""
     if not app.config.get("CONFIG_PAGE_ENABLED", False):
         return render_template("404.html"), 404
-    # TODO : Update config template to use updated dataclass
     return render_template("config.html", secrets=secrets)
 
 
