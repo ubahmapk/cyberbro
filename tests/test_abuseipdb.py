@@ -3,7 +3,7 @@ import sys
 
 from pytest_mock import MockerFixture
 
-sys.path.append("engines")
+# sys.path.append("engines")
 
 from engines.abuseipdb import query_abuseipdb
 
