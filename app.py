@@ -430,7 +430,7 @@ def graph(analysis_id):
     analysis_results = db.session.get(AnalysisResult, analysis_id)
     if analysis_results:
         return render_template(
-            "graph.html", analysis_results=analysis_results.results
+            "graph.html", analysis_id=analysis_id, API_PREFIX=API_PREFIX
         ), 200
     return render_template("404.html"), 404
 
