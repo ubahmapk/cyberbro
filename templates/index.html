@@ -368,7 +368,7 @@
                 width: 100%;
             }
         }
-    
+
         .upgrade-notification {
             background-color: #f8d7da;
             color: black;
@@ -411,7 +411,7 @@
                 function closeNotification() {
                     document.getElementById('upgrade-notification').style.display = 'none';
                 }
-        
+
                 function hideNotification() {
                     closeNotification();
                     const expirationDate = new Date();
@@ -419,7 +419,7 @@
                     expirationDate.setDate(expirationDate.getDate() + 14);
                     localStorage.setItem('hideUpgradeNotification', JSON.stringify({ value: 'true', expires: expirationDate }));
                 }
-        
+
                 document.addEventListener('DOMContentLoaded', (event) => {
                     const hideUpgradeNotification = JSON.parse(localStorage.getItem('hideUpgradeNotification'));
                     if (hideUpgradeNotification && hideUpgradeNotification.value === 'true') {
@@ -427,7 +427,7 @@
                     }
                 });
             </script>
-    
+
             <div class="upgrade-notification" id="upgrade-notification">
                 <span class="close-upgrade-notification" onclick="closeNotification()">×</span>
                 A new version of Cyberbro is available! <a href="https://github.com/stanfrbd/cyberbro/" target="_blank">Upgrade</a>
@@ -474,7 +474,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             { name: "ioc_one_pdf", label: "Ioc.One (PDF)", supports: "domain url ip hash extension scraping", checked: false, title: "Scraps (can be long) Ioc.One PDF search results for all types of observable, free, no API key" },
                             { name: "opencti", label: "OpenCTI", supports: "domain url ip hash extension", checked: false, title: "Searches OpenCTI results for all types of observable, API key required" },
                             { name: "abusix", label: "Abusix", supports: "abuse free_no_key", checked: false, title: "Checks abuse contact with Abusix only for IP, reversed obtained IP for a given domain / URL, free, no API key" },
-                            { name: "hudsonrock", label: "Hudson Rock", supports: "domain url email free_no_key", checked: false, title: "Searches Hudson Rock leak / infostealer results for domains, URL, Email, free, no API key" }
+                            { name: "hudsonrock", label: "Hudson Rock", supports: "domain url email free_no_key", checked: false, title: "Searches Hudson Rock leak / infostealer results for domains, URL, Email, free, no API key" },
+                            { name: "criminalip", label: "Criminal IP", supports: "ip", checked: false, title: "Criminal IP is an OSINT search engine specialized in attack surface assessment and threat hunting, free, with paid upgrades available"}
                         ];
 
                         const enginesToDisplay = GUI_ENABLED_ENGINES.length > 0 ? allEngines.filter(engine => GUI_ENABLED_ENGINES.includes(engine.name)) : allEngines;
@@ -495,7 +496,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             document.querySelector('#analyzeForm div').appendChild(label);
                             document.querySelector('#analyzeForm div').appendChild(document.createElement('br'));
                         });
-                        
+
                         document.querySelector('#analyzeForm div').appendChild(document.createElement('br'));
                     </script>
                 </div>
@@ -504,6 +505,8 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     <div class="radio-container">
                         <input type="radio" id="selectAll" name="engineSelection">
                         <label title="Can be long" for="selectAll" onclick="selectAllEngines()">All</label>
+                        <input type="radio" id="selectNone" name="engineSelection">
+                        <label title="Clear all engines" for="selectNone" onclick="selectNone()">Clear</label>
                         <input type="radio" id="selectAbuseChecker" name="engineSelection">
                         <label title="Abuse mail, only IP, domain, URL - All free, no key" for="selectAbuseChecker"
                             onclick="selectAbuseChecker()">Abuse</label>
@@ -525,6 +528,10 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                 <script>
                     function selectAllEngines() {
                         document.querySelectorAll('input[name="engines"]').forEach(checkbox => checkbox.checked = true);
+                    }
+
+                    function selectNone() {
+                        document.querySelectorAll('input[name="engines"]').forEach(checkbox => checkbox.checked = false);
                     }
 
                     function selectAbuseChecker() {
@@ -775,6 +782,30 @@ function formatResults(data) {
             }
         }
 
+        if (result.criminalip) {
+            plainText += `Criminal IP:\n`;
+            if (result.criminalip.represenative_domain) plainText += `  - Representative Domain: ${result.criminalip.represenative_domain}\n`;
+            plainText += `  - Score:\n`;
+            plainText += `    - Inbound: ${result.criminalip.score.inbound}\n`;
+            plainText += `    - Outbound: ${result.criminalip.score.outbound}\n`;
+            plainText += `  - Abuse Record Count: ${result.criminalip.abuse_record_count}\n`;
+            plainText += `  - Issues:\n`;
+            result.criminalip.issues.forEach(issue => {
+                plainText += `    - ${issue}\n`;
+            });
+            plainText += `  - IDs:\n`;
+            result.criminalip.ids.forEach(id => {
+                plainText += `    - ${id}\n`;
+            });
+            if (result.criminalip.current_open_ports.count > 0) {
+                plainText += `  - Current Open Ports:\n`;
+                result.criminalip.current_open_ports.forEach(port => {
+                    plainText += `    - ${port}\n`;
+                });
+            }
+            if (result.criminalip.asn) plainText += `  - ASN: ${result.criminalip.asn} ${result.criminalip.as_org}\n`;
+        }
+
         if (result.hudsonrock) {
             plainText += `Hudson Rock:\n`;
 
@@ -862,10 +893,10 @@ function copyAsPlainText() {
             const copyButton = document.querySelector('.btn[onclick="copyAsPlainText()"]');
             const initialBackgroundColor = copyButton.style.backgroundColor;
             const initialTextContent = copyButton.textContent;
-            
+
             copyButton.style.backgroundColor = 'green';
             copyButton.textContent = 'Copied!';
-            
+
             setTimeout(() => {
                 copyButton.style.backgroundColor = initialBackgroundColor;
                 copyButton.textContent = initialTextContent;
@@ -894,10 +925,10 @@ function copyAsDefanged() {
             const copyButton = document.querySelector('.btn[onclick="copyAsDefanged()"]');
             const initialBackgroundColor = copyButton.style.backgroundColor;
             const initialTextContent = copyButton.textContent;
-            
+
             copyButton.style.backgroundColor = 'green';
             copyButton.textContent = 'Defanged and Copied!';
-            
+
             setTimeout(() => {
                 copyButton.style.backgroundColor = initialBackgroundColor;
                 copyButton.textContent = initialTextContent;
@@ -1044,6 +1075,9 @@ function copyAsDefanged() {
                     {% endif %}
                     {% if "webscout" in analysis_results.selected_engines %}
                     <th>WebScout</th>
+                    {% endif %}
+                    {% if "criminalip" in analysis_results.selected_engines %}
+                    <th>Criminal IP</th>
                     {% endif %}
                 </tr>
             </thead>
@@ -1572,6 +1606,9 @@ function copyAsDefanged() {
                         {% endif %}
                     </td>
                     {% endif %}
+                    {% if "criminalip" in analysis_results.selected_engines %}
+                    {% include "engine_layouts/criminalip_table.html" %}
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
@@ -1725,9 +1762,9 @@ function copyAsDefanged() {
                 {% if analysis_results.results[0].webscout %}
                 <div class="card
                 {% if 'vpn' in analysis_results.results[0].webscout.network_provider_services | map('lower') or 'proxy' in analysis_results.results[0].webscout.network_provider_services | map('lower') or analysis_results.results[0].webscout.is_vpn or analysis_results.results[0].webscout.is_proxy or analysis_results.results[0].webscout.is_tor %}
-                    warning-row" style="background-color: orange;" 
+                    warning-row" style="background-color: orange;"
                 {% elif analysis_results.results[0].webscout.risk_score > 50 %}
-                    high-risk" style="background-color: red;" 
+                    high-risk" style="background-color: red;"
                 {% else %}
                     "
                 {% endif %}
@@ -2112,6 +2149,9 @@ function copyAsDefanged() {
                     <p>Not applicable</p>
                     {% endif %}
                 </div>
+                {% endif %}
+                {% if analysis_results.results[0].criminalip %}
+                {% include "engine_layouts/criminalip_card.html" %}
                 {% endif %}
 
             </div>
