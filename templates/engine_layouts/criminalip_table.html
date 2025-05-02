@@ -1,0 +1,27 @@
+<td>
+{% if result.criminalip %}
+    <strong>Abuse Record Count: </strong>{{ result.criminalip.abuse_record_count }}<br>
+
+{% if score in result.criminalip %}
+    <strong>Score: </strong>Inbound: {{ result.criminalip.score['inbound'] }}, Outbound: {{result.criminalip.score['outbound'] }}<br>
+{% endif %}
+
+{% if result.criminalip.current_opened_port and result.criminalip.current_opened_port.count > 0 %}
+    <strong>Current Open Ports:</strong> {{ result.criminalip.current_opened_port.data | map(attribute='port') | join(', ') }}</p>
+{% endif %}
+
+{% if result.criminalip.issues %}
+    <strong>Issues:</strong><br>
+    {% for issue_name, value in result.criminalip.issues | dictsort %}
+        {{ issue_name }}: {{ value }}<br>
+    {% endfor %}
+{% endif %}
+
+{% if result.criminalip.represenative_domain %}
+    <strong>Representative Domain: </strong>{{ result.criminalip.represenative_domain }}<br>
+{% endif %}
+
+{% else %}
+    Not applicable
+{% endif %}
+</td>
