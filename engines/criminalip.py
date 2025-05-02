@@ -1,8 +1,10 @@
+import json
 import logging
-from dataclasses import asdict, dataclass, field
 
 import requests
-from dacite import from_dict
+from pydantic import BaseModel, Field
+
+# from dataclasses import asdict, dataclass, field
 from requests.exceptions import HTTPError
 
 from utils.config import Secrets, get_config
@@ -10,8 +12,7 @@ from utils.config import Secrets, get_config
 logger = logging.getLogger(__name__)
 
 
-@dataclass(slots=True)
-class OpenPort:
+class OpenPort(BaseModel):
     port: int | None = None
     is_vulnerability: bool = False
     product_name: str | None = None
@@ -34,8 +35,7 @@ class OpenPort:
         return message
 
 
-@dataclass(slots=True)
-class IDSAlert:
+class IDSAlert(BaseModel):
     classification: str | None = None
     confirmed_time: str | None = None
     message: str | None = None
@@ -54,20 +54,28 @@ class IDSAlert:
         return message
 
 
-@dataclass(slots=True)
-class CurrentOpenedPorts:
+class CurrentOpenedPorts(BaseModel):
     count: int
-    data: list[OpenPort] = field(default_factory=list)
+    data: list[OpenPort] = Field(default_factory=list)
+
+    def __str__(self) -> str:
+        """Return a string representation of the current opened ports."""
+
+        message: str = ()
+        message: str = f"Count: {self.count}\n"
+
+        for port in self.data:
+            message += str(port) + "\n"
+
+        return message
 
 
-@dataclass(slots=True)
-class IDSAlerts:
+class IDSAlerts(BaseModel):
     count: int
-    data: list[IDSAlert] = field(default_factory=list)
+    data: list[IDSAlert] = Field(default_factory=list)
 
 
-@dataclass(slots=True)
-class Issues:
+class Issues(BaseModel):
     is_vpn: bool = False
     is_proxy: bool = False
     is_cloud: bool = False
@@ -96,8 +104,7 @@ class Issues:
         return message
 
 
-@dataclass(slots=True)
-class WhoisRecord:
+class WhoisRecord(BaseModel):
     as_name: str | None = None
     as_no: int | None = None
     city: str | None = None
@@ -126,26 +133,39 @@ class WhoisRecord:
         return message
 
 
-@dataclass(slots=True)
-class Whois:
+class Whois(BaseModel):
     count: int = 0
-    data: list[WhoisRecord] = field(default_factory=list)
+    data: list[WhoisRecord] = Field(default_factory=list)
 
 
-@dataclass(slots=True)
-class SuspiciousInfoReport:
+class SuspiciousInfoReport(BaseModel):
     abuse_record_count: int = 0
     current_opened_port: CurrentOpenedPorts | None = None
     ids: IDSAlerts | None = None
-    ip: str | None = None
+    ip: str = ""
     issues: Issues | None = None
-    representative_domain: str | None = None
-    score: dict[str, str] = field(default_factory=dict)
+    representative_domain: str = ""
+    score: dict[str, str] = Field(default_factory=dict)
     status: int | None = None
     whois: Whois | None = None
 
+    def __str__(self) -> str:
+        message: str = (
+            f"Abuse Record Count: {self.abuse_record_count}\n"
+            f"Current Opened Port: {self.current_opened_port}\n"
+            f"IDS: {self.ids}\n"
+            f"IP: {self.ip}\n"
+            f"Issues: {self.issues}\n"
+            f"Representative Domain: {self.representative_domain}\n"
+            f"Score: {self.score}\n"
+            f"Status: {self.status}\n"
+            f"Whois: {self.whois}"
+        )
 
-base_url: str = "https://api.criminalip.io/"
+        return message
+
+
+base_url: str = "https://api.criminalip.io"
 
 
 def retrieve_api_key() -> str:
@@ -178,15 +198,22 @@ def get_summary_ip_report(api_key: str, observable: str) -> dict | None:
     return response.json()
 
 
-def get_suspicious_info_report(api_key: str, observable: str) -> dict | None:
+def get_suspicious_info_report(
+    api_key: str,
+    observable: str,
+    proxies: dict[str, str] | None = None,
+    ssl_verify: bool = True,
+) -> SuspiciousInfoReport | None:
     """Retrieve 'Suspicious Info' Report."""
 
-    url: str = "/v2/feature/ip/suspicious-info"
+    url: str = f"{base_url}/v2/feature/ip/suspicious-info"
     params: dict = {"ip": observable}
     headers: dict = {"x-api-key": f"{api_key}"}
 
     try:
-        response = requests.get(url, params=params, headers=headers)
+        response = requests.get(
+            url, params=params, headers=headers, proxies=proxies, verify=ssl_verify
+        )
         response.raise_for_status()
     except HTTPError as e:
         logger.error(
@@ -195,16 +222,48 @@ def get_suspicious_info_report(api_key: str, observable: str) -> dict | None:
         )
         return None
 
+    """
     suspicious_info_report: SuspiciousInfoReport = from_dict(
         data_class=SuspiciousInfoReport, data=response.json()
     )
+    """
+    suspcious_info_report: SuspiciousInfoReport = SuspiciousInfoReport(
+        **response.json()
+    )
 
-    return asdict(suspicious_info_report)
+    return suspcious_info_report
+
+
+def run_criminal_ip_analysis(
+    observable: str, proxies: dict[str, str], ssl_verify: bool
+) -> dict | None:
+    """Perform Criminal IP analysis."""
+
+    api_key: str = retrieve_api_key()
+
+    if not api_key:
+        logger.error("API key for CriminalIP engine is not configured.")
+        return None
+
+    if not observable:
+        logger.error("No observable provided to CriminalIP engine.")
+        return None
+
+    report: SuspiciousInfoReport | None = get_suspicious_info_report(
+        api_key, observable, proxies, ssl_verify
+    )
+
+    if not report:
+        logger.error("Failed to retrieve the report.")
+        return None
+
+    return json.loads(report.model_dump_json())
 
 
 if __name__ == "__main__":
     # Example usage
     api_key: str = retrieve_api_key()
+    ssl_verify: bool = False
 
     if not api_key:
         logger.error("API key is not configured.")
@@ -216,7 +275,9 @@ if __name__ == "__main__":
         logger.error("No observable provided.")
         exit(1)
 
-    report: dict | None = get_suspicious_info_report(api_key, observable)
+    report: SuspiciousInfoReport | None = get_suspicious_info_report(
+        api_key, observable, ssl_verify=ssl_verify
+    )
 
     if report:
         print("Suspicious Info Report:")
