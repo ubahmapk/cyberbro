@@ -957,7 +957,7 @@ function copyAsDefanged() {
         <p>Analysis start time: {{ analysis_results.start_time_string }}</p>
         <p>Analysis duration: {{ analysis_results.analysis_duration_string }}</p>
 
-        {% if analysis_results.results | length > 1 %}
+        {% if display_mode == "table" or analysis_results.results | length > 1 %}
 
         <div class="filters-container">
             <input type="text" id="searchInput" class="filter-input" onkeyup="filterTable()" placeholder="Search...">
