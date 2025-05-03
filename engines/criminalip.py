@@ -1,10 +1,9 @@
 import json
 import logging
+from typing import Self
 
 import requests
-from pydantic import BaseModel, Field
-
-# from dataclasses import asdict, dataclass, field
+from pydantic import BaseModel, Field, ValidationError, model_validator
 from requests.exceptions import HTTPError
 
 from utils.config import Secrets, get_config
