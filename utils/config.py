@@ -33,6 +33,7 @@ class Secrets:
     ssl_verify: bool = True
     virustotal: str = ""
     webscout: str = ""
+    alienvault: str = ""
 
     # Method to iterate through the dataclass fields
     def __iter__(self):
