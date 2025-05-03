@@ -167,20 +167,15 @@ class SuspiciousInfoReport(BaseModel):
     score: Score | None = None
     whois: Whois | None = None
 
-    def __str__(self) -> str:
-        message: str = (
-            f"Abuse Record Count: {self.abuse_record_count}\n"
-            f"Current Opened Port: {self.current_opened_port}\n"
-            f"IDS: {self.ids}\n"
-            f"IP: {self.ip}\n"
-            f"Issues: {self.issues}\n"
-            f"Representative Domain: {self.representative_domain}\n"
-            f"Score: {self.score}\n"
-            f"Status: {self.status}\n"
-            f"Whois: {self.whois}"
-        )
-
-        return message
+    @model_validator(mode="after")
+    def _validate_report(self) -> Self:
+        # If the status is anything other than 2xx, raise an error
+        if not 199 < self.status < 300:
+            raise ValueError(
+                f"Unable to generate Suspicious Info Report for IP: {self.ip}. Status Code: {self.status}"
+                f"{self.model_dump_json()}"
+            )
+        return self
 
 
 base_url: str = "https://api.criminalip.io"
