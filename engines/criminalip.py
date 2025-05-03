@@ -148,14 +148,16 @@ def get_suspicious_info_report(
         )
         return None
 
-    """
-    suspicious_info_report: SuspiciousInfoReport = from_dict(
-        data_class=SuspiciousInfoReport, data=response.json()
-    )
-    """
-    suspcious_info_report: SuspiciousInfoReport = SuspiciousInfoReport(
-        **response.json()
-    )
+    try:
+        suspcious_info_report: SuspiciousInfoReport = SuspiciousInfoReport(
+            **response.json()
+        )
+    except ValidationError as e:
+        logger.error(
+            f"Error validating Criminal IP Suspicious Info report for {observable}: {e}",
+            exc_info=True,
+        )
+        return None
 
     return suspcious_info_report
 
