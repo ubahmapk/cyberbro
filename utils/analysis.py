@@ -25,6 +25,7 @@ from engines import (
     urlscan,
     virustotal,
     webscout,
+    alienvault
 )
 from models.analysis_result import AnalysisResult
 from utils.config import Secrets, get_config
@@ -251,6 +252,23 @@ def perform_engine_queries(observable, selected_engines, result):
             secrets.virustotal,
             PROXIES,
             SSL_VERIFY,
+        )
+
+    if "alienvault" in selected_engines and observable["type"] in [
+        "MD5",
+        "SHA1",
+        "SHA256",
+        "URL",
+        "FQDN",
+        "IPv4",
+        "IPv6",
+    ]:
+        result["alienvault"] = alienvault.query_alienvault(
+            observable["value"],
+            observable["type"],
+            PROXIES,
+            SSL_VERIFY,
+            secrets.alienvault
         )
 
     if "google_safe_browsing" in selected_engines and observable["type"] in [

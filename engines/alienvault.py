@@ -1,7 +1,6 @@
 import logging
 import requests
-import json
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
@@ -24,13 +23,15 @@ def query_alienvault(
         api_key (str): OTX AlienVault API key (required).
 
     Returns:
-        dict: A dictionary with "count" (int), "pulses" (list), and "link" (str). For example:
+        dict: A dictionary with "count" (int), "pulses" (list), "malware_families" (list), "adversary" (list), and "link" (str). For example:
               {
                   "count": 2,
                   "pulses": [
-                      {"title": "Malware Campaign", "url": "https://example.com/report", "malware_families": ["Emotet", "TrickBot"]},
-                      {"title": "Phishing Alert", "url": None, "malware_families": ["Dridex"]}
+                      {"title": "Malware Campaign", "url": "https://example.com/report"},
+                      {"title": "Phishing Alert", "url": None}
                   ],
+                  "malware_families": ["Emotet"],
+                  "adversary": ["Scattered Spider"],
                   "link": "https://otx.alienvault.com/browse/global/pulses?q=<observable>"
               }
         None: If an error occurs or API key is missing.
@@ -79,9 +80,12 @@ def query_alienvault(
         response.raise_for_status()
 
         result = response.json()
+        malware_families = result.get("pulse_info", {}).get("related", {}).get("alienvault", {}).get("malware_families", [])
+        adversary = result.get("pulse_info", {}).get("related", {}).get("alienvault", {}).get("adversary", [])
         pulses = result.get("pulse_info", {}).get("pulses", [])
 
         pulse_data = []
+        seen_urls = set()  # Track unique pulse URLs
         if isinstance(pulses, list):
             # Sort pulses by 'created' timestamp in descending order
             sorted_pulses = sorted(
@@ -90,7 +94,7 @@ def query_alienvault(
                 reverse=True
             )
 
-            for pulse in sorted_pulses[:5]:  # Limit to 5 most recent pulses
+            for pulse in sorted_pulses:
                 pulse_name = pulse.get("name", "Unknown")
                 if pulse_name == "Unknown":
                     continue
@@ -99,18 +103,20 @@ def query_alienvault(
                 references = pulse.get("references", [])
                 pulse_url = references[0] if references else None
 
-                # Get malware families using display_name
-                malware_families = []
-                for malware in pulse.get("malware_families", []):
-                    display_name = malware.get("display_name")
-                    if display_name:
-                        malware_families.append(display_name)
+                # Skip if this pulse URL has already been seen (including None)
+                if pulse_url in seen_urls:
+                    continue
 
+                # Add to seen URLs and include in output
+                seen_urls.add(pulse_url)
                 pulse_data.append({
                     "title": pulse_name,
-                    "url": pulse_url,
-                    "malware_families": malware_families
+                    "url": pulse_url
                 })
+
+                # Stop after collecting 5 unique pulses
+                if len(pulse_data) >= 5:
+                    break
 
             count = len(pulses)
         else:
@@ -120,6 +126,8 @@ def query_alienvault(
         return {
             "count": count,
             "pulses": pulse_data,
+            "malware_families": malware_families,
+            "adversary": adversary,
             "link": link
         }
 

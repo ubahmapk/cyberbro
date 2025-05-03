@@ -126,7 +126,8 @@ cp secrets-sample.json secrets.json
     "opencti_url": "https://demo.opencti.io",
     "crowdstrike_client_id": "client_id_here",
     "crowdstrike_client_secret": "client_secret_here",
-    "webscout": "token_here"
+    "webscout": "token_here",
+    "alienvault": "token_here"
 }
 
 ```
@@ -172,7 +173,7 @@ pip install -r requirements.txt
 * Run the app with `gunicorn` (clean mode).
 
 ```bash
-gunicorn -w 4 -t 4 -b 0.0.0.0:5000 app:app
+gunicorn -b 0.0.0.0:5000 app:app
 ```
 
 * Run the app with in development mode.
@@ -305,6 +306,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 * [Hudson Rock](https://hudsonrock.com/)
 * [CrowdStrike](https://www.crowdstrike.com/)
 * [WebScout](https://webscout.io/)
+* [Alienvault](https://otx.alienvault.com/)
 
 > [!NOTE]
 > Any questions? Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki) or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new) \
