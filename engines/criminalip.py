@@ -191,26 +191,6 @@ def retrieve_api_key() -> str:
     return api_key
 
 
-def get_summary_ip_report(api_key: str, observable: str) -> dict | None:
-    """Retrieve 'Summary IP' report."""
-
-    url: str = "/v1/asset/ip/report/summary"
-    params: dict = {"ip": observable}
-    headers: dict = {"x-api-key": f"{api_key}"}
-
-    try:
-        response = requests.get(url, params=params, headers=headers)
-        response.raise_for_status()
-    except HTTPError as e:
-        logger.error(
-            f"Error retrieving Criminal IP Summary report for {observable}: {e}",
-            exc_info=True,
-        )
-        return None
-
-    return response.json()
-
-
 def get_suspicious_info_report(
     api_key: str,
     observable: str,
