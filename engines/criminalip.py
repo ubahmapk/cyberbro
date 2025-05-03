@@ -17,6 +17,7 @@ Criminal IP API integration for retrieving suspicious information about IP addre
 API info for Suspicious Info Report aavailable at https://www.criminalip.io/developer/api/get-ip-suspicious-info
 """
 
+
 class OpenPort(BaseModel):
     port: int | None = None
     is_vulnerability: bool = False
