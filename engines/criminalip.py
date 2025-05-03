@@ -11,6 +11,11 @@ from utils.config import Secrets, get_config
 
 logger = logging.getLogger(__name__)
 
+"""
+Criminal IP API integration for retrieving suspicious information about IP addresses.
+
+API info for Suspicious Info Report aavailable at https://www.criminalip.io/developer/api/get-ip-suspicious-info
+"""
 
 class OpenPort(BaseModel):
     port: int | None = None
