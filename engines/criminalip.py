@@ -26,19 +26,6 @@ class OpenPort(BaseModel):
     socket_type: str | None = None
     confirmed_time: str | None = None
 
-    def __str__(self):
-        message: str = (
-            f"Port {self.port}\n"
-            f"Vulnerability: {self.is_vulnerability}\n"
-            f"Product Name: {self.product_name}\n"
-            f"Product Version: {self.product_version}\n"
-            f"Protocol: {self.protocol}\n"
-            f"Socket Type: {self.socket_type}\n"
-            f"Confirmed Time: {self.confirmed_time}"
-        )
-
-        return message
-
 
 class IDSAlert(BaseModel):
     classification: str | None = None
@@ -47,32 +34,10 @@ class IDSAlert(BaseModel):
     source_system: str | None = None
     url: str | None = None
 
-    def __str__(self) -> str:
-        message: str = (
-            f"Classification: {self.classification}\n"
-            f"Confirmed Time: {self.confirmed_time}\n"
-            f"Message: {self.message}\n"
-            f"Source System: {self.source_system}\n"
-            f"URL: {self.url}"
-        )
-
-        return message
-
 
 class CurrentOpenedPorts(BaseModel):
     count: int
     data: list[OpenPort] = Field(default_factory=list)
-
-    def __str__(self) -> str:
-        """Return a string representation of the current opened ports."""
-
-        message: str = ()
-        message: str = f"Count: {self.count}\n"
-
-        for port in self.data:
-            message += str(port) + "\n"
-
-        return message
 
 
 class IDSAlerts(BaseModel):
@@ -81,32 +46,16 @@ class IDSAlerts(BaseModel):
 
 
 class Issues(BaseModel):
-    is_vpn: bool = False
-    is_proxy: bool = False
+    is_anonymous_vpn: bool = False
     is_cloud: bool = False
-    is_tor: bool = False
+    is_darkweb: bool = False
     is_hosting: bool = False
     is_mobile: bool = False
-    is_darkweb: bool = False
+    is_proxy: bool = False
     is_scanner: bool = False
     is_snort: bool = False
-    is_anonymous_vpn: bool = False
-
-    def __str__(self) -> str:
-        message: str = (
-            f"VPN: {self.is_vpn}\n"
-            f"Proxy: {self.is_proxy}\n"
-            f"Cloud: {self.is_cloud}\n"
-            f"Tor: {self.is_tor}\n"
-            f"Hosting: {self.is_hosting}\n"
-            f"Mobile: {self.is_mobile}\n"
-            f"DarkWeb: {self.is_darkweb}\n"
-            f"Scanner: {self.is_scanner}\n"
-            f"Snort: {self.is_snort}\n"
-            f"Anonymous VPN: {self.is_anonymous_vpn}"
-        )
-
-        return message
+    is_tor: bool = False
+    is_vpn: bool = False
 
 
 class WhoisRecord(BaseModel):
@@ -120,22 +69,6 @@ class WhoisRecord(BaseModel):
     longitude: float | None = None
     org_country_code: str | None = None
     confirmed_time: str | None = None
-
-    def __str__(self) -> str:
-        message: str = (
-            f"AS Name: {self.as_name}\n"
-            f"AS Number: {self.as_no}\n"
-            f"City: {self.city}\n"
-            f"Region: {self.region}\n"
-            f"Organization Name: {self.org_name}\n"
-            f"Postal Code: {self.postal_code}\n"
-            f"Latitude: {self.latitude}\n"
-            f"Longitude: {self.longitude}\n"
-            f"Organization Country Code: {self.org_country_code}\n"
-            f"Confirmed Time: {self.confirmed_time}"
-        )
-
-        return message
 
 
 class Whois(BaseModel):
