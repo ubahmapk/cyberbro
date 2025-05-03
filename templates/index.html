@@ -798,26 +798,26 @@ function formatResults(data) {
 
         if (result.criminalip) {
             plainText += `Criminal IP:\n`;
-            if (result.criminalip.represenative_domain) plainText += `  - Representative Domain: ${result.criminalip.represenative_domain}\n`;
-            plainText += `  - Score:\n`;
-            plainText += `    - Inbound: ${result.criminalip.score.inbound}\n`;
-            plainText += `    - Outbound: ${result.criminalip.score.outbound}\n`;
             plainText += `  - Abuse Record Count: ${result.criminalip.abuse_record_count}\n`;
-            plainText += `  - Issues:\n`;
-            result.criminalip.issues.forEach(issue => {
-                plainText += `    - ${issue}\n`;
-            });
-            plainText += `  - IDs:\n`;
-            result.criminalip.ids.forEach(id => {
-                plainText += `    - ${id}\n`;
-            });
-            if (result.criminalip.current_open_ports.count > 0) {
+            if (result.criminalip.score) {
+                plainText += `  - Score:\n`;
+                plainText += `    - Inbound: ${result.criminalip.score.inbound}\n`;
+                plainText += `    - Outbound: ${result.criminalip.score.outbound}\n`;
+            }
+            if (result.criminalip.current_open_port && result.criminalip.current_open_port.count > 0) {
                 plainText += `  - Current Open Ports:\n`;
-                result.criminalip.current_open_ports.forEach(port => {
+                result.criminalip.current_open_port.forEach(port => {
                     plainText += `    - ${port}\n`;
                 });
             }
-            if (result.criminalip.asn) plainText += `  - ASN: ${result.criminalip.asn} ${result.criminalip.as_org}\n`;
+            if (result.criminalip.issues) {
+                for (const [issue_name, value] of Object.entries(result.criminalip.issues)) {
+                    plainText += `    - ${issue_name}: ${value}\n`;
+                }
+            }
+            if (result.criminalip.represenative_domain) {
+                plainText += `  - Representative Domain: ${result.criminalip.represenative_domain}\n`;
+            }
         }
 
         if (result.hudsonrock) {
