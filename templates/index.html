@@ -1621,7 +1621,11 @@ function copyAsDefanged() {
                     </td>
                     {% endif %}
                     {% if "criminalip" in analysis_results.selected_engines %}
+                    <td>
                     {% include "engine_layouts/criminalip_table.html" %}
+                    {% else %}
+                    Not applicable
+                    </td>
                     {% endif %}
                 </tr>
                 {% endfor %}
