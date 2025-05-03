@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 """
 Criminal IP API integration for retrieving suspicious information about IP addresses.
 
-API info for Suspicious Info Report aavailable at https://www.criminalip.io/developer/api/get-ip-suspicious-info
+API info for Suspicious Info Report aavailable at https://www.criminalip.io/developer/api/get-v2-ip-suspicious-info
 """
 
 
