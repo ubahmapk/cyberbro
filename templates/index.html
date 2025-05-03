@@ -1647,7 +1647,7 @@ function copyAsDefanged() {
                 <div class="card
                 {% if analysis_results.results[0].virustotal and (analysis_results.results[0].virustotal.total_malicious > 10 or analysis_results.results[0].virustotal.community_score < -10) %}
                  high-detection" style="background-color: red;" {% elif analysis_results.results[0].virustotal and
-                    analysis_results.results[0].virustotal.community_score> 100 %}
+                    analysis_results.results[0].virustotal.community_score > 100 %}
                     clean-detection" style="background-color: green;"
                     {% else %}
                     "
