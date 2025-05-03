@@ -1,5 +1,6 @@
 import json
 import logging
+from enum import StrEnum
 from typing import Self
 
 import requests
