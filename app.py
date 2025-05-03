@@ -231,10 +231,16 @@ def analyze():
 @app.route("/results/<analysis_id>", methods=["GET"])
 def show_results(analysis_id):
     """Show the results of the analysis."""
+
+    # If URL includes "?display=table", force a table view of results
+    display: str = request.args.get("display", "default")
     analysis_results = db.session.get(AnalysisResult, analysis_id)
     if analysis_results:
         return render_template(
-            "index.html", analysis_results=analysis_results, API_PREFIX=API_PREFIX
+            "index.html",
+            analysis_results=analysis_results,
+            API_PREFIX=API_PREFIX,
+            display_mode=display,
         )
     return render_template("404.html"), 404
 
