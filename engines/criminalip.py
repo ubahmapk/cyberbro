@@ -143,15 +143,28 @@ class Whois(BaseModel):
     data: list[WhoisRecord] = Field(default_factory=list)
 
 
+class ScoreStatus(StrEnum):
+    SAFE = "Safe"
+    LOW = "Low"
+    MODERATE = "Moderate"
+    DANGEROUS = "Dangerous"
+    CRITICAL = "Critical"
+
+
+class Score(BaseModel):
+    inbound: ScoreStatus | None = None
+    outbound: ScoreStatus | None = None
+
+
 class SuspiciousInfoReport(BaseModel):
+    status: int
     abuse_record_count: int = 0
     current_opened_port: CurrentOpenedPorts | None = None
     ids: IDSAlerts | None = None
     ip: str = ""
     issues: Issues | None = None
     representative_domain: str = ""
-    score: dict[str, str] = Field(default_factory=dict)
-    status: int | None = None
+    score: Score | None = None
     whois: Whois | None = None
 
     def __str__(self) -> str:
