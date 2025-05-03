@@ -163,7 +163,7 @@ def get_suspicious_info_report(
 
 
 def run_criminal_ip_analysis(
-    observable: str, proxies: dict[str, str], ssl_verify: bool
+    observable: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
 ) -> dict | None:
     """Perform Criminal IP analysis."""
 
