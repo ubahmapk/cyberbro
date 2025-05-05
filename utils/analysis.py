@@ -5,6 +5,7 @@ import time
 from engines import (
     abuseipdb,
     abusix,
+    criminalip,
     crowdstrike,
     extension,
     github,
@@ -272,6 +273,16 @@ def perform_engine_queries(observable, selected_engines, result):
     if "phishtank" in selected_engines and observable["type"] in ["FQDN", "URL"]:
         result["phishtank"] = phishtank.query_phishtank(
             observable["value"], observable["type"], PROXIES, SSL_VERIFY
+        )
+
+    if "criminalip" in selected_engines and observable["type"] in [
+        "IPv4",
+        "IPv6",
+    ]:
+        result["criminalip"] = criminalip.run_criminal_ip_analysis(
+            observable["value"],
+            PROXIES,
+            SSL_VERIFY,
         )
 
     if "hudsonrock" in selected_engines and observable["type"] in [
