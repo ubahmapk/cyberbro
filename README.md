@@ -114,6 +114,7 @@ cp secrets-sample.json secrets.json
 ```json
 {
     "abuseipdb": "token_here",
+    "alienvault": "token_here",
     "criminalip_api_key": "token_here",
     "crowdstrike_client_id": "client_id_here",
     "crowdstrike_client_secret": "client_secret_here",
@@ -173,7 +174,7 @@ pip install -r requirements.txt
 * Run the app with `gunicorn` (clean mode).
 
 ```bash
-gunicorn -w 4 -t 4 -b 0.0.0.0:5000 app:app
+gunicorn -b 0.0.0.0:5000 app:app
 ```
 
 * Run the app with in development mode.
@@ -307,6 +308,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 * [URLscan](https://urlscan.io/)
 * [VirusTotal](https://developers.virustotal.com/v3.0/reference)
 * [WebScout](https://webscout.io/)
+* [Alienvault](https://otx.alienvault.com/)
 
 > [!NOTE]
 > Any questions? Check the [wiki](https://github.com/stanfrbd/cyberbro/wiki) or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new) \
