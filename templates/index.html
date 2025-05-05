@@ -469,6 +469,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                         const allEngines = [
                             { name: "abuseipdb", label: "AbuseIPDB", supports: "risk", checked: false, title: "Checks AbuseIPDB for IP, reversed obtained IP for a given domain / URL, free API key required" },
                             { name: "abusix", label: "Abusix", supports: "abuse free_no_key", checked: false, title: "Checks abuse contact with Abusix only for IP, reversed obtained IP for a given domain / URL, free, no API key" },
+                            { name: "alienvault", label: "Alienvault", supports: "hash ip domain url", checked: false, title: "Checks Alienvault for IP, domain, URL, hash, free API key required" },
                             { name: "criminalip", label: "Criminal IP", supports: "ip", checked: false, title: "Criminal IP is an OSINT search engine specialized in attack surface assessment and threat hunting, free, with paid upgrades available"},
                             { name: "crowdstrike", label: "CrowdStrike", supports: "hash ip domain url", checked: false, title: "Checks CrowdStrike for IP, domain, URL, hash, paid API key required" },
                             { name: "github", label: "Github", supports: "domain url ip hash extension free_no_key scraping", checked: false, title: "Get Github grep.app API search results for all types of observable, free, no API key" },
@@ -477,7 +478,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             { name: "ioc_one_html", label: "Ioc.One (HTML)", supports: "domain url ip hash extension scraping", checked: false, title: "Scraps (can be long) Ioc.One HTML search results for all types of observable, free, no API key" },
                             { name: "ioc_one_pdf", label: "Ioc.One (PDF)", supports: "domain url ip hash extension scraping", checked: false, title: "Scraps (can be long) Ioc.One PDF search results for all types of observable, free, no API key" },
                             { name: "hudsonrock", label: "Hudson Rock", supports: "domain url email free_no_key", checked: false, title: "Searches Hudson Rock leak / infostealer results for domains, URL, Email, free, no API key" },
-                             { name: "ipinfo", label: "IPinfo", supports: "ip", checked: false, title: "Checks IPinfo for IP, reversed obtained IP for a given domain / URL, free API key required" },
+                            { name: "ipinfo", label: "IPinfo", supports: "ip", checked: false, title: "Checks IPinfo for IP, reversed obtained IP for a given domain / URL, free API key required" },
                             { name: "ipquery", label: "IPquery", supports: "default ip risk vpn proxy free_no_key", checked: true, title: "Checks IPquery for IP, reversed obtained IP for a given domain / URL, free, no API key" },
                             { name: "mde", label: "Microsoft Defender for Endpoint", supports: "hash ip domain url", checked: false, title: "Checks Microsoft Defender for Endpoint, paid API info on Azure required" },
                             { name: "opencti", label: "OpenCTI", supports: "domain url ip hash extension", checked: false, title: "Searches OpenCTI results for all types of observable, API key required" },
@@ -489,7 +490,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                             { name: "threatfox", label: "ThreatFox", supports: "ip domain url free_no_key", checked: false, title: "Checks ThreatFox by Abuse.ch for IP, domains, URL, free, no API key" },
                             { name: "urlscan", label: "URLscan", supports: "domain url ip hash free_no_key", checked: false, title: "Checks URLscan for for IP, domains, URL, hash, free, no API key" },
                             { name: "virustotal", label: "VirusTotal", supports: "hash risk ip domain url", checked: false, title: "Checks VirusTotal for IP, domain, URL, hash, free API key required" },
-                           { name: "webscout", label: "WebScout", supports: "ip vpn proxy risk", checked: false, title: "Checks WebScout for IP, reversed obtained IP for a given domain / URL, free or paid API key required" },
+                            { name: "webscout", label: "WebScout", supports: "ip vpn proxy risk", checked: false, title: "Checks WebScout for IP, reversed obtained IP for a given domain / URL, free or paid API key required" },
                         ];
 
                         const enginesToDisplay = GUI_ENABLED_ENGINES.length > 0 ? allEngines.filter(engine => GUI_ENABLED_ENGINES.includes(engine.name)) : allEngines;
@@ -820,6 +821,23 @@ function formatResults(data) {
             }
         }
 
+        if (result.alienvault) {
+            plainText += `Alienvault:\n`;
+            plainText += `  - Pulse Count: ${result.alienvault.count}\n`;
+            if (result.alienvault.count > 0) {
+            result.alienvault.pulses.forEach(alienvaultPulse => {
+                plainText += `  - ${alienvaultPulse.title}: ${alienvaultPulse.url}\n`;
+            });
+            }
+            if (result.alienvault.malware_families.length > 0) {
+                plainText += `  - Malware Families: ${result.alienvault.malware_families.join(', ')}\n`;
+            }
+            if (result.alienvault.adversary.length > 0) {
+                plainText += `  - Adversary: ${result.alienvault.adversary.join(', ')}\n`;
+            }
+
+        }
+
         if (result.hudsonrock) {
             plainText += `Hudson Rock:\n`;
 
@@ -1109,6 +1127,9 @@ function copyAsDefanged() {
                     {% endif %}
                     {% if "criminalip" in analysis_results.selected_engines %}
                     <th>Criminal IP</th>
+                    {% endif %}
+                    {% if "alienvault" in analysis_results.selected_engines %}
+                    <th>Alienvault</th>
                     {% endif %}
                 </tr>
             </thead>
@@ -1644,6 +1665,13 @@ function copyAsDefanged() {
                     Not applicable
                     </td>
                     {% endif %}
+                    {% if "alienvault" in analysis_results.selected_engines %}
+                    <td>
+                    {% include "engine_layouts/alienvault_table.html" %}
+                    {% else %}
+                    Not applicable
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
@@ -1968,27 +1996,6 @@ function copyAsDefanged() {
                 </div>
                 {% endif %}
 
-                {% if analysis_results.results[0].alienvault %}
-                <div class="card">
-                        {% if analysis_results.results[0].alienvault.count > 0 %}
-                        <h3>Alienvault</h3>
-                        <strong>Pulses Count: </strong>{{ analysis_results.results[0].alienvault.count }}<br>
-                        {% for search_result in analysis_results.results[0].alienvault.pulses %}
-                        <a href="{{ search_result.url }}" target="_blank" title="{{ search_result.title }}">{{ search_result.title }}</a><br>
-                        {% endfor %}
-                        {% if analysis_results.results[0].alienvault.malware_families %}
-                        <strong>Malware Families: </strong>{{ analysis_results.results[0].alienvault.malware_families | join(', ') }}<br>
-                        {% endif %}
-                        {% if analysis_results.results[0].alienvault.adversary %}
-                        <strong>Adversary: </strong>{{ analysis_results.results[0].alienvault.adversary | join(', ') }}<br>
-                        {% endif %}
-                        <strong>Link: </strong><a href="{{ analysis_results.results[0].alienvault.link }}" target="_blank">See on Alienvault</a><br>
-                        {% else %}
-                        <p>Not found</p>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-
                 {% if analysis_results.results[0].phishtank %}
                 <div class="card">
                     <h3>Phishtank</h3>
@@ -2208,6 +2215,9 @@ function copyAsDefanged() {
                 {% endif %}
                 {% if analysis_results.results[0].criminalip %}
                 {% include "engine_layouts/criminalip_card.html" %}
+                {% endif %}
+                {% if analysis_results.results[0].alienvault %}
+                {% include "engine_layouts/alienvault_card.html" %}
                 {% endif %}
 
             </div>

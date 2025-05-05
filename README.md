@@ -114,6 +114,7 @@ cp secrets-sample.json secrets.json
 ```json
 {
     "abuseipdb": "token_here",
+    "alienvault": "token_here",
     "criminalip_api_key": "token_here",
     "crowdstrike_client_id": "client_id_here",
     "crowdstrike_client_secret": "client_secret_here",
