@@ -1,17 +1,19 @@
 import logging
-import requests
-from typing import Optional, Dict, Any
+from typing import Any, Optional
 from urllib.parse import quote
 
+import requests
+
 logger = logging.getLogger(__name__)
+
 
 def query_alienvault(
     observable: str,
     observable_type: str,
-    proxies: Dict[str, str],
+    proxies: dict[str, str],
     ssl_verify: bool = True,
-    api_key: str = ""
-) -> Optional[Dict[str, Any]]:
+    api_key: str = "",
+) -> Optional[dict[str, Any]]:
     """
     Queries the OTX AlienVault API for information about a given observable (URL, IP, domain, hash).
 
@@ -59,7 +61,7 @@ def query_alienvault(
             "FQDN": f"/indicators/domain/{quote(observable)}/general",
             "SHA1": f"/indicators/file/{quote(observable)}/general",
             "MD5": f"/indicators/file/{quote(observable)}/general",
-            "SHA256": f"/indicators/file/{quote(observable)}/general"
+            "SHA256": f"/indicators/file/{quote(observable)}/general",
         }
 
         endpoint = endpoint_map.get(observable_type)
@@ -70,17 +72,13 @@ def query_alienvault(
         url = f"https://otx.alienvault.com/api/v1{endpoint}"
         headers = {"X-OTX-API-KEY": api_key}
 
-        response = requests.get(
-            url,
-            headers=headers,
-            proxies=proxies,
-            verify=ssl_verify,
-            timeout=5
-        )
+        response = requests.get(url, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
 
         result = response.json()
-        malware_families = result.get("pulse_info", {}).get("related", {}).get("alienvault", {}).get("malware_families", [])
+        malware_families = (
+            result.get("pulse_info", {}).get("related", {}).get("alienvault", {}).get("malware_families", [])
+        )
         adversary = result.get("pulse_info", {}).get("related", {}).get("alienvault", {}).get("adversary", [])
         pulses = result.get("pulse_info", {}).get("pulses", [])
 
@@ -88,11 +86,7 @@ def query_alienvault(
         seen_urls = set()  # Track unique pulse URLs
         if isinstance(pulses, list):
             # Sort pulses by 'created' timestamp in descending order
-            sorted_pulses = sorted(
-                pulses,
-                key=lambda x: x.get("created", ""),
-                reverse=True
-            )
+            sorted_pulses = sorted(pulses, key=lambda x: x.get("created", ""), reverse=True)
 
             for pulse in sorted_pulses:
                 pulse_name = pulse.get("name", "Unknown")
@@ -109,10 +103,7 @@ def query_alienvault(
 
                 # Add to seen URLs and include in output
                 seen_urls.add(pulse_url)
-                pulse_data.append({
-                    "title": pulse_name,
-                    "url": pulse_url
-                })
+                pulse_data.append({"title": pulse_name, "url": pulse_url})
 
                 # Stop after collecting 5 unique pulses
                 if len(pulse_data) >= 5:
@@ -128,7 +119,7 @@ def query_alienvault(
             "pulses": pulse_data,
             "malware_families": malware_families,
             "adversary": adversary,
-            "link": link
+            "link": link,
         }
 
     except Exception as e:
