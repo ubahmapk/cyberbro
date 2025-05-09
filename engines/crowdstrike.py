@@ -94,9 +94,9 @@ def query_crowdstrike(
             result = {"device_count": data.get("device_count", 0)}
 
         id_to_search = generate_ioc_id(observable, observable_type)
-        BODY = {"ids": [id_to_search]}
+        request_body = {"ids": [id_to_search]}
 
-        response = falcon.command("GetIntelIndicatorEntities", body=BODY)
+        response = falcon.command("GetIntelIndicatorEntities", body=request_body)
         logger.debug("GetIntelIndicatorEntities response: %s", response)
 
         if response["status_code"] != 200 or not response["body"]["resources"]:
