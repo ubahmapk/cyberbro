@@ -1,14 +1,14 @@
 import json
 import logging
 import os
-from dataclasses import asdict, dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel, Field
 
-@dataclass
-class Secrets:
+
+class Secrets(BaseModel):
     """Dataclass to hold the secrets for the application."""
 
     abuseipdb: str = ""
@@ -21,7 +21,7 @@ class Secrets:
     crowdstrike_falcon_base_url: str = "https://falcon.crowdstrike.com"
     google_safe_browsing: str = ""
     gui_cache_timeout: int = 1800
-    gui_enabled_engines: list[str] = field(default_factory=list)
+    gui_enabled_engines: list[str] = Field(default_factory=list)
     ipinfo: str = ""
     max_form_memory_size: int = 1_048_576
     mde_client_id: str = ""
@@ -36,59 +36,13 @@ class Secrets:
     webscout: str = ""
     alienvault: str = ""
 
-    # Method to iterate through the dataclass fields
     def __iter__(self):
-        """Iterate through the dataclass fields."""
+        """Iterate over the fields of the dataclass."""
 
-        yield from self.__dataclass_fields__
+        for key, value in self.__dict__.items():
+            yield key, value
 
-    def _get_field_type(self, field_name: str) -> type:
-        """Get the type of a field by its name."""
-
-        if field_name in self.__dataclass_fields__:
-            return self.__dataclass_fields__[field_name].type
-        raise KeyError(
-            f"Field '{field_name}' does not exist in {self.__class__.__name__}"
-        )
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        """Set the value of a field in the dataclass.
-
-        Validate the value against the field type and convert
-        str to bool,int, or list where needed.
-        """
-
-        field_type = self._get_field_type(name)
-
-        # Convert string to list if needed
-        if (
-            hasattr(field_type, "__origin__")
-            and field_type.__origin__ is list
-            and isinstance(value, str)
-            and "," in value
-        ):
-            value = [item.strip() for item in value.split(",")]
-
-        if field_type is int:
-            # Convert string to int
-            try:
-                value = int(value)
-            except ValueError:
-                logger.warning(
-                    f"Invalid value for {name}: {value}. Expected int. {name} not updated."
-                )
-                print(
-                    f"Invalid value for {name}: {value}. Expected int. {name} not updated."
-                )
-                return None
-
-        if field_type is bool and isinstance(value, str):
-            # Convert string to bool
-            value = value.lower() in ["true", "1", "yes", "on"]
-
-        super().__setattr__(name, value)
-
-    # Add this get method to allow for a smooth transition from dict to dataclass
+    # Add this get method to allow for a smooth transition from dict to Pydantic dataclass
     def get(self, value: str) -> Any:
         """Get the value of a secret by its key.
 
@@ -103,16 +57,14 @@ class Secrets:
     def update(self, updated_secrets: dict[str, Any]) -> None:
         """Update the secrets with new values.
 
-        Ensure that updated keys exists
-        and the values match the required type of the field.
+        Pydantic will ensure the values match the required type of the field
+        Any fields that do not exist will be ignored.
         """
 
         for key, value in updated_secrets.items():
-            if key not in self.__dataclass_fields__:
-                logger.warning(f"{key} is not a secret key.")
-                continue
-
             setattr(self, key, value)
+
+        return None
 
 
 logger = logging.getLogger(__name__)
@@ -172,7 +124,7 @@ def read_secrets_from_env(secrets: Secrets) -> Secrets:
     # Load secrets from environment variables - override the ones from secrets.json, if present
     env_configured: bool = False
 
-    for key in secrets:
+    for key, _ in secrets:
         env_value: str | None = os.getenv(key.upper())
         if env_value:
             env_configured: bool = True
@@ -195,7 +147,8 @@ def save_secrets_to_file(secrets: Secrets, secrets_file: Path) -> None:
     # Save the secrets to the secrets.json file
     try:
         with secrets_file.open("w") as f:
-            json.dump(asdict(secrets), f, indent=4)
+            # json.dump(asdict(secrets), f, indent=4)
+            json.dump(secrets.model_dump_json(), f, indent=4)
     except OSError as e:
         print(f"Unable to write secrets file: {e}")
         logger.error(f"Unable to write secrets file: {e}")
