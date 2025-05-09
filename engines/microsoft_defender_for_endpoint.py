@@ -1,5 +1,6 @@
 import logging
 import time
+from pathlib import Path
 from typing import Any, Optional
 
 import jwt
@@ -24,8 +25,8 @@ def check_token_validity(token: str) -> bool:
 
 def read_token() -> Optional[str]:
     try:
-        with open("mde_token.txt") as f:
-            token = f.read().strip()
+        token_path = Path("mde_token.txt")
+        token = token_path.read_text().strip()
         if check_token_validity(token):
             return token
         logger.warning("Invalid JWT token found in mde_token.txt")
@@ -59,8 +60,8 @@ def get_token(
 
     try:
         aad_token = json_response["access_token"]
-        with open("mde_token.txt", "w") as f:
-            f.write(aad_token)
+        token_path = Path("mde_token.txt")
+        token_path.write_text(aad_token)
         return aad_token
     except KeyError:
         logger.error("Unable to retrieve token from JSON response: %s", json_response)

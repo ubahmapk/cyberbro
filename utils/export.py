@@ -1,6 +1,6 @@
-import os
 import threading
 import time
+from pathlib import Path
 
 import pandas as pd
 from flask import send_file
@@ -198,7 +198,8 @@ def export_to_csv(data, timestamp):
     Exports the given data to a CSV file and sends it as an attachment.
 
     Args:
-        data (list or dict): The data to be exported to CSV. It should be in a format that can be converted to a pandas DataFrame.
+        data (list or dict): The data to be exported to CSV.
+        It should be in a format that can be converted to a pandas DataFrame.
         timestamp (str): A timestamp string to be used in the CSV file name.
 
     Returns:
@@ -209,9 +210,9 @@ def export_to_csv(data, timestamp):
     df = pd.DataFrame(data)
     csv_path = f"{timestamp}_analysis_result.csv"
     df.to_csv(csv_path, index=False, sep=";")
-    response = send_file(csv_path, as_attachment=True)
-    threading.Thread(target=lambda path: (time.sleep(10), os.remove(path)), args=(csv_path,)).start()
-    return response
+    threading.Thread(target=lambda path: (time.sleep(10), Path(path).unlink()), args=(csv_path,)).start()
+    threading.Thread(target=lambda path: (time.sleep(10), Path(path).unlink()), args=(csv_path,)).start()
+    return send_file(csv_path, as_attachment=True)
 
 
 def export_to_excel(data, timestamp):
@@ -251,10 +252,10 @@ def export_to_excel(data, timestamp):
                 try:
                     if len(str(cell.value)) > max_length:
                         max_length = len(str(cell.value))
-                except:
+                except Exception:
                     pass
             adjusted_width = max_length + 2
             worksheet.column_dimensions[column].width = adjusted_width
     response = send_file(excel_path, as_attachment=True)
-    threading.Thread(target=lambda path: (time.sleep(10), os.remove(path)), args=(excel_path,)).start()
+    threading.Thread(target=lambda path: (time.sleep(10), Path(path).unlink()), args=(excel_path,)).start()
     return response

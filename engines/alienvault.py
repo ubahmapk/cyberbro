@@ -19,13 +19,15 @@ def query_alienvault(
 
     Args:
         observable (str): The observable to search for (e.g., URL, IP address, domain, hash).
-        observable_type (str): The type of the observable (e.g., "URL", "IPv4", "IPv6", "FQDN", "SHA256", "SHA1", "MD5").
+        observable_type (str): The type of the observable
+        (e.g., "URL", "IPv4", "IPv6", "FQDN", "SHA256", "SHA1", "MD5").
         proxies (dict): A dictionary of proxies to use for the request.
         ssl_verify (bool): Whether to verify SSL certificates.
         api_key (str): OTX AlienVault API key (required).
 
     Returns:
-        dict: A dictionary with "count" (int), "pulses" (list), "malware_families" (list), "adversary" (list), and "link" (str). For example:
+        dict: A dictionary with "count" (int), "pulses" (list),
+        "malware_families" (list), "adversary" (list), and "link" (str). For example:
               {
                   "count": 2,
                   "pulses": [

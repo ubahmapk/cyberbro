@@ -1,17 +1,17 @@
 import configparser
 import json
 import os
+from pathlib import Path
 
-# Path to the secrets file
-secrets_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "secrets.json")
+secrets_file = Path(__file__).parent.parent / "secrets.json"
 
 # Path to the supervisord.conf file
-supervisord_conf_file = os.path.join(os.path.dirname(__file__), "supervisord.conf")
+supervisord_conf_file = Path(__file__).parent / "supervisord.conf"
 
 # Read the secrets file if it exists
 secrets = {}
-if os.path.exists(secrets_file):
-    with open(secrets_file) as f:
+if secrets_file.exists():
+    with secrets_file.open() as f:
         secrets = json.load(f)
 
 # Read the existing supervisord.conf
@@ -48,5 +48,5 @@ if timeout:
 
 if supervisor_conf_edited:
     # Write the updated supervisord.conf
-    with open(supervisord_conf_file, "w") as configfile:
+    with supervisord_conf_file.open("w") as configfile:
         config.write(configfile)
