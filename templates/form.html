@@ -1,0 +1,183 @@
+<h1>Cyberbro - Observable Analysis</h1>
+
+{% if new_version_available %}
+    {% include "upgrade_notification.html" %}
+{% endif %}
+
+<form id="analyzeForm" method="POST" action="/analyze">
+    <label for="observables">Paste your observables here</label><br/><br/>
+    <textarea name="observables" placeholder="1.2.3.4
+example.com
+d41d8cd98f00b204e9800998ecf8427e
+chrome extension id
+Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fanged data [.] [dot] hxxp, etc.)"
+        required></textarea>
+    <br/>
+
+    <div>
+        <h3 title="Use your mouse to hover over the engine name to see what it does">Select the engines to
+            use</h3>
+    </div>
+
+    <div>
+        <script>
+            const GUI_ENABLED_ENGINES = JSON.parse('{% if GUI_ENABLED_ENGINES | length > 0 %} {{ GUI_ENABLED_ENGINES | tojson }} {% else %} [] {% endif %}');
+            const allEngines = [
+                { name: "abuseipdb", label: "AbuseIPDB", supports: "risk", checked: false, title: "Checks AbuseIPDB for IP, reversed obtained IP for a given domain / URL, free API key required" },
+                { name: "abusix", label: "Abusix", supports: "abuse free_no_key", checked: false, title: "Checks abuse contact with Abusix only for IP, reversed obtained IP for a given domain / URL, free, no API key" },
+                { name: "alienvault", label: "Alienvault", supports: "hash ip domain url", checked: false, title: "Checks Alienvault for IP, domain, URL, hash, free API key required" },
+                { name: "criminalip", label: "Criminal IP", supports: "ip", checked: false, title: "Criminal IP is an OSINT search engine specialized in attack surface assessment and threat hunting, free, with paid upgrades available"},
+                { name: "crowdstrike", label: "CrowdStrike", supports: "hash ip domain url", checked: false, title: "Checks CrowdStrike for IP, domain, URL, hash, paid API key required" },
+                { name: "github", label: "Github", supports: "domain url ip hash extension free_no_key scraping", checked: false, title: "Get Github grep.app API search results for all types of observable, free, no API key" },
+                { name: "google", label: "Google", supports: "domain url ip hash extension free_no_key scraping", checked: false, title: "Scraps Google search results for all types of observable, free, no API key" },
+                { name: "google_safe_browsing", label: "Google Safe Browsing", supports: "risk domain ip", checked: false, title: "Checks Google Safe Browsing, free API key required" },
+                { name: "ioc_one_html", label: "Ioc.One (HTML)", supports: "domain url ip hash extension scraping", checked: false, title: "Scraps (can be long) Ioc.One HTML search results for all types of observable, free, no API key" },
+                { name: "ioc_one_pdf", label: "Ioc.One (PDF)", supports: "domain url ip hash extension scraping", checked: false, title: "Scraps (can be long) Ioc.One PDF search results for all types of observable, free, no API key" },
+                { name: "hudsonrock", label: "Hudson Rock", supports: "domain url email free_no_key", checked: false, title: "Searches Hudson Rock leak / infostealer results for domains, URL, Email, free, no API key" },
+                { name: "ipinfo", label: "IPinfo", supports: "ip", checked: false, title: "Checks IPinfo for IP, reversed obtained IP for a given domain / URL, free API key required" },
+                { name: "ipquery", label: "IPquery", supports: "default ip risk vpn proxy free_no_key", checked: true, title: "Checks IPquery for IP, reversed obtained IP for a given domain / URL, free, no API key" },
+                { name: "mde", label: "Microsoft Defender for Endpoint", supports: "hash ip domain url", checked: false, title: "Checks Microsoft Defender for Endpoint, paid API info on Azure required" },
+                { name: "opencti", label: "OpenCTI", supports: "domain url ip hash extension", checked: false, title: "Searches OpenCTI results for all types of observable, API key required" },
+                { name: "phishtank", label: "Phishtank", supports: "risk domain url free_no_key", checked: false, title: "Checks Phishtank for domains, URL, free, no API key" },
+                { name: "reverse_dns", label: "Reverse DNS", supports: "default domain ip abuse free_no_key", checked: true, title: "Performs a reverse DNS lookup for IP, domain, URL (on your machine)" },
+                { name: "rdap", label: "RDAP (ex Whois)", supports: "default abuse domain free_no_key", checked: true, title: "Checks RDAP (ex Whois) record for domain, URL, no API key required" },
+                { name: "shodan", label: "Shodan", supports: "ports ip", checked: false, title: "Checks Shodan, reversed obtained IP for a given domain / URL, free API key required" },
+                { name: "spur", label: "Spur.us", supports: "vpn proxy free_no_key scraping", checked: false, title: "Scraps Spur.us for IP, reversed obtained IP for a given domain / URL, free, no API key" },
+                { name: "threatfox", label: "ThreatFox", supports: "ip domain url free_no_key", checked: false, title: "Checks ThreatFox by Abuse.ch for IP, domains, URL, free, no API key" },
+                { name: "urlscan", label: "URLscan", supports: "domain url ip hash free_no_key", checked: false, title: "Checks URLscan for for IP, domains, URL, hash, free, no API key" },
+                { name: "virustotal", label: "VirusTotal", supports: "hash risk ip domain url", checked: false, title: "Checks VirusTotal for IP, domain, URL, hash, free API key required" },
+                { name: "webscout", label: "WebScout", supports: "ip vpn proxy risk", checked: false, title: "Checks WebScout for IP, reversed obtained IP for a given domain / URL, free or paid API key required" },
+            ];
+
+            const enginesToDisplay = GUI_ENABLED_ENGINES.length > 0 ? allEngines.filter(engine => GUI_ENABLED_ENGINES.includes(engine.name)) : allEngines;
+
+            enginesToDisplay.forEach(engine => {
+                const label = document.createElement('label');
+                label.title = engine.title;
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.name = 'engines';
+                input.value = engine.name;
+                input.dataset.supports = engine.supports;
+                if (engine.checked) {
+                    input.checked = true;
+                }
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(` ${engine.label}`));
+                document.querySelector('#analyzeForm div').appendChild(label);
+                document.querySelector('#analyzeForm div').appendChild(document.createElement('br'));
+            });
+
+            document.querySelector('#analyzeForm div').appendChild(document.createElement('br'));
+        </script>
+    </div>
+
+    <div>
+        <div class="radio-container">
+            <input type="radio" id="selectAll" name="engineSelection">
+            <label title="Can be long" for="selectAll" onclick="selectAllEngines()">All</label>
+            <input type="radio" id="selectNone" name="engineSelection">
+            <label title="Clear all engines" for="selectNone" onclick="selectNone()">Clear</label>
+            <input type="radio" id="selectAbuseChecker" name="engineSelection">
+            <label title="Abuse mail, only IP, domain, URL - All free, no key" for="selectAbuseChecker"
+                onclick="selectAbuseChecker()">Abuse</label>
+            <input type="radio" id="selectHash" name="engineSelection">
+            <label for="selectHash" onclick="selectHash()">Hash</label>
+            <input type="radio" id="selectVpn" name="engineSelection">
+            <label title="Only IP" for="selectVpn" onclick="selectVpn()">VPN / Proxy</label>
+            <input type="radio" id="selectFree" name="engineSelection">
+            <label title="All free engines, no key" for="selectFree" onclick="selectFree()">Free</label>
+            <input type="radio" id="selectExtension" name="engineSelection">
+            <label title="Only Chrome extension" for="selectExtension" onclick="selectExtension()">Extension</label>
+            <input type="radio" id="selectDefault" name="engineSelection" checked>
+            <label title="Good for IP / domain / URL basic info" for="selectDefault"
+                onclick="selectDefault()">Default</label>
+        </div>
+    </div>
+    <br/>
+
+    <script>
+        function selectAllEngines() {
+            document.querySelectorAll('input[name="engines"]').forEach(checkbox => checkbox.checked = true);
+        }
+
+        function selectNone() {
+            document.querySelectorAll('input[name="engines"]').forEach(checkbox => checkbox.checked = false);
+        }
+
+        function selectAbuseChecker() {
+            document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                checkbox.checked = checkbox.dataset.supports.includes('abuse');
+            });
+        }
+
+        function selectHash() {
+            document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                checkbox.checked = checkbox.dataset.supports.includes('hash');
+            });
+        }
+
+        function selectVpn() {
+            document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                checkbox.checked = checkbox.dataset.supports.includes('vpn');
+            });
+        }
+
+        function selectDefault() {
+            document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                checkbox.checked = checkbox.dataset.supports.includes('default');
+            });
+        }
+
+        function selectFree() {
+            document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                checkbox.checked = checkbox.dataset.supports.includes('free_no_key');
+            });
+        }
+
+        function selectExtension() {
+            document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                checkbox.checked = checkbox.dataset.supports.includes('extension');
+            });
+        }
+
+        function saveSelection() {
+            const selectedEngines = Array.from(document.querySelectorAll('input[name="engines"]:checked')).map(checkbox => checkbox.value);
+            localStorage.setItem('selectedEngines', JSON.stringify(selectedEngines));
+            console.log('Selection saved');
+            console.log(selectedEngines);
+
+            const saveLabel = document.getElementById('saveSelectionLabel');
+            saveLabel.innerHTML = 'Saved ✅';
+            setTimeout(() => {
+                saveLabel.innerHTML = 'Save selection';
+            }, 1000);
+        }
+
+        function restoreSelection() {
+            const savedEngines = JSON.parse(localStorage.getItem('selectedEngines'));
+            if (savedEngines) {
+                document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                    checkbox.checked = savedEngines.includes(checkbox.value);
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', restoreSelection);
+    </script>
+
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <button type="submit" class="btn">Start Analysis</button>
+        <label for="saveSelection" id="saveSelectionLabel" onclick="saveSelection()" style="cursor: pointer; font-size: 0.875rem; margin-left: 10px;">
+            Save selection
+        </label>
+        <script>
+            document.getElementById('saveSelectionLabel').addEventListener('mouseover', function() {
+                this.style.textDecoration = 'underline';
+            });
+            document.getElementById('saveSelectionLabel').addEventListener('mouseout', function() {
+                this.style.textDecoration = 'none';
+            });
+        </script>
+    </div>
+</form>
