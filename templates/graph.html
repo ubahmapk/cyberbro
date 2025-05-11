@@ -383,7 +383,13 @@ function applyDarkMode() {
     updateDarkModeIcon();
 }
 
-applyDarkMode();
+            applyDarkMode();
+
+            // Use the builtin Javascript library to get the country name from the country code
+            function country_code_to_country_name(country_code) {
+                const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+                return regionNames.of(country_code.toUpperCase());
+            }
 
 function generateGraph(data) {
     const nodes = [];
