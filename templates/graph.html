@@ -539,8 +539,37 @@ function generateGraph(data) {
 
             }
 
-            // end of provider loop
-        });
+                        // end of provider loop
+                    });
+
+                    if (entry.criminalip?.abuse_record_count > 0) {
+                        const criminalipNode = "Criminal IP flagged";
+                        addNode(
+                            criminalipNode,
+                            criminalipNode,
+                            "criminalip_flagged",
+                            "https://img.icons8.com/?size=32&id=hm3q4mXLU6tz&format=png&color=000000",
+                        );
+                        edges.push({
+                            from: obs,
+                            to: criminalipNode,
+                            label: `CriminalIP (${entry.criminalip.abuse_record_count})`,
+                        });
+                    }
+
+                    if (entry.criminalip?.whois?.data[0]?.as_no) {
+                        const asn = `${entry.criminalip.whois.data[0].as_no} ${entry.criminalip.whois.data[0].as_name}`;
+                        addNode(asn, asn, "asn", "https://img.icons8.com/officexs/32/organization.png");
+                        edges.push({ from: obs, to: asn, label: `ASN (Criminal IP)` });
+                    }
+
+                    if (entry.criminalip?.whois?.data[0]?.org_country_code) {
+                        const countryCode = entry.criminalip.whois.data[0].org_country_code.toLowerCase();
+                        const country = country_code_to_country_name(entry.criminalip.whois.data[0].org_country_code);
+                        const flagUrl = `https://raw.githubusercontent.com/lipis/flag-icons/refs/heads/main/flags/1x1/${countryCode}.svg`;
+                        addNode(country, country, "country_name", flagUrl);
+                        edges.push({ from: obs, to: country, label: "Country (CriminalIP)" });
+                    }
 
         if (entry.reverse_dns?.reverse_dns) {
             entry.reverse_dns.reverse_dns.forEach(reverse => {
