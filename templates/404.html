@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 Not Found</title>
+{% block title %}Cyberbro - 404 Not Found{% endblock title %}
+{% block head %}
+{{ super() }}
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -38,19 +36,14 @@
             text-decoration: underline;
         }
     </style>
-</head>
+{% endblock head %}
 
-<body>
-    <div class="container">
-        <h1>404</h1>
-        <p>Not Found</p>
-        <p>Sorry, the page you are looking for could not be found.</p>
-        <p><a href="/">Go back to Home</a></p>
-        <a href="https://github.com/stanfrbd/cyberbro" target="_blank" class="github-logo">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo"
-                width="40" height="40" class="github-logo">
-        </a>
-    </div>
-</body>
-
-</html>
+{% block content %}
+<h1>404</h1>
+<p>Not Found</p>
+<p>Sorry, the page you are looking for could not be found.</p>
+<p><a href="/">Go back to Home</a></p>
+<a href="https://github.com/stanfrbd/cyberbro" target="_blank" class="github-logo">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo" width="40" height="40" class="github-logo">
+</a>
+{% endblock content %}
