@@ -8,10 +8,7 @@
             <p>{{ analysis_results.results[0].type }}</p>
         </div>
         {% if analysis_results.results[0].reverse_dns and analysis_results.results[0].reverse_dns.reverse_dns %}
-        <div class="card">
-            <h3>DNS Lookup</h3>
-            <p>{{ analysis_results.results[0].reverse_dns.reverse_dns | join(', ') }}</p>
-        </div>
+            {% include "engine_layouts/reverse_dns_card.html" %}
         {% endif %}
         {% if analysis_results.results[0].virustotal %}
             {% include "engine_layouts/virustotal_card.html" %}

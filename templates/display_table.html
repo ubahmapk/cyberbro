@@ -194,15 +194,7 @@
 
         <td>{{ result.type }}</td>
         {% if "reverse_dns" in analysis_results.selected_engines %}
-            <td>
-                {% if result.reverse_dns %}
-                    {% for dns in result.reverse_dns.reverse_dns %}
-                        {{ dns }}<br/>
-                    {% endfor %}
-                {% else %}
-                    Not applicable
-                {% endif %}
-            </td>
+            {% include "engine_layouts/reverse_dns_table.html" %}
         {% endif %}
 
         {% if "CHROME_EXTENSION" in analysis_results.results | map(attribute='type') %}
