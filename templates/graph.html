@@ -97,41 +97,12 @@
         <div id="network"></div>
     </div>
 
-        <script>
-            const moonIcon = "https://img.icons8.com/ios-filled/50/ffffff/moon-symbol.png";
-            const sunIcon = "https://img.icons8.com/ios-filled/50/ffffff/sun.png";
-
-            function toggleDarkMode() {
-                document.body.classList.toggle("dark-mode");
-                localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
-                updateDarkModeIcon();
-            }
-
-            function updateDarkModeIcon() {
-                const darkModeIcon = document.getElementById("darkModeIcon");
-                if (document.body.classList.contains("dark-mode")) {
-                    darkModeIcon.src = sunIcon;
-                    darkModeIcon.alt = "Light Mode";
-                } else {
-                    darkModeIcon.src = moonIcon;
-                    darkModeIcon.alt = "Dark Mode";
-                }
-            }
-
-            function applyDarkMode() {
-                if (localStorage.getItem("darkMode") === "true") {
-                    document.body.classList.add("dark-mode");
-                }
-                updateDarkModeIcon();
-            }
-
-            applyDarkMode();
-
-            // Use the builtin Javascript library to get the country name from the country code
-            function country_code_to_country_name(country_code) {
-                const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
-                return regionNames.of(country_code.toUpperCase());
-            }
+    <script>
+        // Use the builtin Javascript library to get the country name from the country code
+        function country_code_to_country_name(country_code) {
+            const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+            return regionNames.of(country_code.toUpperCase());
+        }
 
             function generateGraph(data) {
                 const nodes = [];
