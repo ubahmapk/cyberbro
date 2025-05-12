@@ -1,126 +1,190 @@
 {% extends "base.html" %}
 
-{% block title %}Cyberbro{% endblock title %}
-
-{% block head %}
-    {{ super() }}
-
-    <!-- Include jQuery -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <!-- Include DataTables JS library -->
-    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
-    <!-- Include colReorder extension -->
-    <script src="https://cdn.datatables.net/colreorder/1.5.3/js/dataTables.colReorder.min.js"></script>
-{% endblock head %}
+{% block title %}Cyberbro - Observable Analysis{% endblock title %}
 
 {% block content %}
 <div id="startForm">
-    {% include "form.html" %}
-</div>
+    <h1>{{ self.title() }}</h1>
 
-{% if analysis_results %}
-    {% include "analysis_results.html" %}
-{% endif %}
+    {% if new_version_available %}
+        {% include "upgrade_notification.html" %}
+    {% endif %}
 
-</div>
-</div>
+    <form id="analyzeForm" method="POST" action="/analyze">
+        <label for="observables">Paste your observables here</label><br/><br/>
+        <textarea name="observables" placeholder="1.2.3.4
+example.com
+d41d8cd98f00b204e9800998ecf8427e
+chrome extension id
+Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fanged data [.] [dot] hxxp, etc.)"
+            required></textarea>
+        <br/>
 
-<div class="end-of-cards">
-</div>
+        <div>
+            <h3 title="Use your mouse to hover over the engine name to see what it does">Select the engines to use</h3>
+        </div>
 
-    <script>
-        $(document).ready(function () {
-            $('#resultsTable').DataTable({
-                // Enable column reordering
-                colReorder: true,
-                // Enable responsive
-                responsive: true,
-                // Disable search
-                searching: false,
-                // Disable paging
-                paging: false,
-                ordering: true,
-                info: false,
-                // show sorting icons in th
-                orderCellsTop: true
-            });
-        });
+        <div>
+            <script>
+                const GUI_ENABLED_ENGINES = JSON.parse('{% if GUI_ENABLED_ENGINES | length > 0 %} {{ GUI_ENABLED_ENGINES | tojson }} {% else %} [] {% endif %}');
+                const allEngines = [
+                    { name: "abuseipdb", label: "AbuseIPDB", supports: "risk", checked: false, title: "Checks AbuseIPDB for IP, reversed obtained IP for a given domain / URL, free API key required" },
+                    { name: "abusix", label: "Abusix", supports: "abuse free_no_key", checked: false, title: "Checks abuse contact with Abusix only for IP, reversed obtained IP for a given domain / URL, free, no API key" },
+                    { name: "alienvault", label: "Alienvault", supports: "hash ip domain url", checked: false, title: "Checks Alienvault for IP, domain, URL, hash, free API key required" },
+                    { name: "criminalip", label: "Criminal IP", supports: "ip", checked: false, title: "Criminal IP is an OSINT search engine specialized in attack surface assessment and threat hunting, free, with paid upgrades available"},
+                    { name: "crowdstrike", label: "CrowdStrike", supports: "hash ip domain url", checked: false, title: "Checks CrowdStrike for IP, domain, URL, hash, paid API key required" },
+                    { name: "github", label: "Github", supports: "domain url ip hash extension free_no_key scraping", checked: false, title: "Get Github grep.app API search results for all types of observable, free, no API key" },
+                    { name: "google", label: "Google", supports: "domain url ip hash extension free_no_key scraping", checked: false, title: "Scraps Google search results for all types of observable, free, no API key" },
+                    { name: "google_safe_browsing", label: "Google Safe Browsing", supports: "risk domain ip", checked: false, title: "Checks Google Safe Browsing, free API key required" },
+                    { name: "ioc_one_html", label: "Ioc.One (HTML)", supports: "domain url ip hash extension scraping", checked: false, title: "Scraps (can be long) Ioc.One HTML search results for all types of observable, free, no API key" },
+                    { name: "ioc_one_pdf", label: "Ioc.One (PDF)", supports: "domain url ip hash extension scraping", checked: false, title: "Scraps (can be long) Ioc.One PDF search results for all types of observable, free, no API key" },
+                    { name: "hudsonrock", label: "Hudson Rock", supports: "domain url email free_no_key", checked: false, title: "Searches Hudson Rock leak / infostealer results for domains, URL, Email, free, no API key" },
+                    { name: "ipinfo", label: "IPinfo", supports: "ip", checked: false, title: "Checks IPinfo for IP, reversed obtained IP for a given domain / URL, free API key required" },
+                    { name: "ipquery", label: "IPquery", supports: "default ip risk vpn proxy free_no_key", checked: true, title: "Checks IPquery for IP, reversed obtained IP for a given domain / URL, free, no API key" },
+                    { name: "mde", label: "Microsoft Defender for Endpoint", supports: "hash ip domain url", checked: false, title: "Checks Microsoft Defender for Endpoint, paid API info on Azure required" },
+                    { name: "opencti", label: "OpenCTI", supports: "domain url ip hash extension", checked: false, title: "Searches OpenCTI results for all types of observable, API key required" },
+                    { name: "phishtank", label: "Phishtank", supports: "risk domain url free_no_key", checked: false, title: "Checks Phishtank for domains, URL, free, no API key" },
+                    { name: "reverse_dns", label: "Reverse DNS", supports: "default domain ip abuse free_no_key", checked: true, title: "Performs a reverse DNS lookup for IP, domain, URL (on your machine)" },
+                    { name: "rdap", label: "RDAP (ex Whois)", supports: "default abuse domain free_no_key", checked: true, title: "Checks RDAP (ex Whois) record for domain, URL, no API key required" },
+                    { name: "shodan", label: "Shodan", supports: "ports ip", checked: false, title: "Checks Shodan, reversed obtained IP for a given domain / URL, free API key required" },
+                    { name: "spur", label: "Spur.us", supports: "vpn proxy free_no_key scraping", checked: false, title: "Scraps Spur.us for IP, reversed obtained IP for a given domain / URL, free, no API key" },
+                    { name: "threatfox", label: "ThreatFox", supports: "ip domain url free_no_key", checked: false, title: "Checks ThreatFox by Abuse.ch for IP, domains, URL, free, no API key" },
+                    { name: "urlscan", label: "URLscan", supports: "domain url ip hash free_no_key", checked: false, title: "Checks URLscan for for IP, domains, URL, hash, free, no API key" },
+                    { name: "virustotal", label: "VirusTotal", supports: "hash risk ip domain url", checked: false, title: "Checks VirusTotal for IP, domain, URL, hash, free API key required" },
+                    { name: "webscout", label: "WebScout", supports: "ip vpn proxy risk", checked: false, title: "Checks WebScout for IP, reversed obtained IP for a given domain / URL, free or paid API key required" },
+                ];
 
-        // remove cards-results-container container if empty
-        function checkCardsBasicInfo() {
-            document.querySelectorAll('.cards-results-container').forEach(container => {
-                if (container.children.length === 0) {
-                    container.style.display = 'none';
+                const enginesToDisplay = GUI_ENABLED_ENGINES.length > 0 ? allEngines.filter(engine => GUI_ENABLED_ENGINES.includes(engine.name)) : allEngines;
+
+                enginesToDisplay.forEach(engine => {
+                    const label = document.createElement('label');
+                    label.title = engine.title;
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.name = 'engines';
+                    input.value = engine.name;
+                    input.dataset.supports = engine.supports;
+                    if (engine.checked) {
+                        input.checked = true;
+                    }
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(` ${engine.label}`));
+                    document.querySelector('#analyzeForm div').appendChild(label);
+                    document.querySelector('#analyzeForm div').appendChild(document.createElement('br'));
+                });
+
+                document.querySelector('#analyzeForm div').appendChild(document.createElement('br'));
+            </script>
+        </div>
+
+        <div>
+            <div class="radio-container">
+                <input type="radio" id="selectAll" name="engineSelection">
+                <label title="Can be long" for="selectAll" onclick="selectAllEngines()">All</label>
+                <input type="radio" id="selectNone" name="engineSelection">
+                <label title="Clear all engines" for="selectNone" onclick="selectNone()">Clear</label>
+                <input type="radio" id="selectAbuseChecker" name="engineSelection">
+                <label title="Abuse mail, only IP, domain, URL - All free, no key" for="selectAbuseChecker"
+                    onclick="selectAbuseChecker()">Abuse</label>
+                <input type="radio" id="selectHash" name="engineSelection">
+                <label for="selectHash" onclick="selectHash()">Hash</label>
+                <input type="radio" id="selectVpn" name="engineSelection">
+                <label title="Only IP" for="selectVpn" onclick="selectVpn()">VPN / Proxy</label>
+                <input type="radio" id="selectFree" name="engineSelection">
+                <label title="All free engines, no key" for="selectFree" onclick="selectFree()">Free</label>
+                <input type="radio" id="selectExtension" name="engineSelection">
+                <label title="Only Chrome extension" for="selectExtension" onclick="selectExtension()">Extension</label>
+                <input type="radio" id="selectDefault" name="engineSelection" checked>
+                <label title="Good for IP / domain / URL basic info" for="selectDefault"
+                    onclick="selectDefault()">Default</label>
+            </div>
+        </div>
+        <br/>
+
+        <script>
+            function selectAllEngines() {
+                document.querySelectorAll('input[name="engines"]').forEach(checkbox => checkbox.checked = true);
+            }
+
+            function selectNone() {
+                document.querySelectorAll('input[name="engines"]').forEach(checkbox => checkbox.checked = false);
+            }
+
+            function selectAbuseChecker() {
+                document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                    checkbox.checked = checkbox.dataset.supports.includes('abuse');
+                });
+            }
+
+            function selectHash() {
+                document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                    checkbox.checked = checkbox.dataset.supports.includes('hash');
+                });
+            }
+
+            function selectVpn() {
+                document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                    checkbox.checked = checkbox.dataset.supports.includes('vpn');
+                });
+            }
+
+            function selectDefault() {
+                document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                    checkbox.checked = checkbox.dataset.supports.includes('default');
+                });
+            }
+
+            function selectFree() {
+                document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                    checkbox.checked = checkbox.dataset.supports.includes('free_no_key');
+                });
+            }
+
+            function selectExtension() {
+                document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                    checkbox.checked = checkbox.dataset.supports.includes('extension');
+                });
+            }
+
+            function saveSelection() {
+                const selectedEngines = Array.from(document.querySelectorAll('input[name="engines"]:checked')).map(checkbox => checkbox.value);
+                localStorage.setItem('selectedEngines', JSON.stringify(selectedEngines));
+                console.log('Selection saved');
+                console.log(selectedEngines);
+
+                const saveLabel = document.getElementById('saveSelectionLabel');
+                saveLabel.innerHTML = 'Saved ✅';
+                setTimeout(() => {
+                    saveLabel.innerHTML = 'Save selection';
+                }, 1000);
+            }
+
+            function restoreSelection() {
+                const savedEngines = JSON.parse(localStorage.getItem('selectedEngines'));
+                if (savedEngines) {
+                    document.querySelectorAll('input[name="engines"]').forEach(checkbox => {
+                        checkbox.checked = savedEngines.includes(checkbox.value);
+                    });
                 }
-            });
-        }
+            }
 
-        checkCardsBasicInfo();
-    </script>
+            document.addEventListener('DOMContentLoaded', restoreSelection);
+        </script>
 
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button type="submit" class="btn">Start Analysis</button>
+            <label for="saveSelection" id="saveSelectionLabel" onclick="saveSelection()" style="cursor: pointer; font-size: 0.875rem; margin-left: 10px;">
+                Save selection
+            </label>
+            <script>
+                document.getElementById('saveSelectionLabel').addEventListener('mouseover', function() {
+                    this.style.textDecoration = 'underline';
+                });
+                document.getElementById('saveSelectionLabel').addEventListener('mouseout', function() {
+                    this.style.textDecoration = 'none';
+                });
+            </script>
+        </div>
+    </form>
+</div>
 {% endblock content %}
-
-{% block postcontent %}
-<script>
-
-    function filterTable() {
-        const searchInput = document.getElementById("searchInput").value.toLowerCase();
-        const countryFilter = document.getElementById("countryFilter").value.toLowerCase();
-        const riskFilter = document.getElementById("riskFilter").value.toLowerCase();
-        const detectionFilter = document.getElementById("detectionFilter").value.toLowerCase();
-        const typeFilter = document.getElementById("typeFilter").value.toLowerCase();
-        const proxyVpnFilter = document.getElementById("proxyVpnFilter").value.toLowerCase();
-        const table = document.getElementById("resultsTable");
-        const tr = table.getElementsByTagName("tr");
-
-        for (let i = 1; i < tr.length; i++) {
-            let td = tr[i].getElementsByTagName("td");
-            let showRow = true;
-
-            if (searchInput) {
-                showRow = Array.from(td).some(cell => cell.innerText.toLowerCase().includes(searchInput));
-            }
-
-            if (showRow && countryFilter !== "all") {
-                const countrySpan = tr[i].querySelector(".country");
-                const country = countrySpan ? countrySpan.className.split("-")[1] : "";
-                showRow = country === countryFilter;
-            }
-
-            if (showRow && riskFilter !== "all") {
-                const riskClass = tr[i].classList.contains("high-risk") ? "high" : "low";
-                showRow = riskClass === riskFilter;
-            }
-
-            if (showRow && detectionFilter !== "all") {
-                const detectionClass = tr[i].classList.contains("high-detection") ? "high" : tr[i].classList.contains("clean-detection") ? "clean" : "low";
-                showRow = detectionClass === detectionFilter;
-            }
-
-            if (showRow && typeFilter !== "all") {
-                showRow = td[1].innerText.toLowerCase() === typeFilter;
-            }
-
-            // Spur or IP Quality Score
-            if (showRow && proxyVpnFilter !== "all") {
-                let anonymousResult = "";
-                anonymousResult = tr[i].innerText.toLowerCase();
-                showRow = anonymousResult.includes(proxyVpnFilter);
-            }
-
-            tr[i].style.display = showRow ? "" : "none";
-        }
-    }
-
-    function clearFilters() {
-        document.getElementById("searchInput").value = "";
-        document.getElementById("countryFilter").value = "all";
-        document.getElementById("riskFilter").value = "all";
-        document.getElementById("detectionFilter").value = "all";
-        document.getElementById("typeFilter").value = "all";
-        document.getElementById("proxyVpnFilter").value = "all";
-        filterTable();
-    }
-</script>
-{{ super() }}
-{% endblock postcontent %}
