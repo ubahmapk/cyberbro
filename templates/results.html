@@ -58,35 +58,35 @@
 <div class="end-of-cards">
 </div>
 
-    <script>
-        $(document).ready(function () {
-            $('#resultsTable').DataTable({
-                // Enable column reordering
-                colReorder: true,
-                // Enable responsive
-                responsive: true,
-                // Disable search
-                searching: false,
-                // Disable paging
-                paging: false,
-                ordering: true,
-                info: false,
-                // show sorting icons in th
-                orderCellsTop: true
-            });
+<script>
+    $(document).ready(function () {
+        $('#resultsTable').DataTable({
+            // Enable column reordering
+            colReorder: true,
+            // Enable responsive
+            responsive: true,
+            // Disable search
+            searching: false,
+            // Disable paging
+            paging: false,
+            ordering: true,
+            info: false,
+            // show sorting icons in th
+            orderCellsTop: true
         });
+    });
 
-        // remove cards-results-container container if empty
-        function checkCardsBasicInfo() {
-            document.querySelectorAll('.cards-results-container').forEach(container => {
-                if (container.children.length === 0) {
-                    container.style.display = 'none';
-                }
-            });
-        }
+    // remove cards-results-container container if empty
+    function checkCardsBasicInfo() {
+        document.querySelectorAll('.cards-results-container').forEach(container => {
+            if (container.children.length === 0) {
+                container.style.display = 'none';
+            }
+        });
+    }
 
-        checkCardsBasicInfo();
-    </script>
+    checkCardsBasicInfo();
+</script>
 
 {% endblock content %}
 
