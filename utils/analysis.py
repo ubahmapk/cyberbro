@@ -27,6 +27,7 @@ from engines import (
     urlscan,
     virustotal,
     webscout,
+    google_dns,
 )
 from models.analysis_result import AnalysisResult
 from utils.config import Secrets, get_config
@@ -291,6 +292,14 @@ def perform_engine_queries(observable, selected_engines, result):
         "URL",
     ]:
         result["hudsonrock"] = hudsonrock.query_hudsonrock(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
+
+    if "google_dns" in selected_engines and observable["type"] in [
+        "IPv4",
+        "IPv6",
+        "FQDN",
+        "URL",
+    ]:
+        result["google_dns"] = google_dns.query_google_dns(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
 
     # 2. Reverse DNS if possible, change observable type to IP if possible
     if "reverse_dns" in selected_engines and observable["type"] in [
