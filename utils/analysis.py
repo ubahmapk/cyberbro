@@ -11,12 +11,14 @@ from engines import (
     extension,
     github,
     google,
+    google_dns,
     google_safe_browsing,
     hudsonrock,
     ioc_one,
     ipinfo,
     ipquery,
     microsoft_defender_for_endpoint,
+    misp,
     opencti,
     phishtank,
     rdap,
@@ -27,7 +29,6 @@ from engines import (
     urlscan,
     virustotal,
     webscout,
-    google_dns,
 )
 from models.analysis_result import AnalysisResult
 from utils.config import Secrets, get_config
@@ -257,6 +258,16 @@ def perform_engine_queries(observable, selected_engines, result):
             PROXIES,
             SSL_VERIFY,
             secrets.alienvault,
+        )
+
+    if "misp" in selected_engines and observable["type"] in ["MD5", "SHA1", "SHA256", "URL", "FQDN", "IPv4", "IPv6"]:
+        result["misp"] = misp.query_misp(
+            observable["value"],
+            observable["type"],
+            PROXIES,
+            SSL_VERIFY,
+            secrets.misp_api_key,
+            secrets.misp_url,
         )
 
     if "google_safe_browsing" in selected_engines and observable["type"] in [
