@@ -1,8 +1,10 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block title %}Cyberbro - 413 Payload Too Large{% endblock title %}
-{% block head %}
-{{ super() }}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>413 Payload Too Large</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -40,19 +42,24 @@
             margin: 20px 0;
         }
     </style>
-{% endblock head }
+</head>
 
-{% block content %}
-    <h1>{{ self.title() }}</h1>
-    <p>Payload Too Large</p>
-    <p>Whoa there! Looks like you tried to upload something a bit too hefty. Maybe try to paste less data?</p>
-    <p>If this is from the demo, remember: this limit is here to avoid users breaking the API quotas. Sharing is caring!</p>
-    <div class="image">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat03.jpg" alt="Fat Cat" width="200">
+<body>
+    <div class="container">
+        <h1>413</h1>
+        <p>Payload Too Large</p>
+        <p>Whoa there! Looks like you tried to upload something a bit too hefty. Maybe try to paste less data?</p>
+        <p>If this is from the demo, remember: this limit is here to avoid users breaking the API quotas. Sharing is
+            caring!</p>
+        <div class="image">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat03.jpg" alt="Fat Cat" width="200">
+        </div>
+        <p><a href="/">Go back to Home</a></p>
+        <a href="https://github.com/stanfrbd/cyberbro" target="_blank" class="github-logo">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo"
+                width="40" height="40" class="github-logo">
+        </a>
     </div>
-    <p><a href="/">Go back to Home</a></p>
-    <a href="https://github.com/stanfrbd/cyberbro" target="_blank" class="github-logo">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub Logo"
-            width="40" height="40" class="github-logo">
-    </a>
-{% endblock content %}
+</body>
+
+</html>

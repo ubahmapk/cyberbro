@@ -1,10 +1,25 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block title %}Cyberbro - Analysis in Progress{% endblock title %}
-
-{% block head %}
-{{ super() }}
+<head>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <title>Analysis in Progress</title>
     <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-hover-color: #0056b3;
+            --background-color: #f8f9fa;
+            --text-color: #343a40;
+            --border-color: #ced4da;
+            --border-radius: 5px;
+            --dark-background-color: #1e2a36;
+            --dark-text-color: #d1d1d1;
+            --dark-border-color: #3a4b5a;
+            --dark-primary-color: #3a4b5a;
+            --dark-primary-hover-color: #4b5c6d;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             text-align: center;
@@ -39,10 +54,24 @@
                 transform: rotate(360deg);
             }
         }
-    </style>
-{% endblock head %}
 
-{% block content %}
+        .dark-mode {
+            background-color: var(--dark-background-color);
+            /* Dark background */
+            color: var(--dark-text-color);
+            /* Light text color */
+        }
+
+        .light-mode {
+            background-color: var(--background-color);
+            /* Light background */
+            color: var(--text-color);
+            /* Dark text color */
+        }
+    </style>
+</head>
+
+<body>
     <div class="loader"></div>
     <p>Analysis in progress, please wait...</p>
 
@@ -76,4 +105,6 @@
         applyDarkMode();
         checkResults(); // Start checking for results
     </script>
-{% endblock content %}
+</body>
+
+</html>
