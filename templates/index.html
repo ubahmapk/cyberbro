@@ -7,18 +7,18 @@
     <h1>{{ self.title() }}</h1>
 
     {% if new_version_available %}
-        {% include "upgrade_notification.html" %}
+    {% include "upgrade_notification.html" %}
     {% endif %}
 
     <form id="analyzeForm" method="POST" action="/analyze">
-        <label for="observables">Paste your observables here</label><br/><br/>
+        <label for="observables">Paste your observables here</label><br /><br />
         <textarea name="observables" placeholder="1.2.3.4
 example.com
 d41d8cd98f00b204e9800998ecf8427e
 chrome extension id
 Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fanged data [.] [dot] hxxp, etc.)"
             required></textarea>
-        <br/>
+        <br />
 
         <div>
             <h3 title="Use your mouse to hover over the engine name to see what it does">Select the engines to use</h3>
@@ -31,7 +31,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     { name: "abuseipdb", label: "AbuseIPDB", supports: "risk", checked: false, title: "Checks AbuseIPDB for IP, reversed obtained IP for a given domain / URL, free API key required" },
                     { name: "abusix", label: "Abusix", supports: "abuse free_no_key", checked: false, title: "Checks abuse contact with Abusix only for IP, reversed obtained IP for a given domain / URL, free, no API key" },
                     { name: "alienvault", label: "Alienvault", supports: "hash ip domain url", checked: false, title: "Checks Alienvault for IP, domain, URL, hash, free API key required" },
-                    { name: "criminalip", label: "Criminal IP", supports: "ip", checked: false, title: "Criminal IP is an OSINT search engine specialized in attack surface assessment and threat hunting, free, with paid upgrades available"},
+                    { name: "criminalip", label: "Criminal IP", supports: "ip", checked: false, title: "Criminal IP is an OSINT search engine specialized in attack surface assessment and threat hunting, free, with paid upgrades available" },
                     { name: "crowdstrike", label: "CrowdStrike", supports: "hash ip domain url", checked: false, title: "Checks CrowdStrike for IP, domain, URL, hash, paid API key required" },
                     { name: "github", label: "Github", supports: "domain url ip hash extension free_no_key scraping", checked: false, title: "Get Github grep.app API search results for all types of observable, free, no API key" },
                     { name: "google", label: "Google", supports: "domain url ip hash extension free_no_key scraping", checked: false, title: "Scraps Google search results for all types of observable, free, no API key" },
@@ -99,7 +99,7 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
                     onclick="selectDefault()">Default</label>
             </div>
         </div>
-        <br/>
+        <br />
 
         <script>
             function selectAllEngines() {
@@ -173,14 +173,15 @@ Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fan
 
         <div style="display: flex; align-items: center; gap: 10px;">
             <button type="submit" class="btn">Start Analysis</button>
-            <label for="saveSelection" id="saveSelectionLabel" onclick="saveSelection()" style="cursor: pointer; font-size: 0.875rem; margin-left: 10px;">
+            <label for="saveSelection" id="saveSelectionLabel" onclick="saveSelection()"
+                style="cursor: pointer; font-size: 0.875rem; margin-left: 10px;">
                 Save selection
             </label>
             <script>
-                document.getElementById('saveSelectionLabel').addEventListener('mouseover', function() {
+                document.getElementById('saveSelectionLabel').addEventListener('mouseover', function () {
                     this.style.textDecoration = 'underline';
                 });
-                document.getElementById('saveSelectionLabel').addEventListener('mouseout', function() {
+                document.getElementById('saveSelectionLabel').addEventListener('mouseout', function () {
                     this.style.textDecoration = 'none';
                 });
             </script>
