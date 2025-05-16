@@ -229,7 +229,7 @@ def show_results(analysis_id):
     analysis_results = db.session.get(AnalysisResult, analysis_id)
     if analysis_results:
         return render_template(
-            "index.html",
+            "results.html",
             analysis_results=analysis_results,
             API_PREFIX=API_PREFIX,
             display_mode=display,
