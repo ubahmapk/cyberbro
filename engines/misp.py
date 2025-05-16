@@ -1,9 +1,9 @@
 import logging
+from datetime import datetime, timezone
 from typing import Any, Optional
 from urllib.parse import quote
 
 import requests
-from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +67,8 @@ def query_misp(
         seen_event_ids = set()  # Track unique event IDs
         first_seen = None
         last_seen = None
+
+        count = 0
 
         if isinstance(attributes, list):
             for attribute in attributes:
