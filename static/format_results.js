@@ -3,14 +3,45 @@ function formatResults(data) {
     data.forEach(result => {
         plainText += `Observable: ${result.observable}\nType: ${result.type}\n`;
 
+        if (result.rdap) {
+            if (result.rdap) {
+                plainText += `RDAP:\n`;
+                if (result.rdap.registrar) plainText += `- Registrar: ${result.rdap.registrar}\n`;
+                if (result.rdap.abuse_contact) plainText += `- Abuse Contact: ${result.rdap.abuse_contact}\n`;
+                if (result.rdap.registrant) plainText += `- Registrant: ${result.rdap.registrant}\n`;
+                if (result.rdap.organization) plainText += `- Organization: ${result.rdap.organization}\n`;
+                if (result.rdap.registrant_email) plainText += `- Registrant Email: ${result.rdap.registrant_email}\n`;
+                if (result.rdap.creation_date) plainText += `- Creation Date: ${result.rdap.creation_date}\n`;
+                if (result.rdap.expiration_date) plainText += `- Expiration Date: ${result.rdap.expiration_date}\n`;
+                if (result.rdap.update_date) plainText += `- Updated Date: ${result.rdap.update_date}\n`;
+                if (result.rdap.name_servers && result.rdap.name_servers.length > 0) {
+                    plainText += `- Name Servers: ${result.rdap.name_servers.join(', ')}\n`;
+                }
+            }
+        }
+
+        if (result.reverse_dns) {
+            plainText += `Reverse DNS (local DNS): ${result.reverse_dns.reverse_dns.join(', ')}\n`;
+        }
+
+        if (result.abusix) {
+            plainText += `Abusix (abuse contact for IP): ${result.abusix.abuse}\n`;
+        }
+
         if (result.extension) {
             plainText += `Extension: ${result.extension.name}\n`;
             plainText += `URL: ${result.extension.url}\n`;
         }
 
-        if (result.reverse_dns) {
-            plainText += `Reverse DNS: ${result.reverse_dns.reverse_dns.join(', ')}\n`;
+        if (result.google_dns && result.google_dns.Answer && result.google_dns.Answer.length > 0) {
+            plainText += `Google DNS (common records):\n`;
+            result.google_dns.Answer.forEach(dnsRecord => {
+                plainText += `  - Type: ${dnsRecord.type_name}, Data: ${dnsRecord.data}`;
+                if (dnsRecord.name) plainText += `, Name: ${dnsRecord.name}`;
+                plainText += `\n`;
+            });
         }
+
         if (result.ipquery) {
             plainText += `IPquery: Geolocation: ${result.ipquery.geolocation}, Country: ${result.ipquery.country_name}, ASN: ${result.ipquery.asn} ${result.ipquery.isp}, Risk Score: ${result.ipquery.risk_score}, Proxy: ${result.ipquery.is_proxy}, Tor: ${result.ipquery.is_tor}, VPN: ${result.ipquery.is_vpn}\n`;
         }
@@ -63,25 +94,7 @@ function formatResults(data) {
         if (result.phishtank) {
             plainText += `Phishtank: In Database: ${result.phishtank.in_database}\n`;
         }
-        if (result.abusix) {
-            plainText += `Abusix: ${result.abusix.abuse}\n`;
-        }
-        if (result.rdap) {
-            if (result.rdap) {
-                plainText += `RDAP:\n`;
-                if (result.rdap.registrar) plainText += `- Registrar: ${result.rdap.registrar}\n`;
-                if (result.rdap.abuse_contact) plainText += `- Abuse Contact: ${result.rdap.abuse_contact}\n`;
-                if (result.rdap.registrant) plainText += `- Registrant: ${result.rdap.registrant}\n`;
-                if (result.rdap.organization) plainText += `- Organization: ${result.rdap.organization}\n`;
-                if (result.rdap.registrant_email) plainText += `- Registrant Email: ${result.rdap.registrant_email}\n`;
-                if (result.rdap.creation_date) plainText += `- Creation Date: ${result.rdap.creation_date}\n`;
-                if (result.rdap.expiration_date) plainText += `- Expiration Date: ${result.rdap.expiration_date}\n`;
-                if (result.rdap.update_date) plainText += `- Updated Date: ${result.rdap.update_date}\n`;
-                if (result.rdap.name_servers && result.rdap.name_servers.length > 0) {
-                    plainText += `- Name Servers: ${result.rdap.name_servers.join(', ')}\n`;
-                }
-            }
-        }
+
         if (result.threatfox && result.threatfox.count > 0) {
             plainText += `ThreatFox: Count: ${result.threatfox.count}, Malware: ${result.threatfox.malware_printable.join(', ')}\n`;
         }
@@ -135,6 +148,20 @@ function formatResults(data) {
             }
         }
 
+        if (result.misp && result.misp.count > 0) {
+            plainText += `MISP:\n`;
+            plainText += `  - Count: ${result.misp.count}\n`;
+            if (result.misp.first_seen) plainText += `  - First Seen: ${result.misp.first_seen}\n`;
+            if (result.misp.last_seen) plainText += `  - Last Seen: ${result.misp.last_seen}\n`;
+            if (result.misp.link) plainText += `  - Link: ${result.misp.link}\n`;
+            if (result.misp.events && result.misp.events.length > 0) {
+                plainText += `  - Events:\n`;
+                result.misp.events.forEach(event => {
+                    plainText += `    - ${event.title}: ${event.url}\n`;
+                });
+            }
+        }
+
         if (result.criminalip) {
             plainText += `Criminal IP:\n`;
             plainText += `  - Abuse Record Count: ${result.criminalip.abuse_record_count}\n`;
@@ -163,9 +190,9 @@ function formatResults(data) {
             plainText += `Alienvault:\n`;
             plainText += `  - Pulse Count: ${result.alienvault.count}\n`;
             if (result.alienvault.count > 0) {
-            result.alienvault.pulses.forEach(alienvaultPulse => {
-                plainText += `  - ${alienvaultPulse.title}: ${alienvaultPulse.url}\n`;
-            });
+                result.alienvault.pulses.forEach(alienvaultPulse => {
+                    plainText += `  - ${alienvaultPulse.title}: ${alienvaultPulse.url}\n`;
+                });
             }
             if (result.alienvault.malware_families.length > 0) {
                 plainText += `  - Malware Families: ${result.alienvault.malware_families.join(', ')}\n`;
