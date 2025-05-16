@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import requests
 
@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 
 def query_google_dns(
-    observable: str, observable_type: str, proxies: Optional[Dict[str, str]] = None, ssl_verify: bool = True
-) -> Optional[Dict[str, Any]]:
+    observable: str, observable_type: str, proxies: Optional[dict[str, str]] = None, ssl_verify: bool = True
+) -> Optional[dict[str, Any]]:
     """
     Queries the Google DNS API for the given observable (domain or IP) and enriches the data with a type_name field.
 
