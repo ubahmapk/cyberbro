@@ -2,14 +2,15 @@
 <html lang="en">
 
 <head>
-{% block head %}
+{%- block head %}
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.6.6/css/flag-icons.min.css">
+    {# Remove this from base - figure out which pages need the flag icons and include it there #}
+    {# <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.6.6/css/flag-icons.min.css"> #}
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <!-- <script defer src="{{ url_for('static', filename='toggle_dark_mode.js') }}"></script> -->
     <title>{% block title %}Cyberbro{% endblock title %}</title>
-{% endblock head %}
+{% endblock head -%}
 </head>
 
 <body>
