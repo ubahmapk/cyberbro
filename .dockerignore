@@ -33,3 +33,6 @@ tests
 
 # Ignore CNAME file
 CNAME
+
+# ignore docs/
+docs/

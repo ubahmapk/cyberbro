@@ -1,0 +1,87 @@
+site_name: Cyberbro Documentation
+site_url: https://docs.cyberbro.net
+repo_url: https://github.com/stanfrbd/cyberbro
+repo_name: stanfrbd/cyberbro
+edit_uri: edit/main/docs/
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: custom
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      toggle:
+        icon: material/toggle-switch-off
+        name: Switch to light mode
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.sections
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - toc.follow
+    - content.tabs.link
+    - content.tooltips
+    - content.action.edit
+    - content.code.copy
+extra_css:
+  - stylesheets/extra.css
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Quick Start & Installation: 1.-Quick-start-&-Installation.md
+      - Reload Secrets & Configuration: 2.-Reload-secrets-and-configuration.md
+      - API Usage & Engine Names: 3.-API-usage-and-engine-names.md
+      - Advanced Options for Deployment: 4.-Advanced-options-for-deployment.md
+      - Upgrade Cyberbro: 5.-Upgrade-Cyberbro.md
+  - Integrations:
+      - Cyberbro in KASM Workspaces: 6.-Cyberbro-in-KASM-Workspaces.md
+      - Cyberbro Browser Extension: 7.-Cyberbro-browser-extension.md
+      - Use Cyberbro MCP for LLM: 8.-Use-Cyberbro-MCP-for-LLM.md
+      - Reverse Proxy Configuration (Caddy): Reverse-Proxy-configuration-‐-Caddy.md
+  - Development:
+      - Coding Style: Coding-Style.md
+  - API Keys:
+      - Get AbuseIPDB API Key: Get-AbuseIPDB-API-key.md
+      - Get AlienVault API Key: Get-AlienVault-API-key.md
+      - Get Crowdstrike API Credentials: Get-Crowdstrike-API-Credentials.md
+      - Get Google Safe Browsing API Key: Get-Google-Safe-Browing-API-key.md
+      - Get IPinfo API Key: Get-IPinfo-API-key.md
+      - Get MDE (Microsoft Defender for Endpoint) API Credentials: Get-MDE-(Microsoft-Defender-for-Endpoint)-API-credentials.md
+      - Get MISP API Key: Get-MISP-API-key.md
+      - Get OpenCTI API Key: Get-OpenCTI-API-key.md
+      - Get Shodan API Key: Get-Shodan-API-key.md
+      - Get VirusTotal API Key: Get-VirusTotal-API-key.md
+      - Get WebScout API Key: Get-WebScout-API-key.md
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/stanfrbd/cyberbro
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/cyberbro_cti
+    - icon: fontawesome/brands/mastodon
+      link: https://infosec.exchange/@cyberbro
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: true
+  - footnotes
+  - tables
+  - attr_list
+  - def_list
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed
+  - pymdownx.emoji
+  - pymdownx.tasklist
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.keys
