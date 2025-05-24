@@ -42,7 +42,7 @@ The following directories are excluded from linting:
 
 By following these guidelines, we'll try our best to make good and readable code.
 
-## Pre-Commit Configuration (TODO)
+## Pre-Commit Configuration - Work in Progress
 
 Setting up a pre-commit hook to ensure Ruff checks are applied before committing code is currently on our to-do list.  
 We will provide the necessary `.pre-commit-config.yaml` configuration in the future. Once available, this configuration will help automatically run Ruff on staged files, preventing commits that violate the linting rules.
