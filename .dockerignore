@@ -36,3 +36,6 @@ CNAME
 
 # ignore docs/
 docs/
+
+# Ignore site
+site/
