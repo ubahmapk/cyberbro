@@ -41,7 +41,7 @@
 Inspired by [Cybergordon](https://cybergordon.com/) and [IntelOwl](https://github.com/intelowlproject/IntelOwl).
 
 This project aims to provide a simple and efficient way to check the reputation of your observables using multiple services,
-without having to deploy a **complex** solution.
+without having to deploy a **complex** solution. Read the docs at https://docs.cyberbro.net/
 
 > [!TIP]
 > To build custom reports, use Cyberbro with your favorite **LLM** (Claude, OpenAI gpt-4o...) via **MCP** (Model Context Protocol) \
