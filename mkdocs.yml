@@ -59,8 +59,12 @@ nav:
       - Get Shodan API Key: Get-Shodan-API-key.md
       - Get VirusTotal API Key: Get-VirusTotal-API-key.md
       - Get WebScout API Key: Get-WebScout-API-key.md
-  - Development:
-    - Coding Style: Coding-Style.md
+  - Development & Contributing:
+      - Documentation: Documentation.md
+      - Coding Style: Coding-Style.md
+      - Contributions: Contributions.md
+  - Troubleshooting:
+      - Common Issues: Common-Issues.md
 extra:
   social:
     - icon: fontawesome/brands/github

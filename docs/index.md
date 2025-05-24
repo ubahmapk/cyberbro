@@ -52,7 +52,14 @@
 
 ## 🛠️ Coding & Contribution
 
+- [Documentation](Documentation.md)
 - [Coding Style](Coding-Style.md)
+- [Contributions](Contributions.md)
+
+---
+
+## 🔎 Troubleshooting
+- [Common Issues](Common-Issues.md)
 
 ---
 
