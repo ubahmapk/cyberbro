@@ -54,13 +54,14 @@
 <p>Analysis duration: {{ analysis_results.analysis_duration_string }}</p>
 
     {% if display_mode == "table" or analysis_results.results | length > 1 %}
-        {% include "display_table.html" %}
+        {%- include "display_table.html" -%}
     {% elif analysis_results.results | length == 1 %}
-        {% include "display_cards.html" %}
+        {%- include "display_cards.html" %}
     {% endif %}
-
-</div>
-</div>
+{##
+</div><!-- unknown div1 -->
+</div><!-- unknown div2 -->
+##}
 
 <div class="end-of-cards">
 </div>
