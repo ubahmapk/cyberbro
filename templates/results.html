@@ -58,32 +58,9 @@
     {% elif analysis_results.results | length == 1 %}
         {%- include "display_cards.html" %}
     {% endif %}
-{##
-</div><!-- unknown div1 -->
-</div><!-- unknown div2 -->
-##}
 
 <div class="end-of-cards">
 </div>
-
-    {##
-    $(document).ready(function () {
-        $('#resultsTable').DataTable({
-            // Enable column reordering
-            colReorder: true,
-            // Enable responsive
-            responsive: true,
-            // Disable search
-            searching: false,
-            // Disable paging
-            paging: false,
-            ordering: true,
-            info: false,
-            // show sorting icons in th
-            orderCellsTop: true
-        });
-    });
-    ##}
 
 <script>
     // remove cards-results-container container if empty
