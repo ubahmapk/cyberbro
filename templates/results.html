@@ -20,6 +20,7 @@
 {% endblock head %}
 
 {% block content %}
+{{ super() }}
 
 <h1>{{ self.title() }}</h1>
 
@@ -34,7 +35,7 @@
     <button class="btn" onclick="location.href='/{{ API_PREFIX }}/results/{{ analysis_results.id }}'">Raw</button>
     <button class="btn" onclick="copyAsPlainText()">Copy as Plain Text</button>
     <button class="btn" onclick="copyAsDefanged()">Copy Defanged [.]</button>
-</div>
+</div><!-- form div -->
 
 <script>
     function fetchResults() {
