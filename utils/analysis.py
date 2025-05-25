@@ -329,7 +329,7 @@ def perform_engine_queries(observable, selected_engines, result):
                 observable["value"] = reverse_dns_result["reverse_dns"][0]
 
     if "ipquery" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
-        result["ipquery"] = ipquery.query_ipquery(observable["value"], PROXIES, SSL_VERIFY)
+        result["ipquery"] = ipquery.run_ipquery_analysis(observable["value"], PROXIES, SSL_VERIFY)
 
     if "ipinfo" in selected_engines and observable["type"] in ["IPv4", "IPv6"]:
         result["ipinfo"] = ipinfo.query_ipinfo(observable["value"], secrets.ipinfo, PROXIES, SSL_VERIFY)

@@ -1,71 +1,137 @@
+import json
 import logging
-from typing import Any, Optional
 
 import requests
+from pydantic import BaseModel, ValidationError
 
 logger = logging.getLogger(__name__)
 
 
-def query_ipquery(ip: str, proxies: dict[str, str], ssl_verify: bool = True) -> Optional[dict[str, Any]]:
+class IPQueryError(Exception):
+    pass
+
+
+# Datamodels developed from the IPQuery API documentation at
+# https://ipquery.gitbook.io/ipquery-docs#query-specific-ip-address
+# as of 9 May 2025
+
+
+class IPQueryObservable(BaseModel):
+    ip: str
+    geolocation: str
+    country_code: str
+    country_name: str
+    isp: str
+    asn: str
+    is_vpn: bool = False
+    is_tor: bool = False
+    is_proxy: bool = False
+    risk_score: int
+    link: str | None = None
+
+
+class ISP(BaseModel):
+    asn: str = "Unknown"
+    org: str = "Unknown"
+    isp: str = "Unknown"
+
+
+class Location(BaseModel):
+    country: str = "Unknown"
+    country_code: str = "Unknown"
+    city: str = "Unknown"
+    state: str = "Unknown"
+    zipcode: str = "Unknown"
+    latitude: float | None = None
+    longitude: float | None = None
+    timezone: str = "Unknown"
+    localtime: str = "Unknown"
+
+
+class Risk(BaseModel):
+    is_mobile: bool = False
+    is_vpn: bool = False
+    is_tor: bool = False
+    is_proxy: bool = False
+    is_datacenter: bool = False
+    risk_score: int = 0
+
+
+class IPQueryResponse(BaseModel):
+    ip: str = "Unknown"
+    location: Location
+    isp: ISP
+    risk: Risk
+
+
+def query_ipquery(ip: str, proxies: dict[str, str] | None, ssl_verify: bool = True) -> IPQueryResponse:
     """
     Queries the IP information from the ipquery.io API.
 
     Args:
         ip (str): The IP address to query.
-        proxies (dict): Dictionary containing proxy settings.
+        proxies (dict | None): Dictionary containing proxy settings or None if no proxy is used.
+        ssl_verify (bool): Whether to verify SSL certificates. Default is True.
 
     Returns:
-        dict: A dictionary containing extracted information:
-            {
-                "ip": ...,
-                "geolocation": "city, region",
-                "country_code": ...,
-                "country_name": ...,
-                "isp": ...,
-                "asn": ...,
-                "is_vpn": ...,
-                "is_tor": ...,
-                "is_proxy": ...,
-                "risk_score": ...,
-                "link": ...
-            }
-        None: If an error occurs or 'ip' key isn't in the response.
+        IPQueryResponse object
+
+    Raises:
+        IPQueryError: If there is an error querying the API or validating the response.
     """
+
+    url = f"https://api.ipquery.io/{ip}"
     try:
-        url = f"https://api.ipquery.io/{ip}"
-        response = requests.get(url, proxies=proxies, verify=False, timeout=5)
+        response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
-
-        data = response.json()
-        if "ip" in data:
-            ip_resp = data.get("ip", "Unknown")
-            city = data.get("location", {}).get("city", "Unknown")
-            region = data.get("location", {}).get("state", "Unknown")
-            country_code = data.get("location", {}).get("country_code", "Unknown")
-            country_name = data.get("location", {}).get("country", "Unknown")
-            isp = data.get("isp", {}).get("isp", "Unknown")
-            asn = data.get("isp", {}).get("asn", "Unknown")
-
-            is_vpn = data.get("risk", {}).get("is_vpn", False)
-            is_tor = data.get("risk", {}).get("is_tor", False)
-            is_proxy = data.get("risk", {}).get("is_proxy", False)
-            risk_score = data.get("risk", {}).get("risk_score", "Unknown")
-
-            return {
-                "ip": ip_resp,
-                "geolocation": f"{city}, {region}",
-                "country_code": country_code,
-                "country_name": country_name,
-                "isp": isp,
-                "asn": asn,
-                "is_vpn": is_vpn,
-                "is_tor": is_tor,
-                "is_proxy": is_proxy,
-                "risk_score": risk_score,
-                "link": f"https://api.ipquery.io/{ip_resp}",
-            }
-
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         logger.error("Error querying ipquery for '%s': %s", ip, e, exc_info=True)
+        raise IPQueryError(f"Error retrieving ipquery results for '{ip}'") from e
 
-    return None
+    try:
+        # Validate the response using Pydantic
+        ipquery_response: IPQueryResponse = IPQueryResponse(**response.json())
+    except ValidationError as e:
+        logger.error("Error validating ipquery response for '%s': %s", ip, e, exc_info=True)
+        raise IPQueryError(f"Error validating ipquery response for '{ip}'") from e
+
+    return ipquery_response
+
+
+def build_ipquery_observable(ipquery_response: IPQueryResponse) -> IPQueryObservable:
+    """Parse IPQueryResponse into the custom Observable object"""
+
+    ip_link: str = f"https://api.ipquery.io/{ipquery_response.ip}" if ipquery_response.ip != "Unknown" else "Unknown"
+
+    try:
+        ipquery_observable: IPQueryObservable = IPQueryObservable(
+            ip=ipquery_response.ip,
+            geolocation=f"{ipquery_response.location.city}, {ipquery_response.location.state}",
+            country_code=ipquery_response.location.country_code,
+            country_name=ipquery_response.location.country,
+            isp=ipquery_response.isp.isp,
+            asn=ipquery_response.isp.asn,
+            is_vpn=ipquery_response.risk.is_vpn,
+            is_tor=ipquery_response.risk.is_tor,
+            is_proxy=ipquery_response.risk.is_proxy,
+            risk_score=ipquery_response.risk.risk_score,
+            link=ip_link,
+        )
+    except ValidationError as e:
+        logger.error("Error validating IPQueryObservable: %s", e, exc_info=True)
+        raise IPQueryError("Error validating IPQueryObservable") from e
+
+    return ipquery_observable
+
+
+def run_ipquery_analysis(ip: str, proxies: dict[str, str], ssl_verify: bool = True) -> dict | None:
+    """Perform IPQuery analysis."""
+
+    try:
+        ipquery_response: IPQueryResponse = query_ipquery(ip, proxies, ssl_verify)
+        ipquery_observable: IPQueryObservable = build_ipquery_observable(ipquery_response)
+    except IPQueryError:
+        logger.error("Error querying IPQuery for '%s'", ip, exc_info=True)
+        return None
+
+    return json.loads(ipquery_observable.model_dump_json())
