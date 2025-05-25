@@ -4,13 +4,19 @@
 
 {% block head %}
     {{ super() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.6.6/css/flag-icons.min.css">
 
     <!-- Include jQuery -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script defer src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+    {# Only load the table javascript if a table will be presented #}
+    {%- if display_mode == "table" or analysis_results.results | length > 1 %}
     <!-- Include DataTables JS library -->
-    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script defer src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
     <!-- Include colReorder extension -->
-    <script src="https://cdn.datatables.net/colreorder/1.5.3/js/dataTables.colReorder.min.js"></script>
+    <script defer src="https://cdn.datatables.net/colreorder/1.5.3/js/dataTables.colReorder.min.js"></script>
+    <script defer src="{{ url_for('static', filename='filter_table.js') }}"></script>
+    {% endif -%}
 {% endblock head %}
 
 {% block content %}
