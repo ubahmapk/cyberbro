@@ -6,6 +6,8 @@ import requests
 # We assume these utility functions exist in utils.utils
 from utils.utils import identify_observable_type
 
+logger = logging.getLogger(__name__)
+
 SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "FQDN",
     "IPv4",
@@ -24,9 +26,6 @@ dns_record_types = [
     {"type": "NS", "id": 2},  # Name server
     {"type": "SOA", "id": 6},  # Start of Authority
 ]
-
-logger = logging.getLogger(__name__)
-
 
 def query_google_dns(
     observable: str, observable_type: str, proxies: Optional[dict[str, str]] = None, ssl_verify: bool = True
