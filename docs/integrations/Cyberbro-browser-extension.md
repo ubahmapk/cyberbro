@@ -14,7 +14,7 @@
 !!! info
     If you are using a reverse proxy with Cyberbro, ensure that the CORS headers are properly set and that the certificated is trusted on you computer or verified.  
     Without the correct CORS configuration and certificates trust chain (pretty basic, but you can do hardening), the extension will not function correctly.  
-    See [the example with Caddy](https://docs.cyberbro.net/Reverse-Proxy-configuration-%E2%80%90-Caddy/).
+    See [the example with Caddy](https://docs.cyberbro.net/integrations/Reverse-Proxy-configuration-%E2%80%90-Caddy/).
 
 For localhost:5000 version of Cyberbro (e.g. on your machine with Docker), CORS is already enabled by default in Flask, so no additional configuration is needed.
 

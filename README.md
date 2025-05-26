@@ -139,7 +139,7 @@ cp secrets-sample.json secrets.json
 > To enable it, set `"config_page_enabled":true` in `secrets.json` or use `CONFIG_PAGE_ENABLED=true` as environment variable. \
 > **This is not recommended for public or team use, as it exposes your API keys.**
 
-See [Advanced options for deployment](https://docs.cyberbro.net/4.-Advanced-options-for-deployment) in the docs to get all custom option.
+See [Advanced options for deployment](https://docs.cyberbro.net/quick-start/Advanced-options-for-deployment) in the docs to get all custom option.
 
 # Launch the app
 
@@ -156,7 +156,7 @@ docker compose up # use -d to run in background and use --build to rebuild the i
 
 > Don't forget to edit the `secrets.json` before building the image.
 
-See [Advanced options for deployment](https://docs.cyberbro.net/4.-Advanced-options-for-deployment) in the docs to get all Docker deployment options.
+See [Advanced options for deployment](https://docs.cyberbro.net/quick-start/Advanced-options-for-deployment) in the docs to get all Docker deployment options.
 
 ## The old way
 
@@ -278,7 +278,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 ```
 
 > [!NOTE]
-> The [dedicated docs page](https://docs.cyberbro.net/3.-API-usage-and-engine-names) gives all the names of usable engines.
+> The [dedicated docs page](https://docs.cyberbro.net/quick-start/API-usage-and-engine-names) gives all the names of usable engines.
 
 # API and third-party services
 
@@ -311,7 +311,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 
 > [!NOTE]
 > Any questions? Check the https://docs.cyberbro.net or raise an [issue](https://github.com/stanfrbd/cyberbro/issues/new) \
-> For the advanced config (tuning of `supervisord.conf` before deployment, selection of visible engines, change `/api/` prefix...), check the [dedicated docs page](https://docs.cyberbro.net/4.-Advanced-options-for-deployment).
+> For the advanced config (tuning of `supervisord.conf` before deployment, selection of visible engines, change `/api/` prefix...), check the [dedicated docs page](https://docs.cyberbro.net/quick-start/Advanced-options-for-deployment).
 
 # Special thanks
 

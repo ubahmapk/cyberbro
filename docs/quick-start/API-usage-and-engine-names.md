@@ -74,7 +74,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 ```
 
 ## Note about caching and ignoring cache
-* The API results are cached for 24 hours by default. You can change this by modifying the `api_cache_timeout` parameter in the `secrets.json` file or by setting the corresponding environment variable. Refer to this document for more details: [advanced options](4.-Advanced-options-for-deployment.md#cache-timeout-for-the-api).
+* The API results are cached for 24 hours by default. You can change this by modifying the `api_cache_timeout` parameter in the `secrets.json` file or by setting the corresponding environment variable. Refer to this document for more details: [advanced options](https://docs.cyberbro.net/quick-start/Advanced-options-for-deployment).
 
 * You can bypass caching for a specific request by including `"ignore_cache": true` in the data section of your request. Ignoring the cache will force the system to perform the analysis again. For example:
 
