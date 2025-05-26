@@ -18,6 +18,11 @@ API info for Suspicious Info Report aavailable at https://www.criminalip.io/deve
 """
 
 
+SUPPORTED_OBSERVABLE_TYPES: list[str] = [
+    "IPv4",
+    "IPv6",
+]
+
 class OpenPort(BaseModel):
     port: int | None = None
     is_vulnerability: bool = False

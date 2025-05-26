@@ -6,6 +6,13 @@ import requests
 # We assume these utility functions exist in utils.utils
 from utils.utils import identify_observable_type
 
+SUPPORTED_OBSERVABLE_TYPES: list[str] = [
+    "FQDN",
+    "IPv4",
+    "IPv6",
+    "URL",
+]
+
 # List of DNS record types and their identifiers (filtered for cybersecurity relevance)
 dns_record_types = [
     {"type": "A", "id": 1},  # IPv4 address
