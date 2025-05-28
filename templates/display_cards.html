@@ -16,6 +16,9 @@
         {% if analysis_results.results[0].extension %}
         {% include "engine_layouts/extension_card.html" %}
         {% endif %}
+        {% if analysis_results.results[0].firehol %}
+        {% include "engine_layouts/firehol_card.html" %}
+        {% endif %}
     </div>
 
     <div class="cards-results-container">

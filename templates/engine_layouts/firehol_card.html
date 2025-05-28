@@ -1,0 +1,10 @@
+{% if analysis_results.results[0].firehol and analysis_results.results[0].firehol.firehol == True %}
+<div class="card high-risk" style="background-color: red">
+    <h3>Firehol - FOUND</h3>
+    <p><a href="https://iplists.firehol.org/?ipset=firehol_level3">Firehol Level 3</a></p>
+    {% else %}
+    <div class="card">
+        <h3>Not Found</h3>
+        {% endif %}
+    </div>
+</div>

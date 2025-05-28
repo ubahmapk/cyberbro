@@ -19,6 +19,8 @@ class Secrets:
     crowdstrike_client_id: str = ""
     crowdstrike_client_secret: str = ""
     crowdstrike_falcon_base_url: str = "https://falcon.crowdstrike.com"
+    firehol_url: str = "https://iplists.firehol.org/files/firehol_level3.netset"
+    firehol_cache_timeout: int = 600
     google_safe_browsing: str = ""
     gui_cache_timeout: int = 1800
     gui_enabled_engines: list[str] = field(default_factory=list)

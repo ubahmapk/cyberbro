@@ -9,6 +9,7 @@ from engines import (
     criminalip,
     crowdstrike,
     extension,
+    firehol,
     github,
     google,
     google_dns,
@@ -133,6 +134,9 @@ def perform_engine_queries(observable, selected_engines, result):
         "CHROME_EXTENSION",
     ]:
         result["ioc_one_pdf"] = ioc_one.query_ioc_one_pdf(observable["value"], PROXIES, SSL_VERIFY)
+
+    if "firehol" in selected_engines and observable["type"] in firehol.SUPPORTED_OBSERVABLE_TYPES:
+        result["firehol"] = firehol.run_firehol_analysis(observable["value"], PROXIES, SSL_VERIFY)
 
     if "google" in selected_engines and observable["type"] in [
         "MD5",

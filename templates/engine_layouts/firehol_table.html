@@ -1,0 +1,6 @@
+<td>
+    {% if analysis_results.results[0].firehol and analysis_results.results[0].firehol.firehol == True %} FOUND in
+    Firehol<br />
+    {% else %} Not found<br />
+    {% endif %}
+</td>

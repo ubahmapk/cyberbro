@@ -72,6 +72,10 @@
             <th>Extension</th>
             {% endif %}
 
+            {% if "firehol" in analysis_results.selected_engines %}
+            <th>Firehol</th>
+            {% endif %}
+
             {% if "ipquery" in analysis_results.selected_engines %}
             <th>IPquery</th>
             {% endif %}
@@ -212,6 +216,10 @@
 
             {% if "CHROME_EXTENSION" in analysis_results.results | map(attribute='type') %}
             {% include "engine_layouts/extension_table.html" %}
+            {% endif %}
+
+            {% if "firehol" in analysis_results.selected_engines %}
+            {% include "engine_layouts/firehol_table.html" %}
             {% endif %}
 
             {% if "ipquery" in analysis_results.selected_engines %}
