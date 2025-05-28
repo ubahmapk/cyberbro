@@ -39,3 +39,6 @@ docs/
 
 # Ignore site
 site/
+
+# Ignore site cache
+.cache/

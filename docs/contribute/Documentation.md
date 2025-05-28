@@ -18,7 +18,7 @@ To preview your documentation locally before pushing changes:
 1. Ensure you have Python installed.
 2. Install MkDocs Material:
     ```sh
-    pip install mkdocs-material
+    pip install -r requirements-doc.txt
     ```
 3. Serve the documentation locally:
     ```sh
