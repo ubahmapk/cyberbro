@@ -12,6 +12,7 @@ BASE_DIR: Path = Path.resolve(Path(__file__).parent.parent)
 
 logger = logging.getLogger(__name__)
 
+SUPPORTED_OBSERVABLE_TYPES: list[str] = ["IPv4"]
 
 def get_firehol_config() -> tuple[str, Path, int]:
     secrets: Secrets = get_config()
@@ -39,8 +40,8 @@ def download_firehol_blacklist(
     Explode any CIDR entries in the list
     """
     ip_addresses: list[str] = []
-    for line in response.iter_content(decode_unicode=True):
-        if line.startswith("#") or not line.strip():
+    for line in response.text.splitlines():
+        if line.startswith("#"):
             continue
         if "/" in line:
             net_range: list[str] = [str(host) for host in ipaddress.ip_network(line.strip()).hosts()]
