@@ -24,7 +24,7 @@ To preview your documentation locally before pushing changes:
     ```sh
     mkdocs serve
     ```
-    This will start a local server (usually at http://127.0.0.1:8000/) where you can view your docs.
+    This will start a local server (usually at [http://127.0.0.1:8000/](http://127.0.0.1:8000/)) where you can view your docs.
 
 ## Requirements
 
