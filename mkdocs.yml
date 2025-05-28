@@ -93,7 +93,7 @@ markdown_extensions:
   - pymdownx.keys
 plugins:
   - git-revision-date-localized:
-      enable_creation_date: false
+      enable_creation_date: true
       type: timeago
   - git-committers:
       repository: stanfrbd/cyberbro
