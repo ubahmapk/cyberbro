@@ -98,3 +98,4 @@ plugins:
   - git-committers:
       repository: stanfrbd/cyberbro
       branch: main
+      token: !ENV ["GIT_COMMITTERS_TOKEN"]
