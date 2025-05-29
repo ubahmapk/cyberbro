@@ -7,6 +7,9 @@ theme:
   name: material
   logo: images/cyberbro.svg
   favicon: images/favicon.png
+  font:
+    text: 'Segoe UI, Helvetica, Arial, sans-serif'
+    code: 'Fira Mono, Menlo, Consolas, Monaco, monospace'
   palette:
     - scheme: default
       primary: custom
@@ -95,7 +98,4 @@ plugins:
   - git-revision-date-localized:
       enable_creation_date: true
       type: timeago
-  - git-committers:
-      repository: stanfrbd/cyberbro
-      branch: main
-      token: !ENV ["GIT_COMMITTERS_TOKEN"]
+  - git-authors

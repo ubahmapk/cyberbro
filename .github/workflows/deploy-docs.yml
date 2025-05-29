@@ -5,8 +5,6 @@ on:
       - main
 permissions:
   contents: write
-env:
-  GIT_COMMITTERS_TOKEN: ${{ secrets.GIT_COMMITTERS_TOKEN }}
 jobs:
   deploy:
     runs-on: ubuntu-latest
