@@ -99,5 +99,4 @@ plugins:
       enable_creation_date: true
       type: timeago
   - git-authors:
-      show_email_address: true
-      href: "https://github.com/{name}"
+      show_email_address: false
