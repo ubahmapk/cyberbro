@@ -98,4 +98,6 @@ plugins:
   - git-revision-date-localized:
       enable_creation_date: true
       type: timeago
-  - git-authors
+  - git-authors:
+      show_email_address: true
+      href: "https://github.com/{name}"
