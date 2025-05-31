@@ -2,7 +2,16 @@
 
 {% block title %}Cyberbro - Observable Analysis{% endblock title %}
 
+{%- set placholder_text -%}
+1.2.3.4
+example.com
+d41d8cd98f00b204e9800998ecf8427e
+chrome extension id
+Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fanged data [.] [dot] hxxp, etc.)"
+{%- endset -%}
+
 {% block content %}
+{{ super() }}
 <div id="startForm">
     <h1>{{ self.title() }}</h1>
 
@@ -11,14 +20,9 @@
     {% endif %}
 
     <form id="analyzeForm" method="POST" action="/analyze">
-        <label for="observables">Paste your observables here</label><br /><br />
-        <textarea name="observables" placeholder="1.2.3.4
-example.com
-d41d8cd98f00b204e9800998ecf8427e
-chrome extension id
-Or just IoC (plain text, separated, html, json, csv, log data, garbage data, fanged data [.] [dot] hxxp, etc.)"
-            required></textarea>
-        <br />
+        <label for="observables">Paste your observables here</label><br/><br/>
+        <textarea name="observables" placeholder="{{ placholder_text }}" required></textarea>
+        <br/>
 
         <div>
             <h3 title="Use your mouse to hover over the engine name to see what it does">Select the engines to use</h3>
