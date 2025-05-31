@@ -6,6 +6,11 @@ import requests
 
 logger = logging.getLogger(__name__)
 
+SUPPORTED_OBSERVABLE_TYPES: list[str] = [
+    "Email",
+    "FQDN",
+    "URL",
+]
 
 def query_hudsonrock(
     observable: str,
