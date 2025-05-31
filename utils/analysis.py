@@ -94,18 +94,7 @@ def initialize_result(observable):
     }
 
 
-def perform_engine_queries(observable: dict, selected_engines: list[str], result):
-    # Should this be moved to the front of the list, so following engines can use the results?
-    # 2. Reverse DNS if possible, change observable type to IP if possible
-    if "reverse_dns" in selected_engines and observable["type"] in reverse_dns.SUPPORTED_OBSERVABLE_TYPES:
-        reverse_dns_result = reverse_dns.reverse_dns(observable["value"], observable["type"])
-        result["reverse_dns"] = reverse_dns_result
-        if reverse_dns_result:
-            result["reversed_success"] = True
-            if observable["type"] in ["FQDN", "URL"]:
-                observable["type"] = "IPv4"
-                observable["value"] = reverse_dns_result["reverse_dns"][0]
-
+def perform_engine_queries(observable, selected_engines, result):
     # 1. Check if IP is private
     if observable["type"] in ["IPv4", "IPv6"] and is_bogon(observable["value"]):
         observable["type"] = "BOGON"
@@ -190,10 +179,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
             secrets.misp_url,
         )
 
-    if (
-        "google_safe_browsing" in selected_engines
-        and observable["type"] in google_safe_browsing.SUPPORTED_OBSERVABLE_TYPES
-    ):
+    if "google_safe_browsing" in selected_engines and observable["type"] in google_safe_browsing.SUPPORTED_OBSERVABLE_TYPES:
         result["google_safe_browsing"] = google_safe_browsing.query_google_safe_browsing(
             observable["value"],
             observable["type"],
@@ -218,6 +204,23 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
     if "google_dns" in selected_engines and observable["type"] in google_dns.SUPPORTED_OBSERVABLE_TYPES:
         result["google_dns"] = google_dns.query_google_dns(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
 
+    """
+    2. Reverse DNS if possible, change observable type to IP if possible.
+    This is done to allow further enrichment with engines that require an only an IP address.
+    The other engines at the top use the original observable type and value.
+    e.g. IPquery only supports IPv4 and IPv6, so if the observable is a FQDN or URL,
+    it will not be enriched by IPquery, but if it is a reverse DNS result, it will be enriched.
+    This is a case of auto-pivoting, where the observable type is changed to IP.
+    """
+    if "reverse_dns" in selected_engines and observable["type"] in reverse_dns.SUPPORTED_OBSERVABLE_TYPES:
+        reverse_dns_result = reverse_dns.reverse_dns(observable["value"], observable["type"])
+        result["reverse_dns"] = reverse_dns_result
+        if reverse_dns_result:
+            result["reversed_success"] = True
+            if observable["type"] in ["FQDN", "URL"]:
+                observable["type"] = "IPv4"
+                observable["value"] = reverse_dns_result["reverse_dns"][0]
+
     if "ipquery" in selected_engines and observable["type"] in ipquery.SUPPORTED_OBSERVABLE_TYPES:
         result["ipquery"] = ipquery.query_ipquery(observable["value"], PROXIES, SSL_VERIFY)
 
@@ -238,10 +241,11 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
 
     if "abusix" in selected_engines and observable["type"] in abusix.SUPPORTED_OBSERVABLE_TYPES:
         result["abusix"] = abusix.query_abusix(observable["value"])
-
+    
     """
-    I just realized that the extension engine is not in the selected_engines list.
-    Is there a reason for that?
+    The chrome_extension engine retrieves the name of a Chrome or Edge extension
+    using its ID. It is a default behavior for the CHROME_EXTENSION type, so the user doesn't need to select it explicitly in the engines list.
+    The enrichment for this kind of observable is performed like the others engines at the top, the name is an exception.
     """
     if observable["type"] == "CHROME_EXTENSION":
         result["extension"] = chrome_extension.get_name_from_id(observable["value"], PROXIES, SSL_VERIFY)
