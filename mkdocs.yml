@@ -106,3 +106,7 @@ plugins:
   - git-authors:
       show_email_address: false
       enabled_on_serve: false
+  - termynal:
+      prompt_literal_start:
+        - "$"
+        - ">"
