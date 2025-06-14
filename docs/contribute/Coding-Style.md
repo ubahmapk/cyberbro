@@ -1,5 +1,5 @@
 # Coding Style Policy
-This document outlines the coding style guidelines for this project. 
+This document outlines the coding style guidelines for this project.
 Adhering to these standards ensures consistency and readability across the codebase.
 
 ## General Formatting
@@ -42,13 +42,20 @@ The following directories are excluded from linting:
 
 By following these guidelines, we'll try our best to make good and readable code.
 
-## Pre-Commit Configuration - Work in Progress
+## Pre-Commit Configuration
 
-Setting up a pre-commit hook to ensure Ruff checks are applied before committing code is currently on our to-do list.  
-We will provide the necessary `.pre-commit-config.yaml` configuration in the future. Once available, this configuration will help automatically run Ruff on staged files, preventing commits that violate the linting rules.
+To enable automatic Ruff checks before each commit, first install the development dependencies:
+
+```sh
+pip install -r requirements-dev.txt
+```
+
+Then, set up the pre-commit hook (`.pre-commit-config.yaml` - that will use `.ruff.toml`) by running:
+
+```sh
+pre-commit install
+```
+
+Run these commands from the root of the repository. This will ensure that Ruff and other configured checks are run automatically on staged files before each commit.
 
 To try: https://github.com/astral-sh/ruff-pre-commit
-
-
-
-
