@@ -111,10 +111,10 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         result["ioc_one_pdf"] = ioc_one.query_ioc_one_pdf(observable["value"], PROXIES, SSL_VERIFY)
 
     if "google" in selected_engines and observable["type"] in google.SUPPORTED_OBSERVABLE_TYPES:
-        result["google"] = google.query_google(observable["value"], PROXIES, SSL_VERIFY)
+        result["google"] = google.run_engine(observable["value"], PROXIES, SSL_VERIFY)
 
     if "github" in selected_engines and observable["type"] in github.SUPPORTED_OBSERVABLE_TYPES:
-        result["github"] = github.query_github(observable["value"], PROXIES, SSL_VERIFY)
+        result["github"] = github.run_engine(observable["value"], PROXIES, SSL_VERIFY)
 
     if "rdap" in selected_engines and observable["type"] in rdap.SUPPORTED_OBSERVABLE_TYPES:
         result["rdap"] = rdap.query_openrdap(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
@@ -233,7 +233,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         result["ipinfo"] = ipinfo.query_ipinfo(observable["value"], secrets.ipinfo, PROXIES, SSL_VERIFY)
 
     if "abuseipdb" in selected_engines and observable["type"] in abuseipdb.SUPPORTED_OBSERVABLE_TYPES:
-        result["abuseipdb"] = abuseipdb.query_abuseipdb(observable["value"], secrets.abuseipdb, PROXIES, SSL_VERIFY)
+        result["abuseipdb"] = abuseipdb.run_engine(observable["value"], secrets.abuseipdb, PROXIES, SSL_VERIFY)
 
     if "spur" in selected_engines and observable["type"] in spur_us_free.SUPPORTED_OBSERVABLE_TYPES:
         result["spur"] = spur_us_free.get_spur(observable["value"], PROXIES, SSL_VERIFY)
@@ -245,12 +245,15 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         result["shodan"] = shodan.query_shodan(observable["value"], secrets.shodan, PROXIES, SSL_VERIFY)
 
     if "abusix" in selected_engines and observable["type"] in abusix.SUPPORTED_OBSERVABLE_TYPES:
-        result["abusix"] = abusix.query_abusix(observable["value"])
-    
+        result["abusix"] = abusix.run_engine(observable["value"])
+
     """
     The chrome_extension engine retrieves the name of a Chrome or Edge extension
-    using its ID. It is a default behavior for the CHROME_EXTENSION type, so the user doesn't need to select it explicitly in the engines list.
-    The enrichment for this kind of observable is performed like the others engines at the top, the name is an exception.
+    using its ID. It is a default behavior for the CHROME_EXTENSION type, so the user doesn't need to select it
+    explicitly in the engines list.
+
+    The enrichment for this kind of observable is performed like the others engines at the top,
+    the name is an exception.
     """
     if observable["type"] == "CHROME_EXTENSION":
         result["extension"] = chrome_extension.get_name_from_id(observable["value"], PROXIES, SSL_VERIFY)

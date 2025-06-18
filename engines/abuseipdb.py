@@ -10,9 +10,8 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "IPv6",
 ]
 
-def query_abuseipdb(
-    ip: str, api_key: str, proxies: Optional[dict[str, str]], ssl_verify: bool = True
-) -> Optional[dict[str, Any]]:
+
+def run_engine(ip: str, api_key: str, proxies: dict[str, str] | None, ssl_verify: bool = True) -> dict | None:
     """
     Queries the AbuseIPDB API for information about a given IP address.
 
