@@ -68,7 +68,7 @@ API_PREFIX: str = secrets.api_prefix
 app.config["CONFIG_PAGE_ENABLED"] = secrets.config_page_enabled
 
 # Define GUI_ENABLED_ENGINES
-GUI_ENABLED_ENGINES: list = secrets.gui_enabled_engines
+GUI_ENABLED_ENGINES: list[str] = secrets.gui_enabled_engines
 
 # Update the database URI to use the data directory
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DATA_DIR / 'results.db'}"
@@ -137,8 +137,7 @@ def get_latest_version_from_updated_cache_file(cache_file: Path) -> str:
     try:
         response = requests.get(url, proxies=PROXIES, verify=SSL_VERIFY, timeout=5)
         response.raise_for_status()
-        latest_release: dict = response.json()
-        latest_version = latest_release.get("tag_name", "")
+        latest_version: str = response.json().get("tag_name", "")
     except requests.exceptions.RequestException as e:
         logger.error(f"Error fetching latest version: {e}")
         return ""
@@ -166,7 +165,7 @@ def check_for_new_version(current_version: str) -> bool:
     try:
         latest_version: str = get_latest_version_from_cache_file(cache_file)
     except InvalidCachefileError:
-        latest_version: str = get_latest_version_from_updated_cache_file(cache_file)
+        latest_version = get_latest_version_from_updated_cache_file(cache_file)
 
     return latest_version != current_version
 
