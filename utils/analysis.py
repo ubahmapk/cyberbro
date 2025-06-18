@@ -2,6 +2,8 @@ import queue
 import threading
 import time
 
+import flask
+
 from engines import (
     abuseipdb,
     abusix,
@@ -43,12 +45,12 @@ PROXIES: dict[str, str] = {"http": secrets.proxy_url, "https": secrets.proxy_url
 SSL_VERIFY: bool = secrets.ssl_verify
 
 
-def perform_analysis(app, observables, selected_engines, analysis_id):
+def perform_analysis(app: flask.Flask, observables: list[dict], selected_engines: list[str], analysis_id: str) -> None:
     with app.app_context():
-        start_time = time.time()
+        start_time: float = time.time()
 
         # Store analysis metadata in the database
-        analysis_result = AnalysisResult(
+        analysis_result: AnalysisResult = AnalysisResult(
             id=analysis_id,
             results=[],
             start_time=start_time,
@@ -62,8 +64,8 @@ def perform_analysis(app, observables, selected_engines, analysis_id):
         )
         save_analysis_result(analysis_result)
 
-        result_queue = queue.Queue()
-        threads = [
+        result_queue: queue.Queue = queue.Queue()
+        threads: list[threading.Thread] = [
             threading.Thread(
                 target=analyze_observable,
                 args=(observable, index, selected_engines, result_queue),
@@ -80,13 +82,13 @@ def perform_analysis(app, observables, selected_engines, analysis_id):
         update_analysis_metadata(analysis_id, start_time, selected_engines, results)
 
 
-def analyze_observable(observable, index, selected_engines, result_queue):
-    result = initialize_result(observable)
+def analyze_observable(observable: dict, index: int, selected_engines: list[str], result_queue: queue.Queue) -> None:
+    result: dict[str, str | bool] = initialize_result(observable)
     result = perform_engine_queries(observable, selected_engines, result)
     result_queue.put((index, result))
 
 
-def initialize_result(observable):
+def initialize_result(observable: dict) -> dict[str, str | bool]:
     return {
         "observable": observable["value"],
         "type": observable["type"],
@@ -94,7 +96,7 @@ def initialize_result(observable):
     }
 
 
-def perform_engine_queries(observable, selected_engines, result):
+def perform_engine_queries(observable: dict, selected_engines: list[str], result: dict) -> dict:
     # 1. Check if IP is private
     if observable["type"] in ["IPv4", "IPv6"] and is_bogon(observable["value"]):
         observable["type"] = "BOGON"
@@ -179,7 +181,10 @@ def perform_engine_queries(observable, selected_engines, result):
             secrets.misp_url,
         )
 
-    if "google_safe_browsing" in selected_engines and observable["type"] in google_safe_browsing.SUPPORTED_OBSERVABLE_TYPES:
+    if (
+        "google_safe_browsing" in selected_engines
+        and observable["type"] in google_safe_browsing.SUPPORTED_OBSERVABLE_TYPES
+    ):
         result["google_safe_browsing"] = google_safe_browsing.query_google_safe_browsing(
             observable["value"],
             observable["type"],
@@ -254,7 +259,7 @@ def perform_engine_queries(observable, selected_engines, result):
     return result
 
 
-def collect_results_from_queue(result_queue, num_observables):
+def collect_results_from_queue(result_queue: queue.Queue, num_observables: int) -> list:
     results = [None] * num_observables
     while not result_queue.empty():
         index, result = result_queue.get()
@@ -262,8 +267,8 @@ def collect_results_from_queue(result_queue, num_observables):
     return results
 
 
-def check_analysis_in_progress(analysis_id):
-    analysis_result = get_analysis_result(analysis_id)
+def check_analysis_in_progress(analysis_id: str) -> bool:
+    analysis_result: AnalysisResult | None = get_analysis_result(analysis_id)
     return analysis_result.in_progress if analysis_result else False
 
 
