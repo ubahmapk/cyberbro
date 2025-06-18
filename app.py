@@ -315,6 +315,15 @@ def about():
     return render_template("about.html", version=app.config["VERSION"])
 
 
+@app.route("/engines")
+def engines():
+    """Return a list of available engines and their capabilities."""
+    from utils.list_engines import list_engines
+
+    engines = list_engines()
+    return jsonify(engines)
+
+
 @app.route("/config")
 def config():
     """Render the config page."""
