@@ -6,7 +6,7 @@ import tldextract
 
 # List of valid TLDs that can lead to false positives
 # Edit this list to add more invalid TLDs or in case of false positives
-INVALID_TLD = [
+INVALID_TLD: list[str] = [
     "doc",
     "xls",
     "xlsb",
@@ -96,9 +96,9 @@ INVALID_TLD = [
 ]
 
 
-def identify_observable_type(observable):
+def identify_observable_type(observable: str) -> str:
     """testing the observable against a set of patterns to identify its type"""
-    patterns = {
+    patterns: dict[str, str] = {
         "IPv4": r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$",
         "IPv6": r"^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$",
         "MD5": r"^[a-fA-F0-9]{32}$",
@@ -116,9 +116,9 @@ def identify_observable_type(observable):
     return "Unknown"
 
 
-def extract_observables(text):
+def extract_observables(text: str) -> list[dict]:
     """Extract observables from text, focusing on full URLs with http or https."""
-    patterns = {
+    patterns: dict[str, str] = {
         "IPv4": r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b",
         "MD5": r"\b[a-fA-F0-9]{32}\b",
         "SHA1": r"\b[a-fA-F0-9]{40}\b",
@@ -131,15 +131,15 @@ def extract_observables(text):
         "CHROME_EXTENSION": r"\b[a-z]{32}\b",
     }
 
-    results = []
-    seen = set()
+    results: list[dict] = []
+    seen: set = set()
 
     # Extract URLs first to prevent FQDN overlap
-    url_matches = re.findall(patterns["URL"], text)
+    url_matches: list[str] = re.findall(patterns["URL"], text)
 
     # Extract other types of observables from remaining text
     for type_name, pattern in patterns.items():
-        matches = re.findall(pattern, text)
+        matches: list[str] = re.findall(pattern, text)
         for match in matches:
             # Skip FQDNs if they are already extracted as URLs
             if type_name == "FQDN" and match in str(url_matches):
@@ -173,8 +173,8 @@ def extract_observables(text):
     )
 
     # Find every IPv6 address in the text
-    ipv6_matches = ipv6_regex.findall(text)
-    ipv6_addresses = [match[0] for match in ipv6_matches]
+    ipv6_matches: list[str] = ipv6_regex.findall(text)
+    ipv6_addresses: list[str] = [match[0] for match in ipv6_matches]
 
     # Add IPv6 at the end
     for ipv6 in ipv6_addresses:
@@ -183,10 +183,10 @@ def extract_observables(text):
             results.append({"value": ipv6, "type": "IPv6"})
 
     # filter invalid TLDs using tldextract and the list of invalid TLDs
-    filtered_results = []
+    filtered_results: list[dict] = []
     for result in results:
         if result["type"] == "FQDN":
-            tld = result["value"].split(".")[-1]
+            tld: str = result["value"].split(".")[-1]
             extracted = tldextract.extract(result["value"])
             if tld in INVALID_TLD or not extracted.suffix:
                 continue
@@ -195,7 +195,7 @@ def extract_observables(text):
     return filtered_results
 
 
-def is_really_ipv6(value):
+def is_really_ipv6(value: str) -> bool:
     try:
         socket.inet_pton(socket.AF_INET6, value)
         return True
@@ -203,5 +203,5 @@ def is_really_ipv6(value):
         return False
 
 
-def is_bogon(ip):
+def is_bogon(ip: str) -> bool:
     return ipaddress.ip_address(ip).is_private

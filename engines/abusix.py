@@ -10,7 +10,9 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "IPv6",
 ]
 
-def query_abusix(observable: str) -> Optional[dict[str, str]]:
+
+
+def run_engine(observable: str) -> Optional[dict[str, str]]:
     """
     Queries the Abusix service for contact information related to the given observable.
 

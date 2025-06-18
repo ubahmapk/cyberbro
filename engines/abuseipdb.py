@@ -1,5 +1,4 @@
 import logging
-from typing import Any, Optional
 
 import requests
 
@@ -36,7 +35,7 @@ def run_engine(ip: str, api_key: str, proxies: dict[str, str] | None, ssl_verify
     params = {"ipAddress": ip}
 
     try:
-        response = requests.get(
+        response: requests.Response = requests.get(
             url,
             headers=headers,
             params=params,
@@ -60,8 +59,6 @@ def run_engine(ip: str, api_key: str, proxies: dict[str, str] | None, ssl_verify
 
     except requests.exceptions.RequestException as req_err:
         logger.error("Network error while querying AbuseIPDB: %s", req_err, exc_info=True)
-    except ValueError as json_err:
-        logger.error("JSON parsing error while querying AbuseIPDB: %s", json_err, exc_info=True)
     except Exception as e:
         logger.error("Unexpected error while querying AbuseIPDB: %s", e, exc_info=True)
 
