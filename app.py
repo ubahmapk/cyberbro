@@ -7,6 +7,7 @@ import uuid
 from dataclasses import asdict
 from functools import lru_cache
 from pathlib import Path
+from typing import NamedTuple
 
 import ioc_fanger
 import requests
@@ -105,22 +106,24 @@ def get_latest_version_from_cache_file(cache_file: Path) -> str:
     if not cache_file.exists():
         raise InvalidCachefileError("Cache file does not exist.")
 
+    class CacheData(NamedTuple):
+        last_checked: float
+        latest_version: str = "unknown"
+
     try:
         with cache_file.open() as f:
-            try:
-                cache_data = json.load(f)
-            except json.JSONDecodeError as e:
-                print("Cache file is corrupted, fetching latest version.")
-                logger.warning("Cache file is corrupted, fetching latest version.")
-                raise InvalidCachefileError("Cache file is corrupted.") from e
-
-            last_checked = cache_data["last_checked"]
-            if time.time() - last_checked > 86400:
-                raise InvalidCachefileError("Cache file is too old.")
-    except (OSError, KeyError) as e:
+            cache_data: CacheData = CacheData(**json.load(f))
+    except json.JSONDecodeError as e:
+        print("Cache file is corrupted, fetching latest version.")
+        logger.warning("Cache file is corrupted, fetching latest version.")
+        raise InvalidCachefileError("Cache file is corrupted.") from e
+    except (OSError, TypeError) as e:
         raise InvalidCachefileError("Cache file is not readable.") from e
 
-    return cache_data.get("latest_version", "")
+    if time.time() - cache_data.last_checked > 86400:
+        raise InvalidCachefileError("Cache file is too old.")
+
+    return cache_data.latest_version
 
 
 def get_latest_version_from_updated_cache_file(cache_file: Path) -> str:
