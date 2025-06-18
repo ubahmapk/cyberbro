@@ -28,6 +28,7 @@ DESCRIPTION: str = "Checks CriminalIP for IP, reversed obtained IP for a given d
 COST: str = "Free, with paid upgrades available"
 API_KEY_REQUIRED: bool = True
 
+
 class OpenPort(BaseModel):
     port: int | None = None
     is_vulnerability: bool = False

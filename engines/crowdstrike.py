@@ -33,6 +33,7 @@ def map_observable_type(observable_type: str) -> str | None:
         return observable_type.lower()
     if observable_type in ["FQDN", "URL"]:
         return "domain"
+
     return None
 
 

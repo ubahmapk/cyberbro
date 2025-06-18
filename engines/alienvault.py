@@ -22,6 +22,7 @@ DESCRIPTION: str = "Checks Alienvault for IP, domain, URL, hash"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
 
+
 def query_alienvault(
     observable: str,
     observable_type: str,
