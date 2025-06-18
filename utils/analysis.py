@@ -78,8 +78,8 @@ def perform_analysis(app: flask.Flask, observables: list[dict], selected_engines
         for thread in threads:
             thread.join()
 
-        results = collect_results_from_queue(result_queue, len(observables))
-        update_analysis_metadata(analysis_id, start_time, selected_engines, results)
+        results: list = collect_results_from_queue(result_queue, len(observables))
+        update_analysis_metadata(analysis_id, start_time, results)
 
 
 def analyze_observable(observable: dict, index: int, selected_engines: list[str], result_queue: queue.Queue) -> None:
@@ -272,8 +272,8 @@ def check_analysis_in_progress(analysis_id: str) -> bool:
     return analysis_result.in_progress if analysis_result else False
 
 
-def update_analysis_metadata(analysis_id, start_time, selected_engines, results):
-    analysis_result = get_analysis_result(analysis_id)
+def update_analysis_metadata(analysis_id: str, start_time: float, results: dict) -> None:
+    analysis_result: AnalysisResult | None = get_analysis_result(analysis_id)
     if analysis_result:
         end_time = time.time()
         analysis_result.end_time = end_time
