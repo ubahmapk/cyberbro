@@ -10,6 +10,12 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "IPv6",
 ]
 
+NAME: str = "abusix"
+LABEL: str = "Abusix"
+SUPPORTS: list[str] = ["abuse", "IP"]
+DESCRIPTION: str = "Checks abuse contact with Abusix for IP, reversed obtained IP for a given domain/URL"
+COST: str = "Free"
+API_KEY_REQUIRED: bool = False
 
 
 def run_engine(observable: str) -> Optional[dict[str, str]]:

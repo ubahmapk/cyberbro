@@ -16,6 +16,13 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "URL",
 ]
 
+NAME: str = "github"
+LABEL: str = "Github"
+SUPPORTS: list[str] = ["domain", "URL", "IP", "hash", "chrome_extension_id", "edge_extension_id"]
+DESCRIPTION: str = "Get Github grep.app API search results for all types of observable"
+COST: str = "Free"
+API_KEY_REQUIRED: bool = False
+
 
 def run_engine(observable: str, proxies: dict[str, str], ssl_verify: bool = True) -> Optional[dict[str, Any]]:
     """

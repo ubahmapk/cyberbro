@@ -21,6 +21,12 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "IPv4",
     "IPv6",
 ]
+NAME: str = "criminalip"
+LABEL: str = "Criminal IP"
+SUPPORTS: list[str] = ["IP", "risk", "VPN", "proxy"]
+DESCRIPTION: str = "Checks CriminalIP for IP, reversed obtained IP for a given domain / URL"
+COST: str = "Free, with paid upgrades available"
+API_KEY_REQUIRED: bool = True
 
 class OpenPort(BaseModel):
     port: int | None = None

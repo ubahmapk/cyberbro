@@ -15,6 +15,13 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "URL",
 ]
 
+NAME: str = "google_dns"
+LABEL: str = "Google common DNS records"
+SUPPORTS: list[str] = ["IP", "domain", "URL"]
+DESCRIPTION: str = "Checks Google common DNS records (A, AAAA, CNAME, NS, MX, TXT, PTR) for IP, domain, URL"
+COST: str = "Free"
+API_KEY_REQUIRED: bool = False
+
 # List of DNS record types and their identifiers (filtered for cybersecurity relevance)
 dns_record_types = [
     {"type": "A", "id": 1},  # IPv4 address

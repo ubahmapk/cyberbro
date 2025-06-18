@@ -15,6 +15,12 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "SHA256",
     "URL",
 ]
+NAME: str = "alienvault"
+LABEL: str = "Alientvault"
+SUPPORTS: list[str] = ["hash", "IP", "domain", "url", "risk"]
+DESCRIPTION: str = "Checks Alienvault for IP, domain, URL, hash"
+COST: str = "Free"
+API_KEY_REQUIRED: bool = True
 
 def query_alienvault(
     observable: str,

@@ -9,6 +9,13 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "IPv6",
 ]
 
+NAME: str = "abuseipdb"
+LABEL: str = "AbuseIPDB"
+SUPPORTS: list[str] = ["risk", "IP"]
+DESCRIPTION: str = "Checks AbuseIPDB for IP, reversed obtained IP for a given domain / URL"
+COST: str = "Free"
+API_KEY_REQUIRED: bool = False
+
 
 def run_engine(ip: str, api_key: str, proxies: dict[str, str] | None, ssl_verify: bool = True) -> dict | None:
     """

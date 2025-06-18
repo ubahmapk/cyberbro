@@ -17,6 +17,13 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "URL",
 ]
 
+NAME: str = "crowdstrike"
+LABEL: str = "CrowdStrike"
+SUPPORTS: list[str] = ["hash", "IP", "domain", "URL"]
+DESCRIPTION: str = "Checks CrowdStrike EDR for IP, domain, URL, hash using Falcon API"
+COST: str = "Paid"
+API_KEY_REQUIRED: bool = True
+
 
 def map_observable_type(observable_type: str) -> str | None:
     if observable_type in ["MD5", "SHA256", "SHA1"] or observable_type in [
