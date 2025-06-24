@@ -33,11 +33,6 @@ def query_crtsh(
               }
         None: If an error occurs.
     """
-    query_fields = {
-        "URL": "page.domain",
-        "FQDN": "page.domain"
-    }
-    query_field = query_fields.get(observable_type, "page.domain")
 
     try:
         # If observable is a URL, extract domain
