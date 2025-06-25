@@ -10,6 +10,7 @@ from engines import (
     alienvault,
     chrome_extension,
     criminalip,
+    crtsh,
     crowdstrike,
     github,
     google,
@@ -103,6 +104,9 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
 
     if "urlscan" in selected_engines and observable["type"] in urlscan.SUPPORTED_OBSERVABLE_TYPES:
         result["urlscan"] = urlscan.query_urlscan(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
+
+    if "crtsh" in selected_engines and observable["type"] in crtsh.SUPPORTED_OBSERVABLE_TYPES:
+        result["crtsh"] = crtsh.query_crtsh(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
 
     if "ioc_one_html" in selected_engines and observable["type"] in ioc_one.SUPPORTED_OBSERVABLE_TYPES:
         result["ioc_one_html"] = ioc_one.query_ioc_one_html(observable["value"], PROXIES, SSL_VERIFY)

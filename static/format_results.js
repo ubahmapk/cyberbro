@@ -128,6 +128,12 @@ function formatResults(data) {
                 plainText += `  - ${domain.domain} (${domain.count})\n`;
             });
         }
+        if (result.crtsh && result.crtsh.scan_count > 0) {
+            plainText += `crt.sh: Scan Count: ${result.urlscan.scan_count}\n`;
+            result.crtsh.top_domains.forEach(domain => {
+                plainText += `  - ${domain.domain} (${domain.count})\n`;
+            });
+        }
         if (result.opencti && result.opencti.global_count > 0) {
             plainText += `OpenCTI:\n`;
             plainText += `  - Global Count: ${result.opencti.global_count}\n`;
@@ -272,6 +278,16 @@ function formatResults(data) {
                 if (result.crowdstrike.vulnerabilities.length > 0) {
                     plainText += `  - Vulnerabilities: ${result.crowdstrike.vulnerabilities.join(', ')}\n`;
                 }
+            }
+        }
+
+        if (result.crtsh && result.crtsh.top_domains && result.crtsh.top_domains.length > 0) {
+            plainText += `crt.sh:\n`;
+            result.crtsh.top_domains.forEach(domain => {
+                plainText += `  - ${domain.domain} (${domain.count})\n`;
+            });
+            if (result.crtsh.link) {
+                plainText += `  - Link: ${result.crtsh.link}\n`;
             }
         }
         plainText += '\n';
