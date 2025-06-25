@@ -10,6 +10,13 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "CHROME_EXTENSION",
 ]
 
+NAME: str = "chrome_extension"
+LABEL: str = "Chrome Extension"
+SUPPORTS: list[str] = ["hash"]
+DESCRIPTION: str = "Fetch the name of a Chrome or Edge extension using its ID"
+COST: str = "Free"
+API_KEY_REQUIRED: bool = False
+
 
 def get_name_from_id(extension_id: str, proxies: dict[str, str], ssl_verify: bool = True) -> Optional[dict[str, str]]:
     """
