@@ -12,6 +12,12 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "URL",
 ]
 
+NAME: str = "google_safe_browsing"
+LABEL: str = "Google Safe Browsing"
+SUPPORTS: list[str] = ["IP", "domain", "URL"]
+DESCRIPTION: str = "Checks Google Safe Browsing API to check if the given observable is associated with any threats."
+COST: str = "Free"
+API_KEY_REQUIRED: bool = False
 
 def query_google_safe_browsing(
     observable: str,
