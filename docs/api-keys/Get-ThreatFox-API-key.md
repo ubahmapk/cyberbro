@@ -1,5 +1,3 @@
-# How to Get a ThreatFox API Key
-
 To use the ThreatFox API, you need to generate an Auth Key. Follow these steps:
 
 1. Go to [https://auth.abuse.ch/](https://auth.abuse.ch/).
