@@ -9,6 +9,8 @@ To use the ThreatFox API, you need to generate an Auth Key. Follow these steps:
 5. Click **Generate Auth Key**.
 6. Copy and securely store your new API key.
 
+You can fill the `secrets.json` accordingly with the variable `"threatfox"` or the environment variable `THREATFOX` in your custom docker-compose file.
+
 ## Terms of Service
 
 By using ThreatFox and its services, you agree to the following:
