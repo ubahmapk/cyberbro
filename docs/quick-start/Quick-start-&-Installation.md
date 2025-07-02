@@ -2,7 +2,7 @@
 
 !!! tip
     If you are lazy, you need Docker.  
-    Do a `git clone` ; copy `secrets-sample.json` to `secrets.json` ; `docker compose up` then go to `localhost:5000`.
+    Do a `git clone` ; copy `secrets-sample.json` to `secrets.json` ; `docker compose up` then go to `localhost:5000`.  
     Yep, that's it!
 
 <!-- termynal -->
