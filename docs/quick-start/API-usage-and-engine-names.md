@@ -196,7 +196,7 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
 ---
 
 !!! tip  
-    Always check the analysis status before retrieving results to ensure the analysis is complete.  
+    Always check the analysis status before retrieving results to ensure the analysis is complete.
     For more advanced usage, such as bypassing cache or customizing engine selection, refer to the sections below.
 
 
@@ -219,7 +219,7 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
     ```
 
 === "Python"
-    
+
     ```python title="Request with Cache Ignored"
     import requests
     import json
@@ -277,13 +277,13 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
 **Explaination**: Checks abuse contact with Abusix for IP, reversed obtained IP for a given domain/URL, free, no API key
 
 ### Alienvault
-**Name**: `alienvault`   
+**Name**: `alienvault`  
 **Supports**: IP, free API key required  
 **Explaination**: Checks Alienvault for IP, domain, URL, hash, free API key required
 
 ### AbuseIPDB
 **Name**: `abuseipdb`  
-**Supports**: risk  
+**Supports**: IP, free API key required  
 **Explaination**: Checks AbuseIPDB for IP, reversed obtained IP for a given domain/URL, free API key required
 
 ### CrowdStrike
@@ -301,9 +301,9 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
 **Supports**: domain, URL, free_no_key  
 **Explaination**: Checks crt.sh for known subdomain names based on TLS certificates for a given domain / URL, free, no API key
 
-### Github
+### Github  
 **Name**: `github`  
-**Supports**: domain, URL, IP, hash, free_no_key, scraping  
+**Supports**: domain, URL, IP, hash, free_no_key, scraping
 **Explaination**: Get Github grep.app API search results for all types of observable, free, no API key
 
 ### Google
@@ -347,7 +347,7 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
 **Explaination**: Checks IPquery for IP, reversed obtained IP for a given domain/URL, free, no API key
 
 ### Microsoft Defender for Endpoint
-**Name**: `mde`    
+**Name**: `mde`  
 **Supports**: hash, IP, domain, URL  
 **Explaination**: Checks Microsoft Defender for Endpoint, paid API info on Azure required
 
@@ -357,7 +357,7 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
 **Explaination**: Checks MISP for IP, domain, URL, hash, free API key required
 
 ### OpenCTI
-**Name**: `opencti`  
+**Name**: `opencti` 
 **Supports**: domain, URL, IP, hash  
 **Explaination**: Searches OpenCTI results for all types of observable, API key required
 
@@ -388,8 +388,8 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
 
 ### ThreatFox
 **Name**: `threatfox`  
-**Supports**: IP, domain, URL, free_no_key  
-**Explaination**: Checks ThreatFox by Abuse.ch for IP, domains, URL, free, no API key
+**Supports**: IP, domain, URL, free  
+**Explaination**: Checks ThreatFox by Abuse.ch for IP, domains, URL, free API key required
 
 ### URLscan
 **Name**: `urlscan`  
@@ -397,7 +397,7 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
 **Explaination**: Checks URLscan for all types of observable, free, no API key
 
 ### VirusTotal
-**Name**: `virustotal`   
+**Name**: `virustotal`  
 **Supports**: hash, risk, IP, domain, URL  
 **Explaination**: Checks VirusTotal for IP, domain, URL, hash, free API key required
 

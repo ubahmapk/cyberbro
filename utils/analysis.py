@@ -10,8 +10,8 @@ from engines import (
     alienvault,
     chrome_extension,
     criminalip,
-    crtsh,
     crowdstrike,
+    crtsh,
     github,
     google,
     google_dns,
@@ -155,7 +155,9 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         )
 
     if "threatfox" in selected_engines and observable["type"] in threatfox.SUPPORTED_OBSERVABLE_TYPES:
-        result["threatfox"] = threatfox.query_threatfox(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
+        result["threatfox"] = threatfox.query_threatfox(
+            observable["value"], observable["type"], secrets.threatfox, PROXIES, SSL_VERIFY
+        )
 
     if "virustotal" in selected_engines and observable["type"] in virustotal.SUPPORTED_OBSERVABLE_TYPES:
         result["virustotal"] = virustotal.query_virustotal(

@@ -20,6 +20,7 @@ MDE_CLIENT_SECRET=api_key_here
 MISP_URL=https://misp.local
 MISP_API_KEY=api_key_here
 SHODAN=api_key_here
+THREATFOX=api_key_here
 OPENCTI_API_KEY=api_key_here
 OPENCTI_URL=https://demo.opencti.io
 CROWDSTRIKE_CLIENT_ID=client_id_here
@@ -127,7 +128,7 @@ export GUI_ENABLED_ENGINES=reverse_dns,rdap
     This variable is optional, so if it doesn't exist in `secrets.json` or ENV, all engines will be displayed in the GUI.
 
 !!! tip
-    Example: for the demo instance of cyberbro, only these engines are used: 
+    Example: for the demo instance of cyberbro, only these engines are used:
     `"gui_enabled_engines": ["reverse_dns", "rdap", "ipquery", "abuseipdb", "virustotal", "spur", "google_safe_browsing", "shodan", "phishtank", "threatfox", "urlscan", "google", "github", "opencti", "abusix", "hudsonrock"]`  
     With environment variable: `GUI_ENABLED_ENGINES=reverse_dns,rdap,ipquery,abuseipdb,virustotal,spur,google_safe_browsing,shodan,phishtank,threatfox,urlscan,google,github,opencti,abusix,hudsonrock`
 
