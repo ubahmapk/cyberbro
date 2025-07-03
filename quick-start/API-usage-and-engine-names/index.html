@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
     
     
       
@@ -1153,6 +1153,8 @@
       
         
       
+        
+      
     
     
     
@@ -1386,6 +1388,29 @@
   
   <span class="md-ellipsis">
     Get Shodan API Key
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-keys/Get-ThreatFox-API-key/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Get ThreatFox API Key
     
   </span>
   
@@ -2079,7 +2104,7 @@
 
 
   
-    <a href="https://github.com/stanfrbd/cyberbro/edit/main/docs/quick-start/API-usage-and-engine-names.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/stanfrbd/cyberbro/edit/main/docs/quick-start/API-usage-and-engine-names.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
     </a>
@@ -2260,7 +2285,7 @@
 <hr />
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>Always check the analysis status before retrieving results to ensure the analysis is complete.<br />
+<p>Always check the analysis status before retrieving results to ensure the analysis is complete.
 For more advanced usage, such as bypassing cache or customizing engine selection, refer to the sections below.</p>
 </div>
 <h2 id="note-about-caching-and-ignoring-cache">Note about caching and ignoring cache<a class="headerlink" href="#note-about-caching-and-ignoring-cache" title="Permanent link">&para;</a></h2>
@@ -2338,12 +2363,12 @@ For more advanced usage, such as bypassing cache or customizing engine selection
 <strong>Supports</strong>: abuse, free_no_key<br />
 <strong>Explaination</strong>: Checks abuse contact with Abusix for IP, reversed obtained IP for a given domain/URL, free, no API key</p>
 <h3 id="alienvault">Alienvault<a class="headerlink" href="#alienvault" title="Permanent link">&para;</a></h3>
-<p><strong>Name</strong>: <code>alienvault</code> <br />
+<p><strong>Name</strong>: <code>alienvault</code><br />
 <strong>Supports</strong>: IP, free API key required<br />
 <strong>Explaination</strong>: Checks Alienvault for IP, domain, URL, hash, free API key required</p>
 <h3 id="abuseipdb">AbuseIPDB<a class="headerlink" href="#abuseipdb" title="Permanent link">&para;</a></h3>
 <p><strong>Name</strong>: <code>abuseipdb</code><br />
-<strong>Supports</strong>: risk<br />
+<strong>Supports</strong>: IP, free API key required<br />
 <strong>Explaination</strong>: Checks AbuseIPDB for IP, reversed obtained IP for a given domain/URL, free API key required</p>
 <h3 id="crowdstrike">CrowdStrike<a class="headerlink" href="#crowdstrike" title="Permanent link">&para;</a></h3>
 <p><strong>Name</strong>: <code>crowdstrike</code><br />
@@ -2359,7 +2384,7 @@ For more advanced usage, such as bypassing cache or customizing engine selection
 <strong>Explaination</strong>: Checks crt.sh for known subdomain names based on TLS certificates for a given domain / URL, free, no API key</p>
 <h3 id="github">Github<a class="headerlink" href="#github" title="Permanent link">&para;</a></h3>
 <p><strong>Name</strong>: <code>github</code><br />
-<strong>Supports</strong>: domain, URL, IP, hash, free_no_key, scraping<br />
+<strong>Supports</strong>: domain, URL, IP, hash, free_no_key, scraping
 <strong>Explaination</strong>: Get Github grep.app API search results for all types of observable, free, no API key</p>
 <h3 id="google">Google<a class="headerlink" href="#google" title="Permanent link">&para;</a></h3>
 <p><strong>Name</strong>: <code>google</code><br />
@@ -2394,7 +2419,7 @@ For more advanced usage, such as bypassing cache or customizing engine selection
 <strong>Supports</strong>: default, IP, risk, VPN, proxy, free_no_key<br />
 <strong>Explaination</strong>: Checks IPquery for IP, reversed obtained IP for a given domain/URL, free, no API key</p>
 <h3 id="microsoft-defender-for-endpoint">Microsoft Defender for Endpoint<a class="headerlink" href="#microsoft-defender-for-endpoint" title="Permanent link">&para;</a></h3>
-<p><strong>Name</strong>: <code>mde</code>  <br />
+<p><strong>Name</strong>: <code>mde</code><br />
 <strong>Supports</strong>: hash, IP, domain, URL<br />
 <strong>Explaination</strong>: Checks Microsoft Defender for Endpoint, paid API info on Azure required</p>
 <h3 id="misp">MISP<a class="headerlink" href="#misp" title="Permanent link">&para;</a></h3>
@@ -2402,7 +2427,7 @@ For more advanced usage, such as bypassing cache or customizing engine selection
 <strong>Supports</strong>: IP, domain, URL, hash<br />
 <strong>Explaination</strong>: Checks MISP for IP, domain, URL, hash, free API key required</p>
 <h3 id="opencti">OpenCTI<a class="headerlink" href="#opencti" title="Permanent link">&para;</a></h3>
-<p><strong>Name</strong>: <code>opencti</code><br />
+<p><strong>Name</strong>: <code>opencti</code> 
 <strong>Supports</strong>: domain, URL, IP, hash<br />
 <strong>Explaination</strong>: Searches OpenCTI results for all types of observable, API key required</p>
 <h3 id="phishtank">Phishtank<a class="headerlink" href="#phishtank" title="Permanent link">&para;</a></h3>
@@ -2427,14 +2452,14 @@ For more advanced usage, such as bypassing cache or customizing engine selection
 <strong>Explaination</strong>: Scraps Spur.us for IP, reversed obtained IP for a given domain/URL, free, no API key</p>
 <h3 id="threatfox">ThreatFox<a class="headerlink" href="#threatfox" title="Permanent link">&para;</a></h3>
 <p><strong>Name</strong>: <code>threatfox</code><br />
-<strong>Supports</strong>: IP, domain, URL, free_no_key<br />
-<strong>Explaination</strong>: Checks ThreatFox by Abuse.ch for IP, domains, URL, free, no API key</p>
+<strong>Supports</strong>: IP, domain, URL, free<br />
+<strong>Explaination</strong>: Checks ThreatFox by Abuse.ch for IP, domains, URL, free API key required</p>
 <h3 id="urlscan">URLscan<a class="headerlink" href="#urlscan" title="Permanent link">&para;</a></h3>
 <p><strong>Name</strong>: <code>urlscan</code><br />
 <strong>Supports</strong>: domain, URL, IP, hash, free_no_key<br />
 <strong>Explaination</strong>: Checks URLscan for all types of observable, free, no API key</p>
 <h3 id="virustotal">VirusTotal<a class="headerlink" href="#virustotal" title="Permanent link">&para;</a></h3>
-<p><strong>Name</strong>: <code>virustotal</code> <br />
+<p><strong>Name</strong>: <code>virustotal</code><br />
 <strong>Supports</strong>: hash, risk, IP, domain, URL<br />
 <strong>Explaination</strong>: Checks VirusTotal for IP, domain, URL, hash, free API key required</p>
 <h3 id="webscout">WebScout<a class="headerlink" href="#webscout" title="Permanent link">&para;</a></h3>
@@ -2463,7 +2488,7 @@ For more advanced usage, such as bypassing cache or customizing engine selection
     <span class="md-icon" title="Last update">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
     </span>
-    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="June 17, 2025 14:26:24 UTC"><span class="timeago" datetime="2025-06-17T14:26:24+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="June 17, 2025 14:26:24 UTC">2025-06-17</span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-timeago" title="July 2, 2025 15:48:44 UTC"><span class="timeago" datetime="2025-07-02T15:48:44+00:00" locale="en"></span></span><span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-iso_date" title="July 2, 2025 15:48:44 UTC">2025-07-02</span>
   </span>
 
     
@@ -2629,7 +2654,7 @@ For more advanced usage, such as bypassing cache or customizing engine selection
       <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.tabs.sticky", "navigation.top", "navigation.sections", "navigation.indexes", "navigation.footer", "search.suggest", "search.highlight", "toc.follow", "content.tabs.link", "content.tooltips", "content.action.edit", "content.code.copy"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
       
         <script src="../../js/timeago.min.js"></script>
       
