@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import quote
 
 import requests
@@ -31,7 +31,7 @@ def run_engine(
     observable_type: str,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Queries the OTX AlienVault API for information about a given observable (URL, IP, domain, hash).
 
@@ -65,39 +65,39 @@ def run_engine(
         logger.error("OTX AlienVault API key is required")
         return None
 
-        # If it's a URL, extract the domain portion for searching
-        if observable_type == "URL":
-            domain_part = observable.split("/")[2].split(":")[0]
-            observable = domain_part
-            observable_type = "FQDN"
+    # If it's a URL, extract the domain portion for searching
+    if observable_type == "URL":
+        domain_part = observable.split("/")[2].split(":")[0]
+        observable = domain_part
+        observable_type = "FQDN"
 
-        # Validate observable type
-        if observable_type not in ["IPv4", "IPv6", "FQDN", "SHA256", "SHA1", "MD5"]:
-            logger.error("Unsupported observable type: %s", observable_type)
-            return None
+    # Map observable type to OTX endpoint
+    endpoint_map = {
+        "IPv4": f"/indicators/IPv4/{quote(observable)}/general",
+        "IPv6": f"/indicators/IPv6/{quote(observable)}/general",
+        "FQDN": f"/indicators/domain/{quote(observable)}/general",
+        "SHA1": f"/indicators/file/{quote(observable)}/general",
+        "MD5": f"/indicators/file/{quote(observable)}/general",
+        "SHA256": f"/indicators/file/{quote(observable)}/general",
+    }
 
-        # Map observable type to OTX endpoint
-        endpoint_map = {
-            "IPv4": f"/indicators/IPv4/{quote(observable)}/general",
-            "IPv6": f"/indicators/IPv6/{quote(observable)}/general",
-            "FQDN": f"/indicators/domain/{quote(observable)}/general",
-            "SHA1": f"/indicators/file/{quote(observable)}/general",
-            "MD5": f"/indicators/file/{quote(observable)}/general",
-            "SHA256": f"/indicators/file/{quote(observable)}/general",
-        }
+    endpoint: str | None = endpoint_map.get(observable_type)
+    if not endpoint:
+        logger.error("Invalid observable type: %s", observable_type)
+        return None
 
-        endpoint = endpoint_map.get(observable_type)
-        if not endpoint:
-            logger.error("Invalid observable type: %s", observable_type)
-            return None
+    url = f"https://otx.alienvault.com/api/v1{endpoint}"
+    headers = {"X-OTX-API-KEY": api_key}
 
-        url = f"https://otx.alienvault.com/api/v1{endpoint}"
-        headers = {"X-OTX-API-KEY": api_key}
-
+    try:
         response = requests.get(url, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
-
         result = response.json()
+    except requests.exceptions.RequestException as req_err:
+        logger.error("Network error while querying OTX AlienVault: %s", req_err, exc_info=True)
+        return None
+
+    try:
         malware_families = (
             result.get("pulse_info", {}).get("related", {}).get("alienvault", {}).get("malware_families", [])
         )
