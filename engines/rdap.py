@@ -11,11 +11,17 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "URL",
 ]
 
+NAME: str = "rdap"
+LABEL: str = "Reverse Domain Name System (RDAP)"
+SUPPORTS: list[str] = ["default", "domain", "IP", "abuse", "free_no_key"]
+DESCRIPTION: str = "Performs a reverse DNS lookup for IP, domain, URL (on the Cyberbro machine)"
+COST: str = "Free"
+API_KEY_REQUIRED: bool = False
 
-def query_openrdap(
+def run_engine(
     observable: str,
     observable_type: str,
-    proxies: dict[str, str],
+    proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> Optional[dict[str, Any]]:
     """

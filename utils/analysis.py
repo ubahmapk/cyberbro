@@ -121,7 +121,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         result["github"] = github.run_engine(observable["value"], PROXIES, SSL_VERIFY)
 
     if "rdap" in selected_engines and observable["type"] in rdap.SUPPORTED_OBSERVABLE_TYPES:
-        result["rdap"] = rdap.query_openrdap(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
+        result["rdap"] = rdap.run_engine(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
 
     if "mde" in selected_engines and observable["type"] in microsoft_defender_for_endpoint.SUPPORTED_OBSERVABLE_TYPES:
         result["mde"] = microsoft_defender_for_endpoint.run_engine(
