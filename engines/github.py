@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import requests
 
@@ -18,13 +18,15 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
 
 NAME: str = "github"
 LABEL: str = "Github"
-SUPPORTS: list[str] = ["domain", "URL", "IP", "hash", "chrome_extension_id", "edge_extension_id"]
+SUPPORTS: list[str] = ["domain", "URL", "IP", "hash", "scraping", "chrome_extension_id", "edge_extension_id"]
 DESCRIPTION: str = "Get Github grep.app API search results for all types of observable"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
 
-def run_engine(observable: str, proxies: dict[str, str], ssl_verify: bool = True) -> Optional[dict[str, Any]]:
+def run_engine(
+    observable: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+) -> dict[str, Any] | None:
     """
     Perform a search query using Grep API, limited to 5 search results, restricted to GitHub domains.
 
