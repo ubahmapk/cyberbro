@@ -19,6 +19,12 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "URL",
 ]
 
+NAME: str = "openctie"
+LABEL: str = "OpenCTI"
+SUPPORTS: list[str] = ["domain", "URL", "IP", "hash"]
+DESCRIPTION: str = "Searches OpenCTI results for all types of observable, API key required."
+COST: str = "Free"
+API_KEY_REQUIRED: bool = True
 
 def run_engine(
     observable: str,
