@@ -6,10 +6,7 @@ from utils.config import Secrets, get_config
 
 logger = logging.getLogger(__name__)
 
-SUPPORTED_OBSERVABLE_TYPES: list[str] = [
-    "IPv4",
-    "IPv6",
-]
+SUPPORTED_OBSERVABLE_TYPES: list[str] = ["IPv4", "IPv6"]
 
 NAME: str = "abuseipdb"
 LABEL: str = "AbuseIPDB"
