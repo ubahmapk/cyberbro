@@ -18,7 +18,7 @@ COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
 
-def run_engine(observable: str) -> Optional[dict[str, str]]:
+def run_engine(observable: str, proxies: dict[str, str] | None, ssl_verify: bool = True) -> Optional[dict[str, str]]:
     """
     Queries the Abusix service for contact information related to the given observable.
 
