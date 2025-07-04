@@ -166,13 +166,11 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         )
 
     if "misp" in selected_engines and observable["type"] in misp.SUPPORTED_OBSERVABLE_TYPES:
-        result["misp"] = misp.query_misp(
+        result["misp"] = misp.run_engine(
             observable["value"],
             observable["type"],
             PROXIES,
             SSL_VERIFY,
-            secrets.misp_api_key,
-            secrets.misp_url,
         )
 
     if (
