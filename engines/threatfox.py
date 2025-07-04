@@ -15,6 +15,12 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "URL",
 ]
 
+NAME: str = "threatfox"
+LABEL: str = "ThreatFox"
+SUPPORTS: list[str] = ["IP", "domain", "URL"]
+DESCRIPTION: str = "Checks ThreatFox by Abuse.ch for IP, domains, URL, free API key required"
+COST: str = "Free"
+API_KEY_REQUIRED: bool = True
 
 def run_engine(
     observable: str,
@@ -54,11 +60,11 @@ def run_engine(
             domain_part = observable.split("/")[2].split(":")[0]
             observable = domain_part
 
-        url = "https://threatfox-api.abuse.ch/api/v1/"
-        payload = {"query": "search_ioc", "search_term": observable}
-        headers = {"Auth-Key": api_key}
+        url: str = "https://threatfox-api.abuse.ch/api/v1/"
+        payload: dict[str, str] = {"query": "search_ioc", "search_term": observable}
+        headers: dict[str, str] = {"Auth-Key": api_key}
 
-        response = requests.post(
+        response: requests.Response = requests.post(
             url,
             data=json.dumps(payload),
             headers=headers,
@@ -68,10 +74,10 @@ def run_engine(
         )
         response.raise_for_status()
 
-        result = response.json()
-        data = result.get("data", [])
+        data = response.json().get("data", [])
+        count: int = 0
 
-        malware_printable_set = set()
+        malware_printable_set: set[str] = set()
         if isinstance(data, list):
             for item in data:
                 if item:
@@ -79,8 +85,6 @@ def run_engine(
                     malware_printable_set.add(malware_name)
 
             count = len(data)
-        else:
-            count = 0
 
         link = f"https://threatfox.abuse.ch/browse.php?search=ioc%3A{observable}"
         return {
