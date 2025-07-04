@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urljoin
 
 from falconpy import APIHarnessV2
@@ -22,7 +22,7 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
 NAME: str = "crowdstrike"
 LABEL: str = "CrowdStrike"
 SUPPORTS: list[str] = ["hash", "IP", "domain", "URL"]
-DESCRIPTION: str = "Checks CrowdStrike EDR for IP, domain, URL, hash using Falcon API"
+DESCRIPTION: str = "Checks CrowdStrike for IP, domain, URL, hash, paid API key required with Flacon XDR and Falcon Intelligence licence"
 COST: str = "Paid"
 API_KEY_REQUIRED: bool = True
 
@@ -54,7 +54,7 @@ def generate_ioc_id(observable: str, observable_type: str) -> str | None:
 
 
 def get_falcon_client(
-    client_id: str, client_secret: str, proxies: dict[str, str], ssl_verify: bool = True
+    client_id: str, client_secret: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
 ) -> APIHarnessV2:
     return APIHarnessV2(
         client_id=client_id,
@@ -98,15 +98,17 @@ def run_engine(
         return None
 
     try:
-        falcon = get_falcon_client(client_id, client_secret, proxies, ssl_verify)
+        falcon: APIHarnessV2 = get_falcon_client(client_id, client_secret, proxies, ssl_verify)
 
         # Ensure the URL is properly formatted
-        falcon_url = urljoin(falcon_url, "/").rstrip("/")
+        falcon_url: str = urljoin(falcon_url, "/").rstrip("/")
 
         if observable_type == "URL":
             observable = observable.split("/")[2].split(":")[0]
 
         observable = observable.lower()
+
+        # What happens in Falcon if the observable_type is None?
         observable_type = map_observable_type(observable_type)
 
         response = falcon.command("indicator_get_device_count_v1", type=observable_type, value=observable)
