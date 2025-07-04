@@ -54,22 +54,18 @@ def run_engine(ip: str, proxies: dict[str, str] | None, ssl_verify: bool = True)
             timeout=5,
         )
         response.raise_for_status()  # Raises an HTTPError for 4xx/5xx statuses
-
         json_response = response.json()
-        if "data" not in json_response:
-            logger.warning("AbuseIPDB response has no 'data' key. Full response: %s", json_response)
-            return None
+    except requests.exceptions.RequestException as req_err:
+        logger.error("Network error while querying AbuseIPDB: %s", req_err, exc_info=True)
+        return None
 
+    try:
         data = json_response["data"]
         reports = data.get("totalReports", 0)
         risk_score = data.get("abuseConfidenceScore", 0)
         link = f"https://www.abuseipdb.com/check/{ip}"
 
         return {"reports": reports, "risk_score": risk_score, "link": link}
-
-    except requests.exceptions.RequestException as req_err:
-        logger.error("Network error while querying AbuseIPDB: %s", req_err, exc_info=True)
-    except Exception as e:
-        logger.error("Unexpected error while querying AbuseIPDB: %s", e, exc_info=True)
-
-    return None
+    except (KeyError, TypeError):
+        logger.warning("AbuseIPDB response has no 'data' key. Full response: %s", json_response)
+        return None
