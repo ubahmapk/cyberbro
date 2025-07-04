@@ -150,10 +150,9 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         result["threatfox"] = threatfox.run_engine(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
 
     if "virustotal" in selected_engines and observable["type"] in virustotal.SUPPORTED_OBSERVABLE_TYPES:
-        result["virustotal"] = virustotal.query_virustotal(
+        result["virustotal"] = virustotal.run_engine(
             observable["value"],
             observable["type"],
-            secrets.virustotal,
             PROXIES,
             SSL_VERIFY,
         )

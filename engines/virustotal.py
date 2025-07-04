@@ -1,8 +1,10 @@
 import base64
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import requests
+
+from utils.config import Secrets, get_config
 
 logger = logging.getLogger(__name__)
 
@@ -16,14 +18,51 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "URL",
 ]
 
+NAME: str = "virustotal"
+LABEL: str = "VirusTotal"
+SUPPORTS: list[str] = ["hash", "risk", "IP", "domain", "URL"]
+DESCRIPTION: str = "Checks VirusTotal for IP, domain, URL, hash, free API key required"
+COST: str = "Free"
+API_KEY_REQUIRED: bool = True
 
-def query_virustotal(
+
+def map_observable_type_to_url(observable: str, observable_type: str) -> tuple[str, str]:
+    """
+    Determine the correct endpoint & link based on the observable type
+
+    Args:
+        obsservable (str)
+        observable_type (str)
+
+    Returns:
+        str: The corresponding VT URL
+    """
+
+    match observable_type:
+        case "IPv4" | "IPv6":
+            url = f"https://www.virustotal.com/api/v3/ip_addresses/{observable}"
+            link = f"https://www.virustotal.com/gui/ip-address/{observable}/detection"
+        case "FQDN":
+            url = f"https://www.virustotal.com/api/v3/domains/{observable}"
+            link = f"https://www.virustotal.com/gui/domain/{observable}/detection"
+        case "URL":
+            encoded_url = base64.urlsafe_b64encode(observable.encode()).decode().strip("=")
+            url = f"https://www.virustotal.com/api/v3/urls/{encoded_url}"
+            link = f"https://www.virustotal.com/gui/url/{encoded_url}/detection"
+        case _:
+            # Assume a file hash
+            url = f"https://www.virustotal.com/api/v3/files/{observable}"
+            link = f"https://www.virustotal.com/gui/file/{observable}/detection"
+
+    return url, link
+
+
+def run_engine(
     observable: str,
     observable_type: str,
-    api_key: str,
-    proxies: dict[str, str],
+    proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Queries the VirusTotal API for information about a given observable (IP, domain, URL, or file hash).
 
@@ -43,45 +82,43 @@ def query_virustotal(
             }
         None: If any error occurs.
     """
+
+    secrets: Secrets = get_config()
+    api_key: str = secrets.virustotal
+
+    if not api_key:
+        logger.error("VirusTotal API key is not set in the configuration.")
+        return None
+
+    headers: dict[str, str] = {"x-apikey": api_key}
+    url, link = map_observable_type_to_url(observable, observable_type)
+
     try:
-        headers = {"x-apikey": api_key}
-        # Determine the correct endpoint & link based on the observable type
-        if observable_type in ["IPv4", "IPv6"]:
-            url = f"https://www.virustotal.com/api/v3/ip_addresses/{observable}"
-            link = f"https://www.virustotal.com/gui/ip-address/{observable}/detection"
-        elif observable_type == "FQDN":
-            url = f"https://www.virustotal.com/api/v3/domains/{observable}"
-            link = f"https://www.virustotal.com/gui/domain/{observable}/detection"
-        elif observable_type == "URL":
-            encoded_url = base64.urlsafe_b64encode(observable.encode()).decode().strip("=")
-            url = f"https://www.virustotal.com/api/v3/urls/{encoded_url}"
-            link = f"https://www.virustotal.com/gui/url/{encoded_url}/detection"
-        else:  # Assume a file hash
-            url = f"https://www.virustotal.com/api/v3/files/{observable}"
-            link = f"https://www.virustotal.com/gui/file/{observable}/detection"
-
-        response = requests.get(url, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5)
+        response: requests.Response = requests.get(url, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
-
         data = response.json()
-        if "data" in data and "attributes" in data["data"]:
-            attributes = data["data"]["attributes"]
-            stats = attributes.get("last_analysis_stats", {})
+    except requests.exceptions.RequestException as req_err:
+        logger.error("Network error while querying VirusTotal for '%s': %s", observable, req_err, exc_info=True)
+        return None
 
-            total_malicious = stats.get("malicious", 0)
-            total_engines = sum(stats.values()) if stats else 0
-            detection_ratio = f"{total_malicious}/{total_engines}" if total_engines else "0/0"
+    try:
+        attributes: dict = data["data"]["attributes"]
+        stats: dict = attributes.get("last_analysis_stats", {})
 
-            # 'reputation' is usually the community score
-            community_score = attributes.get("reputation", "Unknown")
+        total_malicious: int = stats.get("malicious", 0)
+        total_engines: int = sum(stats.values()) if stats else 0
+        detection_ratio: str = f"{total_malicious}/{total_engines}" if total_engines else "0/0"
 
-            return {
-                "detection_ratio": detection_ratio,
-                "total_malicious": total_malicious,
-                "link": link,
-                "community_score": community_score,
-            }
+        # 'reputation' is usually the community score
+        community_score: str = attributes.get("reputation", "Unknown")
 
+        return {
+            "detection_ratio": detection_ratio,
+            "total_malicious": total_malicious,
+            "link": link,
+            "community_score": community_score,
+        }
+    except KeyError:
         # If 'data' or 'attributes' key is missing, fallback
         logger.warning("VirusTotal response missing expected keys for '%s': %s", observable, data)
         return {
@@ -90,8 +127,5 @@ def query_virustotal(
             "link": f"https://www.virustotal.com/gui/search/{observable}",
             "community_score": 0,
         }
-
-    except Exception as e:
-        logger.error("Error querying VirusTotal for '%s': %s", observable, e, exc_info=True)
 
     return None
