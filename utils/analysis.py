@@ -103,7 +103,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         observable["type"] = "BOGON"
 
     if "urlscan" in selected_engines and observable["type"] in urlscan.SUPPORTED_OBSERVABLE_TYPES:
-        result["urlscan"] = urlscan.query_urlscan(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
+        result["urlscan"] = urlscan.run_engine(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
 
     if "crtsh" in selected_engines and observable["type"] in crtsh.SUPPORTED_OBSERVABLE_TYPES:
         result["crtsh"] = crtsh.query_crtsh(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
