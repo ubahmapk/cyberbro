@@ -18,13 +18,15 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
 
 NAME: str = "google"
 LABEL: str = "Google"
-SUPPORTS: list[str] = ["domain", "URL", "IP", "hash", "chrome_extension_id", "edge_extension_id"]
+SUPPORTS: list[str] = ["domain", "URL", "IP", "hash", "scraping", "chrome_extension_id", "edge_extension_id"]
 DESCRIPTION: str = "Checks Google search results for all types of observable"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
 
-def run_engine(observable: str, proxies: dict[str, str], ssl_verify: bool = True) -> Optional[dict[str, Any]]:
+def run_engine(
+    observable: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+) -> Optional[dict[str, Any]]:
     """
     Perform a Google search query limited to 5 search results.
 
