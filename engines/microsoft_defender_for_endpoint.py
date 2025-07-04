@@ -1,7 +1,7 @@
 import logging
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import jwt
 import requests
@@ -21,6 +21,12 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "URL",
 ]
 
+NAME: str = "mde"
+LABEL: str = "Microsoft Defender for Endpoint"
+SUPPORTS: list[str] = ["hash", "IP", "domain", "URL"]
+DESCRIPTION: str = "Checks Microsoft Defender for Endpoint, paid API info on Azure required"
+COST: str = "Paid Subscription"
+API_KEY_REQUIRED: bool = True
 
 def check_token_validity(token: str) -> bool:
     try:
@@ -36,10 +42,10 @@ def check_token_validity(token: str) -> bool:
         return False
 
 
-def read_token() -> Optional[str]:
+def read_token() -> str | None:
     try:
-        token_path = Path("mde_token.txt")
-        token = token_path.read_text().strip()
+        token_path: Path = Path("mde_token.txt")
+        token: str = token_path.read_text().strip()
         if check_token_validity(token):
             return token
         logger.warning("Invalid JWT token found in mde_token.txt")
@@ -52,7 +58,7 @@ def get_token(
     tenant_id: str,
     client_id: str,
     client_secret: str,
-    proxies: dict[str, str],
+    proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> str:
     url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/token"
