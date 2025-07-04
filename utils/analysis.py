@@ -124,40 +124,30 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         result["rdap"] = rdap.query_openrdap(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
 
     if "mde" in selected_engines and observable["type"] in microsoft_defender_for_endpoint.SUPPORTED_OBSERVABLE_TYPES:
-        result["mde"] = microsoft_defender_for_endpoint.query_microsoft_defender_for_endpoint(
+        result["mde"] = microsoft_defender_for_endpoint.run_engine(
             observable["value"],
             observable["type"],
-            secrets.mde_tenant_id,
-            secrets.mde_client_id,
-            secrets.mde_client_secret,
             PROXIES,
             SSL_VERIFY,
         )
 
     if "crowdstrike" in selected_engines and observable["type"] in crowdstrike.SUPPORTED_OBSERVABLE_TYPES:
-        result["crowdstrike"] = crowdstrike.query_crowdstrike(
+        result["crowdstrike"] = crowdstrike.run_engine(
             observable["value"],
             observable["type"],
-            secrets.crowdstrike_client_id,
-            secrets.crowdstrike_client_secret,
-            secrets.crowdstrike_falcon_base_url,
-            SSL_VERIFY,
             PROXIES,
+            SSL_VERIFY,
         )
 
     if "opencti" in selected_engines and observable["type"] in opencti.SUPPORTED_OBSERVABLE_TYPES:
-        result["opencti"] = opencti.query_opencti(
+        result["opencti"] = opencti.run_engine(
             observable["value"],
-            secrets.opencti_api_key,
-            secrets.opencti_url,
             PROXIES,
             SSL_VERIFY,
         )
 
     if "threatfox" in selected_engines and observable["type"] in threatfox.SUPPORTED_OBSERVABLE_TYPES:
-        result["threatfox"] = threatfox.query_threatfox(
-            observable["value"], observable["type"], secrets.threatfox, PROXIES, SSL_VERIFY
-        )
+        result["threatfox"] = threatfox.run_engine(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
 
     if "virustotal" in selected_engines and observable["type"] in virustotal.SUPPORTED_OBSERVABLE_TYPES:
         result["virustotal"] = virustotal.query_virustotal(
@@ -169,12 +159,11 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         )
 
     if "alienvault" in selected_engines and observable["type"] in alienvault.SUPPORTED_OBSERVABLE_TYPES:
-        result["alienvault"] = alienvault.query_alienvault(
+        result["alienvault"] = alienvault.run_engine(
             observable["value"],
             observable["type"],
             PROXIES,
             SSL_VERIFY,
-            secrets.alienvault,
         )
 
     if "misp" in selected_engines and observable["type"] in misp.SUPPORTED_OBSERVABLE_TYPES:
@@ -239,7 +228,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         result["ipinfo"] = ipinfo.query_ipinfo(observable["value"], secrets.ipinfo, PROXIES, SSL_VERIFY)
 
     if "abuseipdb" in selected_engines and observable["type"] in abuseipdb.SUPPORTED_OBSERVABLE_TYPES:
-        result["abuseipdb"] = abuseipdb.run_engine(observable["value"], secrets.abuseipdb, PROXIES, SSL_VERIFY)
+        result["abuseipdb"] = abuseipdb.run_engine(observable["value"], PROXIES, SSL_VERIFY)
 
     if "spur" in selected_engines and observable["type"] in spur_us_free.SUPPORTED_OBSERVABLE_TYPES:
         result["spur"] = spur_us_free.get_spur(observable["value"], PROXIES, SSL_VERIFY)

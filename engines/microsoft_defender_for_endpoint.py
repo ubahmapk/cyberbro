@@ -6,6 +6,8 @@ from typing import Any, Optional
 import jwt
 import requests
 
+from utils.config import Secrets, get_config
+
 logger = logging.getLogger(__name__)
 
 SUPPORTED_OBSERVABLE_TYPES: list[str] = [
@@ -79,15 +81,12 @@ def get_token(
         return "invalid"
 
 
-def query_microsoft_defender_for_endpoint(
+def run_engine(
     observable: str,
     observable_type: str,
-    tenant_id: str,
-    client_id: str,
-    client_secret: str,
-    proxies: dict[str, str],
+    proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Queries Microsoft Defender for Endpoint for information about a given observable.
 
@@ -103,6 +102,16 @@ def query_microsoft_defender_for_endpoint(
         dict: A dictionary containing the response data from MDE, including a link to the observable's details.
         None: If the request fails or any exception occurs.
     """
+
+    secrets: Secrets = get_config()
+    tenant_id: str = secrets.mde_tenant_id
+    client_id: str = secrets.mde_client_id
+    client_secret: str = secrets.mde_client_secret
+
+    if not tenant_id or not client_id or not client_secret:
+        logger.error("Microsoft Defender for Endpoint credentials are not set in the configuration.")
+        return None
+
     try:
         jwt_token = read_token() or get_token(tenant_id, client_id, client_secret, proxies, ssl_verify)
         if "invalid" in jwt_token:

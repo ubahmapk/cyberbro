@@ -5,6 +5,8 @@ from urllib.parse import urljoin
 
 from falconpy import APIHarnessV2
 
+from utils.config import Secrets, get_config
+
 logger = logging.getLogger(__name__)
 
 SUPPORTED_OBSERVABLE_TYPES: list[str] = [
@@ -64,15 +66,12 @@ def get_falcon_client(
     )
 
 
-def query_crowdstrike(
+def run_engine(
     observable: str,
     observable_type: str,
-    client_id: str,
-    client_secret: str,
-    falcon_url: str = "https://falcon.crowdstrike.com",
+    proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
-    proxies: Optional[dict[str, str]] = None,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Queries CrowdStrike Falcon for information about a given observable.
 
@@ -88,6 +87,15 @@ def query_crowdstrike(
     Returns:
         Optional[Dict[str, Any]]: A dictionary with the query results or None if an error occurs.
     """
+
+    secrets: Secrets = get_config()
+    client_id: str = secrets.crowdstrike_client_id
+    client_secret: str = secrets.crowdstrike_client_secret
+    falcon_url: str = secrets.crowdstrike_falcon_base_url
+
+    if not client_id or not client_secret or not falcon_url:
+        logger.error("CrowdStrike client ID, secret, and base URL are not configured.")
+        return None
 
     try:
         falcon = get_falcon_client(client_id, client_secret, proxies, ssl_verify)

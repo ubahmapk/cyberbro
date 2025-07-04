@@ -4,6 +4,8 @@ from urllib.parse import urljoin
 
 import requests
 
+from utils.config import Secrets, get_config
+
 logger = logging.getLogger(__name__)
 
 SUPPORTED_OBSERVABLE_TYPES: list[str] = [
@@ -18,11 +20,9 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
 ]
 
 
-def query_opencti(
+def run_engine(
     observable: str,
-    api_key: str,
-    opencti_url: str,
-    proxies: dict[str, str],
+    proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> Optional[dict[str, Any]]:
     """
@@ -30,14 +30,21 @@ def query_opencti(
 
     Args:
         observable (str): The observable to check.
-        api_key (str): The API key for authentication.
-        opencti_url (str): Base URL to your OpenCTI instance.
         proxies (dict): Dictionary containing proxy settings.
 
     Returns:
         dict: A dictionary with entity_counts, global_count, search_link, etc.
         None: If an error occurs or data is missing.
     """
+
+    secrets: Secrets = get_config()
+    opencti_url: str = secrets.opencti_url
+    api_key: str = secrets.opencti_api_key
+
+    if not opencti_url or not api_key:
+        logger.error("OpenCTI URL or API key is not set in the configuration.")
+        return None
+
     try:
         # Get FQDN from URL to avoid false positives searches
         if "http" in observable:

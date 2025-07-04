@@ -4,6 +4,8 @@ from urllib.parse import quote
 
 import requests
 
+from utils.config import Secrets, get_config
+
 logger = logging.getLogger(__name__)
 
 SUPPORTED_OBSERVABLE_TYPES: list[str] = [
@@ -15,6 +17,7 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "SHA256",
     "URL",
 ]
+
 NAME: str = "alienvault"
 LABEL: str = "Alientvault"
 SUPPORTS: list[str] = ["hash", "IP", "domain", "url", "risk"]
@@ -23,12 +26,11 @@ COST: str = "Free"
 API_KEY_REQUIRED: bool = True
 
 
-def query_alienvault(
+def run_engine(
     observable: str,
     observable_type: str,
-    proxies: dict[str, str],
+    proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
-    api_key: str = "",
 ) -> Optional[dict[str, Any]]:
     """
     Queries the OTX AlienVault API for information about a given observable (URL, IP, domain, hash).
@@ -56,10 +58,12 @@ def query_alienvault(
               }
         None: If an error occurs or API key is missing.
     """
-    try:
-        if not api_key:
-            logger.error("OTX AlienVault API key is required")
-            return None
+
+    secrets: Secrets = get_config()
+    api_key: str = secrets.alienvault
+    if not api_key:
+        logger.error("OTX AlienVault API key is required")
+        return None
 
         # If it's a URL, extract the domain portion for searching
         if observable_type == "URL":

@@ -2,6 +2,8 @@ import logging
 
 import requests
 
+from utils.config import Secrets, get_config
+
 logger = logging.getLogger(__name__)
 
 SUPPORTED_OBSERVABLE_TYPES: list[str] = [
@@ -17,7 +19,7 @@ COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
 
-def run_engine(ip: str, api_key: str, proxies: dict[str, str] | None, ssl_verify: bool = True) -> dict | None:
+def run_engine(ip: str, proxies: dict[str, str] | None, ssl_verify: bool = True) -> dict | None:
     """
     Queries the AbuseIPDB API for information about a given IP address.
 
@@ -37,6 +39,10 @@ def run_engine(ip: str, api_key: str, proxies: dict[str, str] | None, ssl_verify
         requests.exceptions.RequestException: If there is an issue with the network request.
         ValueError: If the response cannot be parsed as JSON.
     """
+
+    secrets: Secrets = get_config()
+    api_key: str = secrets.abuseipdb
+
     url = "https://api.abuseipdb.com/api/v2/check"
     headers = {"Key": api_key, "Accept": "application/json"}
     params = {"ipAddress": ip}

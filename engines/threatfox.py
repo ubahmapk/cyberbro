@@ -4,6 +4,8 @@ from typing import Any, Optional
 
 import requests
 
+from utils.config import Secrets, get_config
+
 logger = logging.getLogger(__name__)
 
 SUPPORTED_OBSERVABLE_TYPES: list[str] = [
@@ -14,11 +16,10 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
 ]
 
 
-def query_threatfox(
+def run_engine(
     observable: str,
     observable_type: str,
-    api_key: str,
-    proxies: dict[str, str],
+    proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> Optional[dict[str, Any]]:
     """
@@ -38,6 +39,14 @@ def query_threatfox(
               }
         None: If an error occurs.
     """
+
+    secrets: Secrets = get_config()
+    api_key: str = secrets.threatfox
+
+    if not api_key:
+        logger.error("ThreatFox API key is not set in the configuration.")
+        return None
+
     try:
         # If it's a URL, we typically just want the domain portion for searching
         if observable_type == "URL":

@@ -5,6 +5,8 @@ from urllib.parse import quote
 
 import requests
 
+from utils.config import Secrets, get_config
+
 logger = logging.getLogger(__name__)
 
 SUPPORTED_OBSERVABLE_TYPES: list[str] = [
@@ -52,14 +54,12 @@ def map_observable_type(observable_type: str) -> str:
     return mapping.get(observable_type, "")
 
 
-def query_misp(
+def run_engine(
     observable: str,
     observable_type: str,
-    proxies: dict[str, str],
+    proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
-    api_key: str = "",
-    misp_url: str = "",
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Queries the MISP API for information about a given observable (URL, IP, domain, hash).
 
@@ -76,10 +76,14 @@ def query_misp(
         dict: A dictionary with "count" (int), "events" (list), "link" (str), "first_seen" (str), and "last_seen" (str).
         None: If an error occurs or API key is missing.
     """
-    try:
-        if not api_key:
-            logger.error("MISP API key is required")
-            return None
+
+    secrets: Secrets = get_config()
+    api_key: str = secrets.misp_api_key
+    misp_url: str = secrets.misp_url
+
+    if not api_key or not misp_url:
+        logger.error("MISP API key and URL are required")
+        return None
 
         # Ensure the URL is properly formatted
         misp_url = misp_url.rstrip("/")
