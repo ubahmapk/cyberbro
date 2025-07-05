@@ -188,7 +188,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         result["phishtank"] = phishtank.run_engine(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
 
     if "criminalip" in selected_engines and observable["type"] in criminalip.SUPPORTED_OBSERVABLE_TYPES:
-        result["criminalip"] = criminalip.run_criminal_ip_analysis(
+        result["criminalip"] = criminalip.run_engine(
             observable["value"],
             PROXIES,
             SSL_VERIFY,

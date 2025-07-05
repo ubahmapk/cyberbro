@@ -168,19 +168,13 @@ def get_suspicious_info_report(
     return suspcious_info_report
 
 
-def run_criminal_ip_analysis(
-    observable: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
-) -> dict | None:
+def run_engine(observable: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True) -> dict | None:
     """Perform Criminal IP analysis."""
 
     api_key: str = retrieve_api_key()
 
     if not api_key:
         logger.error("API key for CriminalIP engine is not configured.")
-        return None
-
-    if not observable:
-        logger.error("No observable provided to CriminalIP engine.")
         return None
 
     report: SuspiciousInfoReport | None = get_suspicious_info_report(api_key, observable, proxies, ssl_verify)
