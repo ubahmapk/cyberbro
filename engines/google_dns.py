@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import requests
 
@@ -22,7 +22,7 @@ COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
 # List of DNS record types and their identifiers (filtered for cybersecurity relevance)
-dns_record_types = [
+DNS_RECORD_TYPES = [
     {"type": "A", "id": 1},  # IPv4 address
     {"type": "AAAA", "id": 28},  # IPv6 address
     {"type": "CNAME", "id": 5},  # Canonical name
@@ -67,9 +67,11 @@ def parse_dmarc_record(txt: str) -> dict:
 def query_dmarc(
     observable: str,
     observable_type: str,
-    proxies: Optional[dict[str, str]] = None,
+    proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
+    """Queries Google DNS for DMARC records of the given observable."""
+
     try:
         domain = extract_domain(observable)
         dmarc_domain = f"_dmarc.{domain}"
@@ -104,16 +106,23 @@ def query_dmarc(
 def query_spf(
     observable: str,
     observable_type: str,
-    proxies: Optional[dict[str, str]] = None,
+    proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
+    """Queries Google DNS for SPF records of the given observable."""
+
+    domain: str = extract_domain(observable)
+    url: str = f"https://dns.google/resolve?name={domain}&type=TXT"
+
     try:
-        domain = extract_domain(observable)
-        url = f"https://dns.google/resolve?name={domain}&type=TXT"
         response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
         data = response.json()
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error querying Google DNS for SPF record of {observable}: {e}", exc_info=True)
+        return None
 
+    try:
         for answer in data.get("Answer", []):
             txt = answer.get("data", "").replace('"', "")
             if txt.strip().lower().startswith("v=spf"):
@@ -137,69 +146,117 @@ def query_spf(
         return None
 
 
-def query_google_dns(
-    observable: str, observable_type: str, proxies: Optional[dict[str, str]] = None, ssl_verify: bool = True
-) -> Optional[dict[str, Any]]:
+def reverse_dns_lookup(
+    observable: str,
+    proxies: dict[str, str] | None = None,
+    ssl_verify: bool = True,
+) -> dict[str, Any] | None:
+    """Performs a reverse DNS lookup for the given observable (IP address)."""
+
+    reverse_name = f"{observable}.in-addr.arpa" if ":" not in observable else f"{observable}.ip6.arpa"
+    url = f"https://dns.google/resolve?name={reverse_name}&type=PTR"
+
     try:
-        if observable_type in ["IPv4", "IPv6"]:
-            reverse_name = f"{observable}.in-addr.arpa"
-            url = f"https://dns.google/resolve?name={reverse_name}&type=PTR"
+        response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        logger.error("Error querying Google DNS for reverse lookup of '%s': %s", observable, e, exc_info=True)
+        return None
+
+    for answer in data.get("Answer", []):
+        answer["type_name"] = next(
+            (record["type"] for record in DNS_RECORD_TYPES if record["id"] == answer["type"]), "Unknown"
+        )
+    return data
+
+
+def forward_dns_lookup(
+    observable: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+) -> dict[str, Any] | None:
+    """Query Google DNS for common records of the given observable (FQDN)."""
+
+    all_records: list[dict] = []
+
+    for record in DNS_RECORD_TYPES:
+        url = f"https://dns.google/resolve?name={observable}&type={record['id']}"
+
+        try:
             response = requests.get(url, proxies=proxies, verify=ssl_verify)
             response.raise_for_status()
             data = response.json()
-            for answer in data.get("Answer", []):
-                answer["type_name"] = next(
-                    (record["type"] for record in dns_record_types if record["id"] == answer["type"]), "Unknown"
+        except requests.exceptions.RequestException as e:
+            logger.error("Error querying Google DNS for '%s' (%s): %s", observable, record["type"], e, exc_info=True)
+            continue
+
+        for answer in data.get("Answer", []):
+            try:
+                answer["type_name"] = record["type"]
+                # ignore the TXT entry that contains SPF - it will be handled separately
+                if answer["type_name"] == "TXT" and "spf" in answer["data"].lower():
+                    continue
+                # remove trailing "." from all data answers
+                answer["data"] = answer["data"].rstrip(".")
+                if answer["type_name"] == "MX":
+                    answer["data"] = answer["data"].strip().split(" ")[-1]
+                all_records.append(answer)
+            except KeyError as e:
+                logger.error(
+                    "KeyError while processing DNS answer for '%s' (%s): %s",
+                    observable,
+                    record["type"],
+                    e,
+                    exc_info=True,
                 )
-            return data
+                continue
 
-        if observable_type == "FQDN":
-            all_records = []
-            for record in dns_record_types:
-                url = f"https://dns.google/resolve?name={observable}&type={record['id']}"
-                response = requests.get(url, proxies=proxies, verify=ssl_verify)
-                response.raise_for_status()
-                data = response.json()
-                for answer in data.get("Answer", []):
-                    answer["type_name"] = record["type"]
-                    # ignore the TXT entry that contains SPF - it will be handled separately
-                    if answer["type_name"] == "TXT" and "spf" in answer["data"].lower():
-                        continue
-                    # remove trailing "." from all data answers
-                    answer["data"] = answer["data"].rstrip(".")
-                    if answer["type_name"] == "MX":
-                        answer["data"] = answer["data"].strip().split(" ")[-1]
-                    all_records.append(answer)
+    # Parse TXT records for SPF
+    spf_result = query_spf(observable, "FQDN", proxies, ssl_verify)
+    dmarc_result = query_dmarc(observable, "FQDN", proxies, ssl_verify)
 
-            # Parse TXT records for SPF
-            spf_result = query_spf(observable, observable_type, proxies, ssl_verify)
-            dmarc_result = query_dmarc(observable, observable_type, proxies, ssl_verify)
-            # Add SPF and DMARC as records for consistency
-            if spf_result:
-                all_records.append(spf_result)
-            if dmarc_result:
-                all_records.append(dmarc_result)
-            return {"Answer": all_records}
+    if spf_result:
+        all_records.append(spf_result)
+    if dmarc_result:
+        all_records.append(dmarc_result)
 
-        if observable_type == "URL":
-            extracted = observable.split("/")[2]
-            if ":" in extracted:
-                extracted = extracted.split(":")[0]
-            extracted_type = identify_observable_type(extracted)
-            spf_result = query_spf(observable, observable_type, proxies, ssl_verify)
-            dmarc_result = query_dmarc(observable, observable_type, proxies, ssl_verify)
-            dns_result = query_google_dns(extracted, extracted_type, proxies, ssl_verify)
-            if dns_result is None:
-                dns_result = {"Answer": []}
-            if spf_result:
-                dns_result["Answer"].append(spf_result)
-            if dmarc_result:
-                dns_result["Answer"].append(dmarc_result)
-            return dns_result
+    return {"Answer": all_records}
 
-        logger.warning("Unsupported observable_type '%s' or no relevant logic found.", observable_type)
-        return None
 
-    except Exception as e:
-        logger.error("Error querying Google DNS for '%s': %s", observable, e, exc_info=True)
-        return None
+def url_lookups(
+    observable: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+) -> dict[str, Any] | None:
+    extracted = observable.split("/")[2]
+
+    if ":" in extracted:
+        extracted = extracted.split(":")[0]
+
+    extracted_type: str = identify_observable_type(extracted)
+    spf_result: dict | None = query_spf(observable, "URL", proxies, ssl_verify)
+    dmarc_result: dict | None = query_dmarc(observable, "URL", proxies, ssl_verify)
+
+    # re-run lookups for the extracted domain
+    dns_result: dict | None = run_engine(extracted, extracted_type, proxies, ssl_verify)
+
+    if not dns_result:
+        dns_result = {"Answer": []}
+    if spf_result:
+        dns_result["Answer"].append(spf_result)
+    if dmarc_result:
+        dns_result["Answer"].append(dmarc_result)
+
+    return dns_result
+
+
+def run_engine(
+    observable: str, observable_type: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+) -> dict[str, Any] | None:
+    if observable_type in ["IPv4", "IPv6"]:
+        return reverse_dns_lookup(observable, proxies, ssl_verify)
+
+    if observable_type == "FQDN":
+        return forward_dns_lookup(observable, proxies, ssl_verify)
+
+    if observable_type == "URL":
+        return url_lookups(observable, proxies, ssl_verify)
+
+    return None
