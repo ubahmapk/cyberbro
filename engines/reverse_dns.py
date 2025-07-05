@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import dns.resolver
 import dns.reversename
@@ -17,8 +17,15 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "URL",
 ]
 
+NAME: str = "reverse_dns"
+LABEL: str = "Reverse DNS"
+SUPPORTS: list[str] = ["default, domain, IP, abuse, free_no_key"]
+DESCRIPTION: str = "Performs a reverse DNS lookup for IP, domain, URL (on the Cyberbro machine)"
+COST: str = "Free"
+API_KEY_REQUIRED: bool = False
 
-def reverse_dns(observable: str, observable_type: str) -> Optional[dict[str, Any]]:
+
+def run_engine(observable: str, observable_type: str) -> dict[str, Any] | None:
     """
     Perform a reverse DNS or standard DNS lookup on the given observable.
 

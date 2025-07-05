@@ -209,7 +209,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
     This is a case of auto-pivoting, where the observable type is changed to IP.
     """
     if "reverse_dns" in selected_engines and observable["type"] in reverse_dns.SUPPORTED_OBSERVABLE_TYPES:
-        reverse_dns_result = reverse_dns.reverse_dns(observable["value"], observable["type"])
+        reverse_dns_result = reverse_dns.run_engine(observable["value"], observable["type"])
         result["reverse_dns"] = reverse_dns_result
         if reverse_dns_result:
             result["reversed_success"] = True
