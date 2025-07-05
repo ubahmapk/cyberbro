@@ -221,7 +221,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         result["ipquery"] = ipquery.query_ipquery(observable["value"], PROXIES, SSL_VERIFY)
 
     if "ipinfo" in selected_engines and observable["type"] in ipinfo.SUPPORTED_OBSERVABLE_TYPES:
-        result["ipinfo"] = ipinfo.query_ipinfo(observable["value"], secrets.ipinfo, PROXIES, SSL_VERIFY)
+        result["ipinfo"] = ipinfo.run_engine(observable["value"], secrets.ipinfo, PROXIES, SSL_VERIFY)
 
     if "abuseipdb" in selected_engines and observable["type"] in abuseipdb.SUPPORTED_OBSERVABLE_TYPES:
         result["abuseipdb"] = abuseipdb.run_engine(observable["value"], PROXIES, SSL_VERIFY)
