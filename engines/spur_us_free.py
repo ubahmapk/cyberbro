@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -12,10 +11,17 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "IPv6",
 ]
 
+NAME: str = "spur_us_free"
+LABEL: str = "Spur.us"
+SUPPORTS: list[str] = ["VPN", "proxy", "free_no_key", "scraping"]
+DESCRIPTION: str = "Scraps Spur.us for IP, reversed obtained IP for a given domain/URL, free, no API key."
+COST: str = "Free"
+API_KEY_REQUIRED: bool = False
+
 ua = UserAgent()
 
 
-def get_spur(ip: str, proxies: dict[str, str], ssl_verify: bool = True) -> Optional[dict[str, str]]:
+def run_engine(ip: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True) -> dict[str, str] | None:
     """
     Retrieves information about the given IP address from the spur.us website.
 
@@ -31,8 +37,10 @@ def get_spur(ip: str, proxies: dict[str, str], ssl_verify: bool = True) -> Optio
               }
         None: If an error occurs during the request or parsing process.
     """
+
+    spur_url = f"https://spur.us/context/{ip}"
+
     try:
-        spur_url = f"https://spur.us/context/{ip}"
         response = requests.get(
             spur_url,
             proxies=proxies,

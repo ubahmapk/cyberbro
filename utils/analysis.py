@@ -227,7 +227,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         result["abuseipdb"] = abuseipdb.run_engine(observable["value"], PROXIES, SSL_VERIFY)
 
     if "spur" in selected_engines and observable["type"] in spur_us_free.SUPPORTED_OBSERVABLE_TYPES:
-        result["spur"] = spur_us_free.get_spur(observable["value"], PROXIES, SSL_VERIFY)
+        result["spur"] = spur_us_free.run_engine(observable["value"], PROXIES, SSL_VERIFY)
 
     if "webscout" in selected_engines and observable["type"] in webscout.SUPPORTED_OBSERVABLE_TYPES:
         result["webscout"] = webscout.query_webscout(observable["value"], secrets.webscout, PROXIES, SSL_VERIFY)
