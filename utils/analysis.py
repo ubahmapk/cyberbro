@@ -218,7 +218,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
                 observable["value"] = reverse_dns_result["reverse_dns"][0]
 
     if "ipquery" in selected_engines and observable["type"] in ipquery.SUPPORTED_OBSERVABLE_TYPES:
-        result["ipquery"] = ipquery.query_ipquery(observable["value"], PROXIES, SSL_VERIFY)
+        result["ipquery"] = ipquery.run_engine(observable["value"], PROXIES, SSL_VERIFY)
 
     if "ipinfo" in selected_engines and observable["type"] in ipinfo.SUPPORTED_OBSERVABLE_TYPES:
         result["ipinfo"] = ipinfo.run_engine(observable["value"], secrets.ipinfo, PROXIES, SSL_VERIFY)
