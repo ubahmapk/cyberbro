@@ -230,7 +230,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         result["spur"] = spur_us_free.run_engine(observable["value"], PROXIES, SSL_VERIFY)
 
     if "webscout" in selected_engines and observable["type"] in webscout.SUPPORTED_OBSERVABLE_TYPES:
-        result["webscout"] = webscout.query_webscout(observable["value"], secrets.webscout, PROXIES, SSL_VERIFY)
+        result["webscout"] = webscout.run_engine(observable["value"], secrets.webscout, PROXIES, SSL_VERIFY)
 
     if "shodan" in selected_engines and observable["type"] in shodan.SUPPORTED_OBSERVABLE_TYPES:
         result["shodan"] = shodan.run_engine(observable["value"], secrets.shodan, PROXIES, SSL_VERIFY)

@@ -1,9 +1,11 @@
 import logging
 import time
-from typing import Any, Optional
+from typing import Any
 
 import pycountry
 import requests
+
+from utils.config import Secrets, get_config
 
 logger = logging.getLogger(__name__)
 
@@ -12,14 +14,21 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "IPv6",
 ]
 
+NAME: str = "webscout"
+LABEL: str = "Webscout.io"
+SUPPORTS: list[str] = ["IP", "free or paid API key required"]
+DESCRIPTION: str = (
+    "Checks WebScout for IP, reversed obtained IP for a given domain / URL, free or paid API key required"
+)
+COST: str = "Free"
+API_KEY_REQUIRED: bool = True
 
-def query_webscout(ip: str, api_key: str, proxies: dict[str, str], ssl_verify: bool = True) -> Optional[dict[str, Any]]:
+def run_engine(ip: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True) -> dict[str, Any] | None:
     """
     Queries the IP information from the webscout.io API.
 
     Args:
         ip (str): The IP address to query.
-        api_key (str): The API key for webscout.io.
         proxies (dict): Dictionary containing proxy settings.
 
     Returns:
@@ -50,6 +59,13 @@ def query_webscout(ip: str, api_key: str, proxies: dict[str, str], ssl_verify: b
             }
         None: If an error occurs or 'status' key isn't 'success'.
     """
+
+    secrets: Secrets = get_config()
+    api_key: str = secrets.webscout
+    if not api_key:
+        logger.error("WebScout API key is required")
+        return None
+
     try:
         # rate limit
         time.sleep(1)
