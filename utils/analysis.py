@@ -233,7 +233,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         result["webscout"] = webscout.query_webscout(observable["value"], secrets.webscout, PROXIES, SSL_VERIFY)
 
     if "shodan" in selected_engines and observable["type"] in shodan.SUPPORTED_OBSERVABLE_TYPES:
-        result["shodan"] = shodan.query_shodan(observable["value"], secrets.shodan, PROXIES, SSL_VERIFY)
+        result["shodan"] = shodan.run_engine(observable["value"], secrets.shodan, PROXIES, SSL_VERIFY)
 
     if "abusix" in selected_engines and observable["type"] in abusix.SUPPORTED_OBSERVABLE_TYPES:
         result["abusix"] = abusix.run_engine(observable["value"])

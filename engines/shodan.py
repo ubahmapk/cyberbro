@@ -3,6 +3,8 @@ import logging
 import requests
 from requests.exceptions import HTTPError, JSONDecodeError
 
+from utils.config import Secrets, get_config
+
 logger = logging.getLogger(__name__)
 
 SUPPORTED_OBSERVABLE_TYPES: list[str] = [
@@ -10,16 +12,21 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "IPv6",
 ]
 
+NAME: str = "shodan"
+LABEL: str = "Shodan"
+SUPPORTS: list[str] = ["ports", "IP"]
+DESCRIPTION: str = "Checks Shodan, reversed obtained IP for a given domain/URL, free API key required"
+COST: str = "Free"
+API_KEY_REQUIRED: bool = True
 
-def query_shodan(
-    observable: str, api_key: str, proxies: dict[str, str], ssl_verify: bool = True
+def run_engine(
+    observable: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
 ) -> dict[str, list | str] | None:
     """
     Queries the Shodan API for information about a given observable (typically an IP).
 
     Args:
         observable (str): The IP address to query in Shodan.
-        api_key (str): The Shodan API key.
         proxies (dict): A dictionary of proxy configurations.
 
     Returns:
@@ -32,6 +39,13 @@ def query_shodan(
               }
         None: If the request was unsuccessful or an error occurred.
     """
+
+    secrets: Secrets = get_config()
+    api_key: str = secrets.shodan
+    if not api_key:
+        logger.error("Shodan API key is required but not provided.")
+        return None
+
     headers: dict = {"Accept": "application/json"}
     params: dict = {"key": api_key}
     url: str = f"https://api.shodan.io/shodan/host/{observable}"
