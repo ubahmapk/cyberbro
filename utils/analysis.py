@@ -177,10 +177,9 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         "google_safe_browsing" in selected_engines
         and observable["type"] in google_safe_browsing.SUPPORTED_OBSERVABLE_TYPES
     ):
-        result["google_safe_browsing"] = google_safe_browsing.query_google_safe_browsing(
+        result["google_safe_browsing"] = google_safe_browsing.run_engine(
             observable["value"],
             observable["type"],
-            secrets.google_safe_browsing,
             PROXIES,
             SSL_VERIFY,
         )
