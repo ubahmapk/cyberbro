@@ -247,7 +247,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
     the name is an exception.
     """
     if observable["type"] == "CHROME_EXTENSION":
-        result["extension"] = chrome_extension.get_name_from_id(observable["value"], PROXIES, SSL_VERIFY)
+        result["extension"] = chrome_extension.run_engine(observable["value"], PROXIES, SSL_VERIFY)
 
     # print("Results: ", result, file=sys.stderr)
     return result

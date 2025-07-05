@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
@@ -18,7 +17,9 @@ COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
 
-def get_name_from_id(extension_id: str, proxies: dict[str, str], ssl_verify: bool = True) -> Optional[dict[str, str]]:
+def run_engine(
+    extension_id: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+) -> dict[str, str] | None:
     """
     Fetch the name of a Chrome or Edge extension using its ID.
 
@@ -35,7 +36,7 @@ def get_name_from_id(extension_id: str, proxies: dict[str, str], ssl_verify: boo
     chrome_url = f"https://chromewebstore.google.com/detail/{extension_id}"
     edge_url = f"https://microsoftedge.microsoft.com/addons/detail/{extension_id}"
 
-    def fetch_extension_name(url: str) -> Optional[dict[str, str]]:
+    def fetch_extension_name(url: str) -> dict[str, str] | None:
         try:
             response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
             response.raise_for_status()
