@@ -195,7 +195,7 @@ def perform_engine_queries(observable: dict, selected_engines: list[str], result
         )
 
     if "hudsonrock" in selected_engines and observable["type"] in hudsonrock.SUPPORTED_OBSERVABLE_TYPES:
-        result["hudsonrock"] = hudsonrock.query_hudsonrock(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
+        result["hudsonrock"] = hudsonrock.run_engine(observable["value"], observable["type"], PROXIES, SSL_VERIFY)
 
     if "google_dns" in selected_engines and observable["type"] in google_dns.SUPPORTED_OBSERVABLE_TYPES:
         result["google_dns"] = google_dns.query_google_dns(observable["value"], observable["type"], PROXIES, SSL_VERIFY)

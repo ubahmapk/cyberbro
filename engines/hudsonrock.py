@@ -1,6 +1,6 @@
 import logging
-from typing import Any, Optional
-from urllib.parse import urlparse
+from typing import Any
+from urllib.parse import ParseResult, urlparse
 
 import requests
 
@@ -12,13 +12,19 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "URL",
 ]
 
+NAME: str = "hudsonrock"
+LABEL: str = "Hudson Rock"
+SUPPORTS: list[str] = ["domain", "URL", "email", "free_no_key"]
+DESCRIPTION: str = "Searches Hudson Rocks results for domains, URL, Email, free, no API key"
+COST: str = "Free"
+API_KEY_REQUIRED: bool = False
 
-def query_hudsonrock(
+def run_engine(
     observable: str,
     observable_type: str,
     proxies: dict[str, str],
     ssl_verify: bool = True,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Perform a search query using Hudson Rock API for email or domain observables.
 
@@ -33,22 +39,35 @@ def query_hudsonrock(
     """
     try:
         if observable_type == "URL":
-            parsed_url = urlparse(observable)
-            observable = parsed_url.netloc
+            parsed_url: ParseResult = urlparse(observable)
+            observable: str = parsed_url.netloc
+            if not observable:
+                logger.error(f"Invalid URL provided: {observable}")
+                return None
             observable_type = "FQDN"
 
-        if observable_type == "Email":
-            url = f"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-email?email={observable}"
-        elif observable_type == "FQDN":
-            url = f"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-domain?domain={observable}"
-        else:
-            logger.error("Unsupported observable type: %s", observable_type)
-            return None
+        match observable_type:
+            case "Email":
+                url = f"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-email?email={observable}"
+            case "FQDN":
+                url = f"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/search-by-domain?domain={observable}"
+            case _:
+                logger.error("Unsupported observable type: %s", observable_type)
+                return None
 
         response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
         data = response.json()
+    except requests.exceptions.RequestException as e:
+        logger.error(
+            "Error while querying Hudson Rock for '%s': %s",
+            observable,
+            e,
+            exc_info=True,
+        )
+        return None
 
+    try:
         # Remove any URL / domain that contains "••" for reducing output size
         if observable_type == "FQDN":
             for section in ["data", "stats"]:
