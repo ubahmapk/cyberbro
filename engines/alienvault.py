@@ -167,8 +167,8 @@ def parse_alienvault_response(result: dict) -> dict:
     adversary: set[str] = set(otx_report.pulse_info.related.alienvault.adversary)
 
     pulses: list[Pulse] = otx_report.pulse_info.pulses
-    pulse_data: list[dict[str, str]] = []
-    seen_urls: set[str] = set()  # Track unique pulse URLs
+    pulse_data: list[dict[str, str | None]] = []
+    seen_urls: set[str | None] = set()  # Track unique pulse URLs
 
     # Sort pulses by 'created' timestamp in descending order
     sorted_pulses = sorted(pulses, key=lambda x: x.created, reverse=True)
@@ -178,10 +178,10 @@ def parse_alienvault_response(result: dict) -> dict:
             continue
 
         # Get pulse URL from the first reference, or "None" if not available
-        pulse_url: str = pulse.references[0] if pulse.references else "None"
+        pulse_url: str | None = pulse.references[0] if pulse.references else None
 
         # Skip if this pulse URL has already been seen (excluding None entries)
-        if pulse_url != "None" and pulse_url in seen_urls:
+        if pulse_url is not None and pulse_url in seen_urls:
             continue
 
         # Add to seen URLs and include in output
