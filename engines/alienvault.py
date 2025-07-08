@@ -37,9 +37,10 @@ def run_engine(
     Queries the OTX AlienVault API for information about a given observable (URL, IP, domain, hash).
 
     Args:
-        observable (str): The observable to search for (e.g., URL, IP address, domain, hash).
-        observable_type (str): The type of the observable
-        (e.g., "URL", "IPv4", "IPv6", "FQDN", "SHA256", "SHA1", "MD5").
+        observable_dict (dict): The observable mapping which contains:
+        - value (str): The observable to search for (e.g., URL, IP address, domain, hash).
+        - type (str): The type of the observable
+            (e.g., "URL", "IPv4", "IPv6", "FQDN", "SHA256", "SHA1", "MD5").
         proxies (dict): A dictionary of proxies to use for the request.
         ssl_verify (bool): Whether to verify SSL certificates.
         api_key (str): OTX AlienVault API key (required).
@@ -68,7 +69,7 @@ def run_engine(
 
     try:
         result: dict = query_alienvault(observable_dict, api_key)
-        report: dict = parse_alienvault_response_model(result)
+        report: dict = parse_alienvault_response(result)
     except QueryError:
         logger.warning("Error retrieving or parsing report from AlienVault")
         return None
@@ -119,7 +120,7 @@ def query_alienvault(
     return result
 
 
-def parse_alienvault_response_model(result: dict) -> dict:
+def parse_alienvault_response(result: dict) -> dict:
     try:
         otx_report: OTXReport = OTXReport(**result)
     except ValidationError as e:
