@@ -7,6 +7,10 @@ from pathlib import Path
 from typing import Any
 
 
+class QueryError(Exception):
+    pass
+
+
 @dataclass
 class Secrets:
     """Dataclass to hold the secrets for the application."""
