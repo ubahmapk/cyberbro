@@ -1,6 +1,6 @@
 import pytest
 import responses
-from engines.alienvault import parse_alienvault_response_model, query_alienvault
+from engines.alienvault import parse_alienvault_response, query_alienvault
 from utils.config import QueryError
 from pathlib import Path
 import json
@@ -147,7 +147,7 @@ def test_parse_alienvault(request, input_query_response, expected_report):
     """
     input: dict = request.getfixturevalue(input_query_response)
     expected: dict = request.getfixturevalue(expected_report)
-    report: dict = parse_alienvault_response_model(input)
+    report: dict = parse_alienvault_response(input)
 
     assert report == expected
 
@@ -168,7 +168,7 @@ def test_bad_or_empty_parse_alienvault(fqdn_response_missing_pulse_info):
         "link": "https://otx.alienvault.com/browse/global/pulses?q=support-gmeet.com",
     }
 
-    report: dict = parse_alienvault_response_model(fqdn_response_missing_pulse_info)
+    report: dict = parse_alienvault_response(fqdn_response_missing_pulse_info)
 
     assert report == expected
 
@@ -182,7 +182,7 @@ def fqdn_response_missing_indicator(fqdn_response_from_file):
 
 def test_missing_indicator_parse_alienvault(fqdn_response_missing_indicator):
     with pytest.raises(QueryError):
-        report = parse_alienvault_response_model(fqdn_response_missing_indicator)
+        report = parse_alienvault_response(fqdn_response_missing_indicator)
 
 
 @responses.activate
