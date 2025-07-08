@@ -18,6 +18,7 @@ class Secrets:
     abuseipdb: str = ""
     api_cache_timeout: int = 86400  # Default to 1 day
     api_prefix: str = "api"
+    alienvault: str = ""
     config_page_enabled: bool = False
     criminalip_api_key: str = ""
     crowdstrike_client_id: str = ""
@@ -41,7 +42,6 @@ class Secrets:
     ssl_verify: bool = True
     virustotal: str = ""
     webscout: str = ""
-    alienvault: str = ""
 
     # Method to iterate through the dataclass fields
     def __iter__(self):
