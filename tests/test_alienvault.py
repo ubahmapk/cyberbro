@@ -87,13 +87,13 @@ def expected_fqdn_report():
     return {
         "count": 4,
         "pulses": [
-            {"title": "Backdoor:Linux/Mirai.B\t  - TikTok", "url": "None"},
-            {"title": "Delete service | Affects Threat Research Platforms", "url": "None"},
+            {"title": "Backdoor:Linux/Mirai.B\t  - TikTok", "url": None},
+            {"title": "Delete service | Affects Threat Research Platforms", "url": None},
             {
                 "title": "Zooming through BlueNoroff Indicators with Validin.",
                 "url": "https://www.validin.com/blog/zooming_through_bluenoroff_pivots/",
             },
-            {"title": "ELF:Mirai AMAZON-02 - Autonomous System  65.0.0.0/14", "url": "None"},
+            {"title": "ELF:Mirai AMAZON-02 - Autonomous System  65.0.0.0/14", "url": None},
         ],
         "malware_families": ["Apnic"],
         "adversary": ["Lazarus"],
@@ -121,7 +121,7 @@ def expected_ip_report():
 def expected_md5_report():
     return {
         "count": 1,
-        "pulses": [{"title": "malware", "url": "None"}],
+        "pulses": [{"title": "malware", "url": None}],
         "malware_families": [],
         "adversary": [],
         "link": "https://otx.alienvault.com/browse/global/pulses?q=1fd35d9dc2eb919088f4eb48ab18b5a8",
