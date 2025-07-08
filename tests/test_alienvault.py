@@ -1,9 +1,12 @@
 import pytest
 import responses
-from engines.alienvault import parse_alienvault_response, query_alienvault
+from engines.alienvault import parse_alienvault_response, query_alienvault, get_endpoint
 from utils.config import QueryError
 from pathlib import Path
 import json
+from urllib.parse import quote
+from requests.exceptions import HTTPError, Timeout
+from pytest_mock import MockerFixture
 
 
 @pytest.fixture(scope="session")
@@ -196,3 +199,51 @@ def test_query_alienvault(fqdn_observable_dict, api_key, fqdn_response_from_file
     result: dict = query_alienvault(fqdn_observable_dict, api_key)
 
     assert result == fqdn_response_from_file
+
+
+@responses.activate
+def test_query_alienvault_http_error(api_key, ip_observable_dict):
+    responses.add(responses.GET, "https://otx.alienvault.com/api/v1/indicators/IPv4/1.1.1.1/general", body=HTTPError())
+
+    with pytest.raises(QueryError):
+        _ = query_alienvault(ip_observable_dict, api_key)
+
+
+def test_query_alienvault_request_timeout(ip_observable_dict, api_key, mocker: MockerFixture):
+    mocker.patch("requests.get", side_effect=Timeout)
+
+    with pytest.raises(QueryError):
+        _ = query_alienvault(ip_observable_dict, api_key)
+
+
+def test_query_alienvault_missing_endpoint(api_key):
+    observable_dict: dict = {"value": "1.1.1.1", "type": "NaN"}
+
+    with pytest.raises(QueryError):
+        _ = query_alienvault(observable_dict, api_key)
+
+
+@pytest.mark.parametrize(
+    "type,artifact,endpoint",
+    [
+        ("IPv4", "1.1.1.1", "/indicators/IPv4/1.1.1.1/general"),
+        ("IPv6", "fe00::0", f"/indicators/IPv6/{quote('fe00::0')}/general"),
+        ("FQDN", "example.net", "/indicators/domain/example.net/general"),
+        (
+            "SHA1",
+            "3a30948f8cd5655fede389d73b5fecd91251df4a",
+            "/indicators/file/3a30948f8cd5655fede389d73b5fecd91251df4a/general",
+        ),
+        ("MD5", "781e5e245d69b566979b86e28d23f2c7", "/indicators/file/781e5e245d69b566979b86e28d23f2c7/general"),
+        (
+            "SHA256",
+            "84d89877f0d4041efb6bf91a16f0248f2fd573e6af05c19f96bedb9f882f7882",
+            "/indicators/file/84d89877f0d4041efb6bf91a16f0248f2fd573e6af05c19f96bedb9f882f7882/general",
+        ),
+        ("NaN", "1.1.1.1", None),
+    ],
+)
+def test_get_endpoint(type: str, artifact: str, endpoint: str | None):
+    result: str | None = get_endpoint(artifact, type)
+
+    assert endpoint == result
