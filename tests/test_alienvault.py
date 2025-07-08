@@ -182,7 +182,7 @@ def fqdn_response_missing_indicator(fqdn_response_from_file):
 
 def test_missing_indicator_parse_alienvault(fqdn_response_missing_indicator):
     with pytest.raises(QueryError):
-        report = parse_alienvault_response(fqdn_response_missing_indicator)
+        _ = parse_alienvault_response(fqdn_response_missing_indicator)
 
 
 @responses.activate
