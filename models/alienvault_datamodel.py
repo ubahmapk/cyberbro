@@ -40,7 +40,7 @@ class MalwareFamily(BaseModel):
 
 
 class Pulse(BaseModel, extra="ignore"):
-    id: str
+    id: str | None = None
     name: str = "Unknown"
     description: str = ""
     created: str = ""
