@@ -90,13 +90,22 @@ def expected_fqdn_report():
     return {
         "count": 4,
         "pulses": [
-            {"title": "Backdoor:Linux/Mirai.B\t  - TikTok", "url": None},
-            {"title": "Delete service | Affects Threat Research Platforms", "url": None},
+            {
+                "title": "Backdoor:Linux/Mirai.B\t  - TikTok",
+                "url": "https://otx.alienvault.com/pulse/686b20fc7023e207712491d9",
+            },
+            {
+                "title": "Delete service | Affects Threat Research Platforms",
+                "url": "https://otx.alienvault.com/pulse/68596260a9ca6c4cc92ca068",
+            },
             {
                 "title": "Zooming through BlueNoroff Indicators with Validin.",
                 "url": "https://www.validin.com/blog/zooming_through_bluenoroff_pivots/",
             },
-            {"title": "ELF:Mirai AMAZON-02 - Autonomous System  65.0.0.0/14", "url": None},
+            {
+                "title": "ELF:Mirai AMAZON-02 - Autonomous System  65.0.0.0/14",
+                "url": "https://otx.alienvault.com/pulse/684a93360163e8802e213158",
+            },
         ],
         "malware_families": ["Apnic"],
         "adversary": ["Lazarus"],
@@ -124,7 +133,7 @@ def expected_ip_report():
 def expected_md5_report():
     return {
         "count": 1,
-        "pulses": [{"title": "malware", "url": None}],
+        "pulses": [{"title": "malware", "url": "https://otx.alienvault.com/pulse/686b2966f904d473662ebd22"}],
         "malware_families": [],
         "adversary": [],
         "link": "https://otx.alienvault.com/browse/global/pulses?q=1fd35d9dc2eb919088f4eb48ab18b5a8",
@@ -186,6 +195,24 @@ def fqdn_response_missing_indicator(fqdn_response_from_file):
 def test_missing_indicator_parse_alienvault(fqdn_response_missing_indicator):
     with pytest.raises(QueryError):
         _ = parse_alienvault_response(fqdn_response_missing_indicator)
+
+
+@pytest.fixture()
+def fqdn_response_missing_pulse_id(expected_fqdn_report, fqdn_response_from_file):
+    input_data: dict = fqdn_response_from_file.copy()
+    input_data["pulse_info"]["pulses"][0].pop("id")
+
+    return input_data
+
+
+def test_parse_alienvault_response_missing_pulse_id(fqdn_response_missing_pulse_id, expected_fqdn_report):
+    expected_report: dict = expected_fqdn_report.copy()
+    expected_report["pulses"].pop(0)
+    expected_report["count"] = 3
+
+    report = parse_alienvault_response(fqdn_response_missing_pulse_id)
+
+    assert report == expected_report
 
 
 @responses.activate
