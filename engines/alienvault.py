@@ -68,7 +68,7 @@ def run_engine(
         return None
 
     try:
-        result: dict = query_alienvault(observable_dict, api_key)
+        result: dict = query_alienvault(observable_dict, api_key, proxies, ssl_verify)
         report: dict = parse_alienvault_response(result)
     except QueryError:
         logger.warning("Error retrieving or parsing report from AlienVault")
