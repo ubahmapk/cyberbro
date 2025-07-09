@@ -177,11 +177,12 @@ def parse_alienvault_response(result: dict) -> dict:
         if pulse.name == "Unknown":
             continue
 
-        # Get pulse URL from the first reference, or "None" if not available
-        pulse_url: str | None = pulse.references[0] if pulse.references else None
+        # Link to default pulse URL if no other more specific link is present
+        pulse_url_default_value: str = f"https://otx.alienvault.com/pulse/{pulse.id}"
+        pulse_url: str = pulse.references[0] if pulse.references else pulse_url_default_value
 
         # Skip if this pulse URL has already been seen (excluding None entries)
-        if pulse_url is not None and pulse_url in seen_urls:
+        if pulse_url != pulse_url_default_value and pulse_url in seen_urls:
             continue
 
         # Add to seen URLs and include in output
