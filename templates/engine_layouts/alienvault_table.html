@@ -2,11 +2,7 @@
     {% if result.alienvault %}
         <strong>Pulses Count:</strong> {{ result.alienvault.count }}<br/>
         {% for search_result in result.alienvault.pulses %}
-            {% if search_result.url is none %}
-                {{ search_result.title }}<br/>
-            {% else %}
-                <a href="{{ search_result.url }}" target="_blank" title="{{ search_result.title }}">{{ search_result.title }}</a><br/>
-            {% endif %}
+            <a href="{{ search_result.url }}" target="_blank" title="{{ search_result.title }}">{{ search_result.title }}</a><br/>
         {% endfor %}
 
         {% if result.alienvault.malware_families %}
