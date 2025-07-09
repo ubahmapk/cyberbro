@@ -174,7 +174,7 @@ def parse_alienvault_response(result: dict) -> dict:
     sorted_pulses = sorted(pulses, key=lambda x: x.created, reverse=True)
 
     for pulse in sorted_pulses:
-        if pulse.name == "Unknown":
+        if (pulse.name == "Unknown") or (not pulse.id):
             continue
 
         # Link to default pulse URL if no other more specific link is present
