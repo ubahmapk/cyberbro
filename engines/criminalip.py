@@ -1,13 +1,12 @@
 import json
 import logging
-from enum import StrEnum
-from typing import Self
 
 import requests
-from pydantic import BaseModel, Field, ValidationError, model_validator
-from requests.exceptions import HTTPError
+from pydantic import ValidationError
+from requests.exceptions import RequestException
 
-from utils.config import Secrets, get_config
+from models.criminalip_datamodel import SuspiciousInfoReport
+from utils.config import APIKeyNotFoundError, QueryError, read_api_key
 
 """
 Criminal IP API integration for retrieving suspicious information about IP addresses.
@@ -29,179 +28,81 @@ COST: str = "Free, with paid upgrades available"
 API_KEY_REQUIRED: bool = True
 
 
-class OpenPort(BaseModel):
-    port: int | None = None
-    is_vulnerability: bool = False
-    product_name: str | None = None
-    product_version: str | None = None
-    protocol: str | None = None
-    socket_type: str | None = None
-    confirmed_time: str | None = None
+BASE_URL: str = "https://api.criminalip.io"
 
 
-class IDSAlert(BaseModel):
-    classification: str | None = None
-    confirmed_time: str | None = None
-    message: str | None = None
-    source_system: str | None = None
-    url: str | None = None
-
-
-class CurrentOpenedPorts(BaseModel):
-    count: int
-    data: list[OpenPort] = Field(default_factory=list)
-
-
-class IDSAlerts(BaseModel):
-    count: int
-    data: list[IDSAlert] = Field(default_factory=list)
-
-
-class Issues(BaseModel):
-    is_anonymous_vpn: bool = False
-    is_cloud: bool = False
-    is_darkweb: bool = False
-    is_hosting: bool = False
-    is_mobile: bool = False
-    is_proxy: bool = False
-    is_scanner: bool = False
-    is_snort: bool = False
-    is_tor: bool = False
-    is_vpn: bool = False
-
-
-class WhoisRecord(BaseModel):
-    as_name: str | None = None
-    as_no: int | None = None
-    city: str | None = None
-    region: str | None = None
-    org_name: str | None = None
-    postal_code: str | None = None
-    latitude: float | None = None
-    longitude: float | None = None
-    org_country_code: str | None = None
-    confirmed_time: str | None = None
-
-
-class Whois(BaseModel):
-    count: int = 0
-    data: list[WhoisRecord] = Field(default_factory=list)
-
-
-class ScoreStatus(StrEnum):
-    SAFE = "Safe"
-    LOW = "Low"
-    MODERATE = "Moderate"
-    DANGEROUS = "Dangerous"
-    CRITICAL = "Critical"
-
-
-class Score(BaseModel):
-    inbound: ScoreStatus | None = None
-    outbound: ScoreStatus | None = None
-
-
-class SuspiciousInfoReport(BaseModel):
-    status: int
-    abuse_record_count: int = 0
-    current_opened_port: CurrentOpenedPorts | None = None
-    ids: IDSAlerts | None = None
-    ip: str = ""
-    issues: Issues | None = None
-    representative_domain: str = ""
-    score: Score | None = None
-    whois: Whois | None = None
-
-    @model_validator(mode="after")
-    def _validate_report(self) -> Self:
-        # If the status is anything other than 2xx, raise an error
-        if not 199 < self.status < 300:
-            raise ValueError(
-                f"Unable to generate Suspicious Info Report for IP: {self.ip}. Status Code: {self.status}"
-                f"{self.model_dump_json()}"
-            )
-        return self
-
-
-base_url: str = "https://api.criminalip.io"
-
-
-def retrieve_api_key() -> str:
-    """Retrieve the API key from the secrets config."""
-
-    secrets: Secrets = get_config()
-
-    api_key: str = secrets.criminalip_api_key
-
-    return api_key
-
-
-def get_suspicious_info_report(
+def query_criminalip(
     api_key: str,
-    observable: str,
+    ip: str,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
-) -> SuspiciousInfoReport | None:
+) -> dict:
     """Retrieve 'Suspicious Info' Report."""
 
-    url: str = f"{base_url}/v2/feature/ip/suspicious-info"
-    params: dict = {"ip": observable}
+    url: str = f"{BASE_URL}/v2/feature/ip/suspicious-info"
+    params: dict = {"ip": ip}
     headers: dict = {"x-api-key": f"{api_key}"}
 
     try:
         response = requests.get(url, params=params, headers=headers, proxies=proxies, verify=ssl_verify)
         response.raise_for_status()
-    except HTTPError as e:
-        logger.error(
-            f"Error retrieving Criminal IP Suspicious Info report for {observable}: {e}",
-        )
-        return None
+        query_result: dict = response.json()
+    except RequestException as e:
+        logger.error(f"Error retrieving Criminal IP Suspicious Info report for {ip}: {e}")
+        raise QueryError from e
 
+    return query_result
+
+
+def parse_criminalip_response(response: dict) -> SuspiciousInfoReport:
     try:
-        suspcious_info_report: SuspiciousInfoReport = SuspiciousInfoReport(**response.json())
+        suspcious_info_report: SuspiciousInfoReport = SuspiciousInfoReport(**response)
     except ValidationError as e:
-        logger.error(
-            f"Error validating Criminal IP Suspicious Info report for {observable}: {e}",
-        )
-        return None
+        logger.error(f"Error validating Criminal IP Suspicious Info report for {ip}: {e}")
+        raise QueryError from e
 
     return suspcious_info_report
 
 
-def run_engine(observable: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True) -> dict | None:
+def run_engine(observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True) -> dict | None:
     """Perform Criminal IP analysis."""
 
-    api_key: str = retrieve_api_key()
-
-    if not api_key:
+    try:
+        api_key: str = read_api_key("criminalip")
+    except APIKeyNotFoundError:
         logger.error("API key for CriminalIP engine is not configured.")
         return None
 
-    report: SuspiciousInfoReport | None = get_suspicious_info_report(api_key, observable, proxies, ssl_verify)
+    ip: str = observable_dict["value"]
 
-    if not report:
-        logger.error("Failed to retrieve the report.")
+    try:
+        query_response: dict = query_criminalip(api_key, ip, proxies, ssl_verify)
+        response: SuspiciousInfoReport = parse_criminalip_response(query_response)
+    except QueryError:
+        logger.error(f"Failed to retrieve suspicious info report for IP: {ip}")
         return None
 
-    return json.loads(report.model_dump_json())
+    return json.loads(response.model_dump_json())
 
 
 if __name__ == "__main__":
     # Example usage
-    api_key: str = retrieve_api_key()
-    ssl_verify: bool = False
 
-    if not api_key:
+    try:
+        api_key: str = read_api_key("criminalip")
+    except APIKeyNotFoundError:
         logger.error("API key is not configured.")
         exit(1)
 
-    observable: str = input("Enter an IP address: ")
+    ssl_verify: bool = False
 
-    if not observable:
+    ip: str = input("Enter an IP address: ")
+
+    if not ip:
         logger.error("No observable provided.")
         exit(1)
 
-    report: SuspiciousInfoReport | None = get_suspicious_info_report(api_key, observable, ssl_verify=ssl_verify)
+    report: SuspiciousInfoReport | None = query_criminalip(api_key, ip, ssl_verify=ssl_verify)
 
     if report:
         print("Suspicious Info Report:")
