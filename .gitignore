@@ -6,11 +6,9 @@ __pycache__/
 .venv
 *.csv
 *.db
-*.txt
 *.xlsx
 data/
 log*/
 secrets.json
-tests/
 site/
 .cache/
