@@ -22,35 +22,38 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
 NAME: str = "crowdstrike"
 LABEL: str = "CrowdStrike"
 SUPPORTS: list[str] = ["hash", "IP", "domain", "URL"]
-DESCRIPTION: str = "Checks CrowdStrike for IP, domain, URL, hash, paid API key required with Flacon XDR and Falcon Intelligence licence"
+DESCRIPTION: str = "Checks CrowdStrike for IP, domain, URL, hash, paid API key required with Flacon XDR and Falcon Intelligence licence"  # noqa: E501
 COST: str = "Paid"
 API_KEY_REQUIRED: bool = True
 
 
 def map_observable_type(observable_type: str) -> str | None:
-    if observable_type in ["MD5", "SHA256", "SHA1"] or observable_type in [
-        "IPv4",
-        "IPv6",
-    ]:
-        return observable_type.lower()
-    if observable_type in ["FQDN", "URL"]:
-        return "domain"
-
-    return None
+    match observable_type:
+        # why do we need to .lower() IPv4 and IPv6 types?
+        case "MD5" | "SHA256" | "SHA1" | "IPv4" | "IPv6":
+            return observable_type.lower()
+        case "FQDN" | "URL":
+            return "domain"
+        case _:
+            logger.warning(f"Unsupported observable type: {observable_type}")
+            return None
 
 
 def generate_ioc_id(observable: str, observable_type: str) -> str | None:
-    if observable_type == "domain":
-        return f"domain_{observable}"
-    if observable_type in ["ipv4", "ipv6"]:
-        return f"ip_address_{observable}"
-    if observable_type == "md5":
-        return f"hash_md5_{observable}"
-    if observable_type == "sha256":
-        return f"hash_sha256_{observable}"
-    if observable_type == "sha1":
-        return f"hash_sha1_{observable}"
-    return None
+    match observable_type:
+        case "domain":
+            return f"domain_{observable}"
+        case "ipv4" | "ipv6":
+            return f"ip_address_{observable}"
+        case "md5":
+            return f"hash_md5_{observable}"
+        case "sha256":
+            return f"hash_sha256_{observable}"
+        case "sha1":
+            return f"hash_sha1_{observable}"
+        case _:
+            logger.warning(f"Unsupported observable type for IOC ID generation: {observable_type}")
+            return None
 
 
 def get_falcon_client(
@@ -67,8 +70,7 @@ def get_falcon_client(
 
 
 def run_engine(
-    observable: str,
-    observable_type: str,
+    observable_dict: dict,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> dict[str, Any] | None:
@@ -92,10 +94,14 @@ def run_engine(
     client_id: str = secrets.crowdstrike_client_id
     client_secret: str = secrets.crowdstrike_client_secret
     falcon_url: str = secrets.crowdstrike_falcon_base_url
+    result: dict = {}
 
     if not client_id or not client_secret or not falcon_url:
         logger.error("CrowdStrike client ID, secret, and base URL are not configured.")
         return None
+
+    observable_type: str = observable_dict["type"]
+    observable: str = observable_dict["value"]
 
     try:
         falcon: APIHarnessV2 = get_falcon_client(client_id, client_secret, proxies, ssl_verify)
@@ -111,14 +117,16 @@ def run_engine(
         # What happens in Falcon if the observable_type is None?
         observable_type = map_observable_type(observable_type)
 
-        response = falcon.command("indicator_get_device_count_v1", type=observable_type, value=observable)
+        # I don't have access to CrowdStrike, but it looks like the response is a dict, natively?
+        # Does this need to be converted via .json()?
+        response: dict = falcon.command("indicator_get_device_count_v1", type=observable_type, value=observable)
         logger.debug("Falcon response: %s", response)
 
         if response["status_code"] != 200:
             logger.debug("Indicator not found: %s", response["body"]["errors"][0]["message"])
             result = {"device_count": 0}
         else:
-            data = response["body"]["resources"][0]
+            data: dict = response["body"]["resources"][0]
             result = {"device_count": data.get("device_count", 0)}
 
         id_to_search = generate_ioc_id(observable, observable_type)
