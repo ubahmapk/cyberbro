@@ -27,7 +27,7 @@ from utils.stats import get_analysis_stats
 from utils.utils import extract_observables
 from utils.version_check import check_for_new_version
 
-VERSION: str = "v0.8.10"
+VERSION: str = "v0.8.11"
 
 
 app: Flask = Flask(__name__)
