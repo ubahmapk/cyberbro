@@ -8,6 +8,7 @@ Thumbs.db
 
 # Ignore python cache directories
 __pycache__
+.venv
 
 # Ignore git directory
 .git

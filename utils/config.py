@@ -7,6 +7,16 @@ from pathlib import Path
 from typing import Any
 
 
+class APIKeyNotFoundError(Exception):
+    """Exception raised when an API key is not found."""
+
+    pass
+
+
+class QueryError(Exception):
+    pass
+
+
 @dataclass
 class Secrets:
     """Dataclass to hold the secrets for the application."""
@@ -118,11 +128,31 @@ BASE_DIR: Path = Path.resolve(Path(__file__).parent.parent)
 
 logger.debug(f"{BASE_DIR=}")
 
+# Ensure the data directory exists
+DATA_DIR: Path = Path(BASE_DIR) / "data"
+if not DATA_DIR.exists():
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
 # Define the path to the secrets file
 SECRETS_FILE: Path = Path(BASE_DIR / "secrets.json")
 
 # Initialize secrets dictionary with default values
 DEFAULT_SECRETS: Secrets = Secrets()
+
+
+def read_api_key(engine_name: str) -> str:
+    """Read the API key for a given engine from the secrets.
+
+    If the key is not found, raise an APIKeyNotFoundError.
+    """
+
+    secrets: Secrets = get_config()
+    api_key: str = getattr(secrets, engine_name, "")
+
+    if not api_key:
+        raise APIKeyNotFoundError(f"{engine_name} API key is not configured.")
+
+    return api_key
 
 
 def read_secrets_from_file(secrets_file: Path) -> Secrets:

@@ -1,16 +1,13 @@
 import hashlib
-import json
 import logging
 import threading
 import time
 import uuid
 from dataclasses import asdict
-from functools import lru_cache
 from pathlib import Path
-from typing import NamedTuple
+from types import ModuleType
 
 import ioc_fanger
-import requests
 from flask import Flask, jsonify, render_template, request, send_from_directory
 from flask_caching import Cache
 from flask_cors import CORS
@@ -18,21 +15,19 @@ from flask_cors import CORS
 from models.analysis_result import AnalysisResult, db
 from utils.analysis import check_analysis_in_progress, perform_analysis
 from utils.config import (
-    BASE_DIR,
+    DATA_DIR,
     SECRETS_FILE,
     Secrets,
     get_config,
     save_secrets_to_file,
 )
 from utils.export import export_to_csv, export_to_excel, prepare_data_for_export
+from utils.list_engines import load_engines
 from utils.stats import get_analysis_stats
 from utils.utils import extract_observables
+from utils.version_check import check_for_new_version
 
 VERSION: str = "v0.8.10"
-
-
-class InvalidCachefileError(Exception):
-    pass
 
 
 app: Flask = Flask(__name__)
@@ -43,9 +38,11 @@ logger: logging.Logger = logging.getLogger(__name__)
 CORS(app)
 
 # Ensure the data directory exists
+"""
 DATA_DIR: Path = Path(BASE_DIR) / "data"
 if not DATA_DIR.exists():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
+"""
 
 # Read the secrets from the secrets.json file
 secrets: Secrets = get_config()
@@ -92,82 +89,8 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-PROXIES: dict[str, str] = {"https": secrets.proxy_url, "http": secrets.proxy_url}
-
+PROXIES: dict[str, str] | None = {"https": secrets.proxy_url, "http": secrets.proxy_url} if secrets.proxy_url else None
 SSL_VERIFY: bool = secrets.ssl_verify
-
-
-def get_latest_version_from_cache_file(cache_file: Path) -> str:
-    """Check if the cache file exists and is not older than a day.
-
-    Return True if the cache file is valid and recent, False otherwise.
-    """
-
-    if not cache_file.exists():
-        raise InvalidCachefileError("Cache file does not exist.")
-
-    class CacheData(NamedTuple):
-        last_checked: float
-        latest_version: str = "unknown"
-
-    try:
-        with cache_file.open() as f:
-            cache_data: CacheData = CacheData(**json.load(f))
-    except json.JSONDecodeError as e:
-        print("Cache file is corrupted, fetching latest version.")
-        logger.warning("Cache file is corrupted, fetching latest version.")
-        raise InvalidCachefileError("Cache file is corrupted.") from e
-    except (OSError, TypeError) as e:
-        raise InvalidCachefileError("Cache file is not readable.") from e
-
-    if time.time() - cache_data.last_checked > 86400:
-        raise InvalidCachefileError("Cache file is too old.")
-
-    return cache_data.latest_version
-
-
-def get_latest_version_from_updated_cache_file(cache_file: Path) -> str:
-    """Update the cache file with the latest version and current time."""
-
-    url: str = "https://api.github.com/repos/stanfrbd/cyberbro/releases/latest"
-
-    if not cache_file.exists():
-        cache_file.touch()
-
-    try:
-        response = requests.get(url, proxies=PROXIES, verify=SSL_VERIFY, timeout=5)
-        response.raise_for_status()
-        latest_version: str = response.json().get("tag_name", "")
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Error fetching latest version: {e}")
-        return ""
-    except json.JSONDecodeError as e:
-        logger.error(f"Error decoding JSON response: {e}")
-        return ""
-
-    try:
-        with cache_file.open("w") as f:
-            json.dump({"last_checked": time.time(), "latest_version": latest_version}, f)
-            logger.info(f"Cache file updated with latest version: {latest_version}")
-    except OSError as e:
-        logger.error(f"Error writing to cache file: {e}")
-
-    return latest_version
-
-
-@lru_cache
-def check_for_new_version(current_version: str) -> bool:
-    """Check if a new version of the application is available."""
-
-    cache_file: Path = DATA_DIR / "version_cache.json"
-
-    # Check if cache file exists and is not older than a day
-    try:
-        latest_version: str = get_latest_version_from_cache_file(cache_file)
-    except InvalidCachefileError:
-        latest_version = get_latest_version_from_updated_cache_file(cache_file)
-
-    return latest_version != current_version
 
 
 @app.route("/")
@@ -191,6 +114,7 @@ def analyze():
     form_data = ioc_fanger.fang(request.form.get("observables", ""))
     observables = extract_observables(form_data)
     selected_engines = request.form.getlist("engines")
+    loaded_engines: list[ModuleType] = load_engines(selected_engines)
     ignore_cache = request.args.get("ignore_cache", "false").lower() == "true"
 
     # Generate a secure hash for form data and engines using SHA-256
@@ -211,7 +135,7 @@ def analyze():
 
     # If no cache
     analysis_id = str(uuid.uuid4())
-    threading.Thread(target=perform_analysis, args=(app, observables, selected_engines, analysis_id)).start()
+    threading.Thread(target=perform_analysis, args=(app, observables, loaded_engines, analysis_id)).start()
 
     # Generate response
     response_data = {"analysis_id": analysis_id}
@@ -320,8 +244,8 @@ def engines():
     """Return a list of available engines and their capabilities."""
     from utils.list_engines import list_engines
 
-    engines = list_engines()
-    return jsonify(engines)
+    engines_list = list_engines(secrets.gui_enabled_engines)
+    return jsonify(engines_list)
 
 
 @app.route("/config")
@@ -430,4 +354,4 @@ def graph(analysis_id):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=5000, debug=False)  # nosec: B104
