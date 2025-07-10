@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 import querycontacts
 
@@ -18,7 +17,7 @@ COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
 
-def run_engine(observable: str, proxies: dict[str, str] | None, ssl_verify: bool = True) -> Optional[dict[str, str]]:
+def run_engine(observable_dict: dict, *args, **kwargs) -> dict[str, str] | None:
     """
     Queries the Abusix service for contact information related to the given observable.
 
@@ -33,22 +32,19 @@ def run_engine(observable: str, proxies: dict[str, str] | None, ssl_verify: bool
                   }
         None: If an error occurs or no contact information is found.
     """
+    ip: str = observable_dict["value"]
+
     try:
-        results = querycontacts.ContactFinder().find(observable)
+        results = querycontacts.ContactFinder().find(ip)
         if not results:
-            logger.warning("No contact information returned for observable: %s", observable)
+            logger.warning("No contact information returned for observable: %s", ip)
             return None
 
         # We assume the first item in 'results' is the most relevant contact
         return {"abuse": results[0]}
 
     except Exception as e:
-        logger.error(
-            "Error querying Abusix for observable '%s': %s",
-            observable,
-            e,
-            exc_info=True,
-        )
+        logger.error("Error querying Abusix for observable '%s': %s", ip, e, exc_info=True)
 
     # Return None if any error or unexpected scenario occurred
     return None
