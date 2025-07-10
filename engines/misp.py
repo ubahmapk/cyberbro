@@ -26,6 +26,7 @@ DESCRIPTION: str = "Checks MISP for IP, domain, URL, hash, free API key required
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
 
+
 def map_observable_type(observable_type: str) -> str | list[str]:
     """
     Maps observable type to MISP attribute type.
@@ -62,8 +63,7 @@ def map_observable_type(observable_type: str) -> str | list[str]:
 
 
 def run_engine(
-    observable: str,
-    observable_type: str,
+    observable_dict: dict,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> dict[str, Any] | None:
@@ -92,25 +92,28 @@ def run_engine(
         logger.error("MISP API key and URL are required")
         return None
 
+    observable: str = observable_dict["value"]
+    observable_type: str | list = observable_dict["type"]
+
+    # Ensure the URL is properly formatted
+    misp_url = misp_url.rstrip("/")
+
+    # Validate observable type
+    if observable_type not in ["IPv4", "IPv6", "FQDN", "SHA256", "SHA1", "MD5", "URL"]:
+        logger.error("Unsupported observable type: %s", observable_type)
+        return None
+
+    # Prepare the search endpoint
+    url = f"{misp_url}/attributes/restSearch"
+    headers = {"Authorization": api_key, "Accept": "application/json", "Content-Type": "application/json"}
+
+    # map observable type to MISP attribute type
+    observable_type = map_observable_type(observable_type)
+
+    # Prepare the search payload
+    payload = {"returnFormat": "json", "value": observable, "type": observable_type}
+
     try:
-        # Ensure the URL is properly formatted
-        misp_url = misp_url.rstrip("/")
-
-        # Validate observable type
-        if observable_type not in ["IPv4", "IPv6", "FQDN", "SHA256", "SHA1", "MD5", "URL"]:
-            logger.error("Unsupported observable type: %s", observable_type)
-            return None
-
-        # Prepare the search endpoint
-        url = f"{misp_url}/attributes/restSearch"
-        headers = {"Authorization": api_key, "Accept": "application/json", "Content-Type": "application/json"}
-
-        # map observable type to MISP attribute type
-        observable_type: str | list = map_observable_type(observable_type)
-
-        # Prepare the search payload
-        payload = {"returnFormat": "json", "value": observable, "type": observable_type}
-
         # Obviously, a list can be included in the JSON payload just fine, but how does MISP handle it?
         # I don't have access to test this
         response = requests.post(url, json=payload, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5)
