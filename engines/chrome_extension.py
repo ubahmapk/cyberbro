@@ -18,7 +18,7 @@ API_KEY_REQUIRED: bool = False
 
 
 def run_engine(
-    extension_id: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+    observable: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True
 ) -> dict[str, str] | None:
     """
     Fetch the name of a Chrome or Edge extension using its ID.
@@ -33,6 +33,8 @@ def run_engine(
     Raises:
         Exception: If the request fails or the extension name is not found.
     """
+    extension_id: str = observable["value"]
+
     chrome_url = f"https://chromewebstore.google.com/detail/{extension_id}"
     edge_url = f"https://microsoftedge.microsoft.com/addons/detail/{extension_id}"
 
