@@ -25,7 +25,7 @@ API_KEY_REQUIRED: bool = False
 
 
 def run_engine(
-    observable: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+    observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True
 ) -> dict[str, Any] | None:
     """
     Perform a search query using Grep API, limited to 5 search results, restricted to GitHub domains.
@@ -44,6 +44,9 @@ def run_engine(
             }
         None: If an error occurs (network, parsing, etc.).
     """
+
+    observable: str = observable_dict["value"]
+
     try:
         response = requests.get(
             f"https://grep.app/api/search?q={observable}",

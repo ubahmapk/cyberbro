@@ -23,7 +23,10 @@ DESCRIPTION: str = (
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
 
-def run_engine(ip: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True) -> dict[str, Any] | None:
+
+def run_engine(
+    observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+) -> dict[str, Any] | None:
     """
     Queries the IP information from the webscout.io API.
 
@@ -65,6 +68,8 @@ def run_engine(ip: str, proxies: dict[str, str] | None = None, ssl_verify: bool 
     if not api_key:
         logger.error("WebScout API key is required")
         return None
+
+    ip: str = observable_dict["value"]
 
     try:
         # rate limit

@@ -18,9 +18,9 @@ DESCRIPTION: str = "Performs a reverse DNS lookup for IP, domain, URL (on the Cy
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
+
 def run_engine(
-    observable: str,
-    observable_type: str,
+    observable_dict: dict,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> Optional[dict[str, Any]]:
@@ -44,19 +44,24 @@ def run_engine(
               }
         None: If an error occurs or the observable_type is unsupported.
     """
-    try:
-        if observable_type == "URL":
+
+    observable: str = observable_dict["value"]
+    observable_type: str = observable_dict["type"]
+
+    match observable_type:
+        case "URL":
             # Example: http://domain.com/path => extract domain
             domain_part = observable.split("/")[2].split(":")[0]
-        elif observable_type == "FQDN":
+        case "FQDN":
             domain_part = observable
-        else:
+        case _:
             logger.warning("Unsupported observable type '%s' for RDAP.", observable_type)
             return None
 
+    try:
         # Extract base domain from the given domain (removes subdomains, if any)
-        ext = tldextract.extract(domain_part)
-        domain = ext.registered_domain
+        ext: tldextract.ExtractResult = tldextract.extract(domain_part)
+        domain: str = ext.registered_domain
         if not domain:
             logger.warning("Could not extract a valid registered domain from '%s'.", domain_part)
             return None

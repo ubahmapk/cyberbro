@@ -248,8 +248,11 @@ def url_lookups(
 
 
 def run_engine(
-    observable: str, observable_type: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+    observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True
 ) -> dict[str, Any] | None:
+    observable: str = observable_dict["value"]
+    observable_type: str = observable_dict["type"]
+
     if observable_type in ["IPv4", "IPv6"]:
         return reverse_dns_lookup(observable, proxies, ssl_verify)
 

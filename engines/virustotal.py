@@ -58,8 +58,7 @@ def map_observable_type_to_url(observable: str, observable_type: str) -> tuple[s
 
 
 def run_engine(
-    observable: str,
-    observable_type: str,
+    observable_dict: dict,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> dict[str, Any] | None:
@@ -89,6 +88,9 @@ def run_engine(
     if not api_key:
         logger.error("VirusTotal API key is not set in the configuration.")
         return None
+
+    observable: str = observable_dict["value"]
+    observable_type: str = observable_dict["type"]
 
     headers: dict[str, str] = {"x-apikey": api_key}
     url, link = map_observable_type_to_url(observable, observable_type)

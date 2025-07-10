@@ -25,7 +25,7 @@ API_KEY_REQUIRED: bool = False
 
 
 def run_engine(
-    observable: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+    observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True
 ) -> Optional[dict[str, Any]]:
     """
     Perform a Google search query limited to 5 search results.
@@ -44,11 +44,14 @@ def run_engine(
             }
         None: If an error occurs (network, parsing, etc.).
     """
+
+    observable: str = observable_dict["value"]
+
     try:
         search_iterator = search(
             f'"{observable}"',
             num_results=5,
-            proxy=proxies.get("http"),
+            proxy=proxies.get("http", None) if proxies else None,
             ssl_verify=ssl_verify,
             advanced=True,
             lang="en",

@@ -17,9 +17,9 @@ DESCRIPTION: str = "Queries the crt.sh API for information about a given observa
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
+
 def run_engine(
-    observable: str,
-    observable_type: str,
+    observable_dict: dict,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> Optional[dict[str, Any]]:
@@ -40,8 +40,10 @@ def run_engine(
         None: If an error occurs.
     """
 
+    observable: str = observable_dict["value"]
+
     # If observable is a URL, extract domain
-    if observable_type == "URL":
+    if (observable_type := observable_dict["type"]) == "URL":
         domain_part = observable.split("/")[2].split(":")[0]
         observable = domain_part
 

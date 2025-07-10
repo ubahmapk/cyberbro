@@ -1,7 +1,7 @@
 import base64
 import logging
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import ParseResult, urlparse
 
 import requests
 
@@ -19,9 +19,9 @@ DESCRIPTION: str = "Checks Phishtank for domains, URL, free, no API key required
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
+
 def run_engine(
-    observable: str,
-    observable_type: str,
+    observable_dict: dict,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> dict[str, Any] | None:
@@ -30,20 +30,24 @@ def run_engine(
     Uses the user-agent "phishtank/IntelOwl" for the request since IntelOwl is allowed by PhishTank.
 
     Args:
-        observable (str): The observable to be checked (e.g., URL or FQDN).
-        observable_type (str): The type of the observable (e.g., "URL", "FQDN").
+        observable_dict (dict): A dictionary containing the observable details.
         proxies (dict): Dictionary of proxies to be used for the request.
+        ssl_verify (bool): Whether to verify SSL certificates. Defaults to True.
 
     Returns:
         dict: The results from the PhishTank API if the request is successful.
         None: If any exception or error occurs during the request.
     """
+
+    observable: str = observable_dict["value"]
+    observable_type: str = observable_dict["type"]
+
     headers: dict[str, str] = {"User-Agent": "phishtank/Cyberbro"}
     observable_to_analyze: str = observable
 
     if observable_type == "FQDN":
         observable_to_analyze = f"http://{observable}"
-    parsed = urlparse(observable_to_analyze)
+    parsed: ParseResult = urlparse(observable_to_analyze)
     if not parsed.path:
         observable_to_analyze += "/"
 

@@ -19,8 +19,9 @@ DESCRIPTION: str = "Checks Shodan, reversed obtained IP for a given domain/URL, 
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
 
+
 def run_engine(
-    observable: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+    observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True
 ) -> dict[str, list | str] | None:
     """
     Queries the Shodan API for information about a given observable (typically an IP).
@@ -46,6 +47,7 @@ def run_engine(
         logger.error("Shodan API key is required but not provided.")
         return None
 
+    observable: str = observable_dict["value"]
     headers: dict = {"Accept": "application/json"}
     params: dict = {"key": api_key}
     url: str = f"https://api.shodan.io/shodan/host/{observable}"

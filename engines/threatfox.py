@@ -22,9 +22,9 @@ DESCRIPTION: str = "Checks ThreatFox by Abuse.ch for IP, domains, URL, free API 
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
 
+
 def run_engine(
-    observable: str,
-    observable_type: str,
+    observable_dict: dict,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> Optional[dict[str, Any]]:
@@ -52,6 +52,9 @@ def run_engine(
     if not api_key:
         logger.error("ThreatFox API key is not set in the configuration.")
         return None
+
+    observable: str = observable_dict["value"]
+    observable_type: str = observable_dict["type"]
 
     try:
         # If it's a URL, we typically just want the domain portion for searching

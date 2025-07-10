@@ -21,7 +21,9 @@ API_KEY_REQUIRED: bool = False
 ua = UserAgent()
 
 
-def run_engine(ip: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True) -> dict[str, str] | None:
+def run_engine(
+    observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+) -> dict[str, str] | None:
     """
     Retrieves information about the given IP address from the spur.us website.
 
@@ -38,7 +40,8 @@ def run_engine(ip: str, proxies: dict[str, str] | None = None, ssl_verify: bool 
         None: If an error occurs during the request or parsing process.
     """
 
-    spur_url = f"https://spur.us/context/{ip}"
+    ip: str = observable_dict["value"]
+    spur_url: str = f"https://spur.us/context/{ip}"
 
     try:
         response = requests.get(

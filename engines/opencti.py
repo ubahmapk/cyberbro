@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urljoin
 
 import requests
@@ -26,11 +26,12 @@ DESCRIPTION: str = "Searches OpenCTI results for all types of observable, API ke
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
 
+
 def run_engine(
-    observable: str,
+    observable_dict: dict,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Queries the OpenCTI API for information about a given observable.
 
@@ -50,6 +51,8 @@ def run_engine(
     if not opencti_url or not api_key:
         logger.error("OpenCTI URL or API key is not set in the configuration.")
         return None
+
+    observable: str = observable_dict["value"]
 
     try:
         # Get FQDN from URL to avoid false positives searches

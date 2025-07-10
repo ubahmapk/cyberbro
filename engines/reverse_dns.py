@@ -25,7 +25,7 @@ COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
 
-def run_engine(observable: str, observable_type: str) -> dict[str, Any] | None:
+def run_engine(observable_dict: dict, *args, **kwargs) -> dict[str, Any] | None:
     """
     Perform a reverse DNS or standard DNS lookup on the given observable.
 
@@ -41,6 +41,10 @@ def run_engine(observable: str, observable_type: str) -> dict[str, Any] | None:
               }
         None: If an error occurs or the type is not recognized.
     """
+
+    observable: str = observable_dict["value"]
+    observable_type: str = observable_dict["type"]
+
     try:
         # If the observable is an IP address (IPv4/IPv6 or BOGON), do a PTR lookup
         if observable_type in ["IPv4", "IPv6", "BOGON"]:

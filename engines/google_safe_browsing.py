@@ -21,9 +21,9 @@ DESCRIPTION: str = "Checks Google Safe Browsing API to check if the given observ
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
 
+
 def run_engine(
-    observable: str,
-    observable_type: str,
+    observable_dict: dict,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> dict[str, Any] | None:
@@ -53,6 +53,9 @@ def run_engine(
     if not api_key:
         logger.error("Google Safe Browsing API key is required but not provided.")
         return None
+
+    observable: str = observable_dict["value"]
+    observable_type: str = observable_dict["type"]
 
     url = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={api_key}"
 

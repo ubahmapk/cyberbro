@@ -17,7 +17,10 @@ DESCRIPTION: str = "Checks IPquery for IP, reversed obtained IP for a given doma
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
-def run_engine(ip: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True) -> dict[str, Any] | None:
+
+def run_engine(
+    observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+) -> dict[str, Any] | None:
     """
     Queries the IP information from the ipquery.io API.
 
@@ -42,8 +45,11 @@ def run_engine(ip: str, proxies: dict[str, str] | None = None, ssl_verify: bool 
             }
         None: If an error occurs or 'ip' key isn't in the response.
     """
+
+    ip: str = observable_dict["value"]
+    url = f"https://api.ipquery.io/{ip}"
+
     try:
-        url = f"https://api.ipquery.io/{ip}"
         response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
         data = response.json()

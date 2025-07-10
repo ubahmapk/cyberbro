@@ -24,8 +24,7 @@ API_KEY_REQUIRED: bool = False
 
 
 def run_engine(
-    observable: str,
-    observable_type: str,
+    observable_dict: dict,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> dict[str, Any] | None:
@@ -46,6 +45,9 @@ def run_engine(
               }
         None: If an error occurs.
     """
+
+    observable: str = observable_dict["value"]
+    observable_type: str = observable_dict["type"]
 
     query_fields: dict[str, str] = {
         "IPv4": "ip",

@@ -20,7 +20,10 @@ DESCRIPTION: str = "Checks IPinfo for IP, reversed obtained IP for a given domai
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
 
-def run_engine(ip: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True) -> Optional[dict[str, Any]]:
+
+def run_engine(
+    observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True
+) -> Optional[dict[str, Any]]:
     """
     Queries the IP information from the ipinfo.io API.
 
@@ -48,6 +51,8 @@ def run_engine(ip: str, proxies: dict[str, str] | None = None, ssl_verify: bool 
     if not api_key:
         logger.error("API key for IPInfo is required but not provided.")
         return None
+
+    ip: str = observable_dict["value"]
 
     url = f"https://ipinfo.io/{ip}/json?token={api_key}"
 

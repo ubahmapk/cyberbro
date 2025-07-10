@@ -19,9 +19,9 @@ DESCRIPTION: str = "Searches Hudson Rocks results for domains, URL, Email, free,
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
+
 def run_engine(
-    observable: str,
-    observable_type: str,
+    observable_dict: dict,
     proxies: dict[str, str],
     ssl_verify: bool = True,
 ) -> dict[str, Any] | None:
@@ -37,6 +37,10 @@ def run_engine(
         dict: A dictionary containing the search results.
         None: If an error occurs (network, parsing, etc.).
     """
+
+    observable: str = observable_dict["value"]
+    observable_type: str = observable_dict["type"]
+
     try:
         if observable_type == "URL":
             parsed_url: ParseResult = urlparse(observable)

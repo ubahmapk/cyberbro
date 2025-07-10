@@ -28,6 +28,7 @@ DESCRIPTION: str = "Checks Microsoft Defender for Endpoint, paid API info on Azu
 COST: str = "Paid Subscription"
 API_KEY_REQUIRED: bool = True
 
+
 def check_token_validity(token: str) -> bool:
     try:
         # Decode the token without verifying the signature to check its expiration
@@ -88,8 +89,7 @@ def get_token(
 
 
 def run_engine(
-    observable: str,
-    observable_type: str,
+    observable_dict: dict,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> dict[str, Any] | None:
@@ -117,6 +117,9 @@ def run_engine(
     if not tenant_id or not client_id or not client_secret:
         logger.error("Microsoft Defender for Endpoint credentials are not set in the configuration.")
         return None
+
+    observable: str = observable_dict["value"]
+    observable_type: str = observable_dict["type"]
 
     try:
         jwt_token = read_token() or get_token(tenant_id, client_id, client_secret, proxies, ssl_verify)
