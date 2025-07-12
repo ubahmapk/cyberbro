@@ -4,7 +4,8 @@
     All variables from `secrets.json` can be converted to **environment variables** (uppercase).
 
 !!! note
-    You can add these environment variables in a `docker-compose-custom.yml`. If you don't specify proxy, no proxy will be used.
+    You can add these environment variables in a `docker-compose-custom.yml` or just a `docker-compose-custom.yml` with a `.env`.  
+    If you don't specify proxy, no proxy will be used.
 
 Here is a list of all available environment variables that can be used with examples:
 
@@ -59,15 +60,22 @@ services:
       - "5000:5000"
     environment:
       - FLASK_ENV=production
-      - VIRUSTOTAL=api_key_here
-      - ABUSEIPDB=api_key_here
-      - GUI_ENABLED_ENGINES=reverse_dns,rdap,ipquery,abuseipdb,virustotal,spur,google_safe_browsing,phishtank
-      - API_CACHE_TIMEOUT=1800
     restart: always
     volumes:
       - ./data:/app/data
       - ./logs:/var/log/cyberbro
 ```
+
+Example of `.env` file (note: no `"` in environment variables)
+
+```
+VIRUSTOTAL=api_key_here
+ABUSEIPDB=api_key_here
+GUI_ENABLED_ENGINES=reverse_dns,rdap,ipquery,abuseipdb,virustotal,spur,google_safe_browsing,phishtank
+API_CACHE_TIMEOUT=1800
+```
+
+**You can use the file `.env.sample` as a template to create your own `.env` file.**
 
 !!! note
     `./data:/app/data`: This maps the `data` directory on your host machine to the `/app/data` directory inside the container. This is mandatory for persisting the database `results.db` that is used by Cyberbro.  
