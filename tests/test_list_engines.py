@@ -1,8 +1,5 @@
-from inflect import engine
 import pytest
 from types import SimpleNamespace
-
-from yaml import YAMLObjectMetaclass
 
 from utils.list_engines import list_engine_metadata, EngineModule, load_engines
 
