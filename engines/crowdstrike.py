@@ -1,10 +1,10 @@
 import logging
 from datetime import datetime, timezone
-from typing import Any
 from urllib.parse import urljoin
 
 from falconpy import APIHarnessV2
 
+from models.datatypes import ObservableMap, Proxies, Report
 from utils.config import Secrets, get_config
 
 logger = logging.getLogger(__name__)
@@ -28,6 +28,16 @@ API_KEY_REQUIRED: bool = True
 
 
 def map_observable_type(observable_type: str) -> str | None:
+    """
+    Convert Cyberbro type to Crowdstrike type
+
+    Args:
+        obserable_type (str): Cyberbro observable type
+
+    Returns:
+        (str | None): Crowdstrike observable type, or None
+    """
+
     match observable_type:
         # why do we need to .lower() IPv4 and IPv6 types?
         case "MD5" | "SHA256" | "SHA1" | "IPv4" | "IPv6":
@@ -40,6 +50,17 @@ def map_observable_type(observable_type: str) -> str | None:
 
 
 def generate_ioc_id(observable: str, observable_type: str) -> str | None:
+    """
+    Convert Cyberbro observable type to Crowdstrike IOC ID.
+
+    Args:
+        observable (str): Cyberbro observable
+        observable_type (str): Cyberbro observable type
+
+    Returns:
+        (str | None): Crowdstrike IOC ID
+    """
+
     match observable_type:
         case "domain":
             return f"domain_{observable}"
@@ -56,9 +77,21 @@ def generate_ioc_id(observable: str, observable_type: str) -> str | None:
             return None
 
 
-def get_falcon_client(
-    client_id: str, client_secret: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
-) -> APIHarnessV2:
+def get_falcon_client(client_id: str, client_secret: str, proxies: Proxies, ssl_verify: bool = True) -> APIHarnessV2:
+    """
+    Return a Falcon client object.
+
+    Args:
+        client_id (str): The client ID for CrowdStrike API authentication.
+        client_secret (str): The client secret for CrowdStrike API authentication.
+        falcon_url (str): The base URL for the CrowdStrike Falcon API.
+        proxies (Proxies): Proxy mapping
+        ssl_verify (bool): Whether to verify SSL certificates
+
+    Returns:
+        (APIHarnessV2): Crowdstrike API client
+    """
+
     return APIHarnessV2(
         client_id=client_id,
         client_secret=client_secret,
@@ -70,31 +103,28 @@ def get_falcon_client(
 
 
 def run_engine(
-    observable_dict: dict,
-    proxies: dict[str, str] | None = None,
+    observable_dict: ObservableMap,
+    proxies: Proxies,
     ssl_verify: bool = True,
-) -> dict[str, Any] | None:
+) -> Report | None:
     """
     Queries CrowdStrike Falcon for information about a given observable.
 
     Args:
-        observable (str): The observable to query.
-        observable_type (str): The type of the observable (e.g., 'URL', 'MD5', 'SHA1', 'SHA256').
-        client_id (str): The client ID for CrowdStrike API authentication.
-        client_secret (str): The client secret for CrowdStrike API authentication.
-        falcon_url (str): The base URL for the CrowdStrike Falcon API.
+        observable_dict (ObservableMap): The observable mapping object, including
+            the name and type to query.
         ssl_verify (bool): Whether to verify SSL certificates.
         proxies (Dict[str, str]): Proxy settings for the API client.
 
     Returns:
-        Optional[Dict[str, Any]]: A dictionary with the query results or None if an error occurs.
+        (Report | None): A Report object with the query results or None if an error occurs.
     """
 
     secrets: Secrets = get_config()
     client_id: str = secrets.crowdstrike_client_id
     client_secret: str = secrets.crowdstrike_client_secret
     falcon_url: str = secrets.crowdstrike_falcon_base_url
-    result: dict = {}
+    result: Report = {}
 
     if not client_id or not client_secret or not falcon_url:
         logger.error("CrowdStrike client ID, secret, and base URL are not configured.")
