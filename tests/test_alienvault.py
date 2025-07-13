@@ -7,6 +7,7 @@ import json
 from urllib.parse import quote
 from requests.exceptions import HTTPError, Timeout
 from pytest_mock import MockerFixture
+from models.datatypes import ObservableMap, Proxies, Report
 
 
 @pytest.fixture(scope="session")
@@ -158,8 +159,8 @@ def test_parse_alienvault(request, input_query_response, expected_report):
     for this solution.
     """
     input: dict = request.getfixturevalue(input_query_response)
-    expected: dict = request.getfixturevalue(expected_report)
-    report: dict = parse_alienvault_response(input)
+    expected: Report = request.getfixturevalue(expected_report)
+    report: Report = parse_alienvault_response(input)
 
     assert report == expected
 
@@ -172,7 +173,7 @@ def fqdn_response_missing_pulse_info(fqdn_response_from_file):
 
 
 def test_bad_or_empty_parse_alienvault(fqdn_response_missing_pulse_info):
-    expected: dict = {
+    expected: Report = {
         "count": 0,
         "pulses": [],
         "malware_families": [],
@@ -180,7 +181,7 @@ def test_bad_or_empty_parse_alienvault(fqdn_response_missing_pulse_info):
         "link": "https://otx.alienvault.com/browse/global/pulses?q=support-gmeet.com",
     }
 
-    report: dict = parse_alienvault_response(fqdn_response_missing_pulse_info)
+    report: Report = parse_alienvault_response(fqdn_response_missing_pulse_info)
 
     assert report == expected
 
@@ -216,38 +217,38 @@ def test_parse_alienvault_response_missing_pulse_id(fqdn_response_missing_pulse_
 
 
 @responses.activate
-def test_query_alienvault(fqdn_observable_dict, api_key, fqdn_response_from_file):
+def test_query_alienvault(fqdn_observable_dict, api_key, fqdn_response_from_file, proxies):
     responses.add(
         responses.GET,
         f"https://otx.alienvault.com/api/v1/indicators/domain/{fqdn_observable_dict['value']}/general",
         json=fqdn_response_from_file,
     )
 
-    result: dict = query_alienvault(fqdn_observable_dict, api_key)
+    result: dict = query_alienvault(fqdn_observable_dict, api_key, proxies)
 
     assert result == fqdn_response_from_file
 
 
 @responses.activate
-def test_query_alienvault_http_error(api_key, ip_observable_dict):
+def test_query_alienvault_http_error(api_key, ip_observable_dict, proxies):
     responses.add(responses.GET, "https://otx.alienvault.com/api/v1/indicators/IPv4/1.1.1.1/general", body=HTTPError())
 
     with pytest.raises(QueryError):
-        _ = query_alienvault(ip_observable_dict, api_key)
+        _ = query_alienvault(ip_observable_dict, api_key, proxies)
 
 
-def test_query_alienvault_request_timeout(ip_observable_dict, api_key, mocker: MockerFixture):
+def test_query_alienvault_request_timeout(ip_observable_dict, api_key, mocker: MockerFixture, proxies):
     mocker.patch("requests.get", side_effect=Timeout)
 
     with pytest.raises(QueryError):
-        _ = query_alienvault(ip_observable_dict, api_key)
+        _ = query_alienvault(ip_observable_dict, api_key, proxies)
 
 
-def test_query_alienvault_missing_endpoint(api_key):
+def test_query_alienvault_missing_endpoint(api_key, proxies):
     observable_dict: dict = {"value": "1.1.1.1", "type": "NaN"}
 
     with pytest.raises(QueryError):
-        _ = query_alienvault(observable_dict, api_key)
+        _ = query_alienvault(observable_dict, api_key, proxies)
 
 
 @pytest.mark.parametrize(

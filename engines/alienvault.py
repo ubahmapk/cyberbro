@@ -1,11 +1,11 @@
 import logging
-from typing import Any
 from urllib.parse import quote
 
 import requests
 from pydantic import ValidationError
 
 from models.alienvault_datamodel import OTXReport, Pulse
+from models.datatypes import ObservableMap, Proxies, Report
 from utils.config import QueryError, Secrets, get_config
 
 logger = logging.getLogger(__name__)
@@ -29,10 +29,10 @@ API_KEY_REQUIRED: bool = True
 
 
 def run_engine(
-    observable_dict: dict,
-    proxies: dict[str, str] | None = None,
+    observable_dict: ObservableMap,
+    proxies: Proxies,
     ssl_verify: bool = True,
-) -> dict[str, Any] | None:
+) -> Report | None:
     """
     Queries the OTX AlienVault API for information about a given observable (URL, IP, domain, hash).
 
@@ -43,10 +43,9 @@ def run_engine(
             (e.g., "URL", "IPv4", "IPv6", "FQDN", "SHA256", "SHA1", "MD5").
         proxies (dict): A dictionary of proxies to use for the request.
         ssl_verify (bool): Whether to verify SSL certificates.
-        api_key (str): OTX AlienVault API key (required).
 
     Returns:
-        dict: A dictionary with "count" (int), "pulses" (list),
+        (Report): A Report object with "count" (int), "pulses" (list),
         "malware_families" (list), "adversary" (list), and "link" (str). For example:
               {
                   "count": 2,
@@ -69,7 +68,7 @@ def run_engine(
 
     try:
         result: dict = query_alienvault(observable_dict, api_key, proxies, ssl_verify)
-        report: dict = parse_alienvault_response(result)
+        report: Report = parse_alienvault_response(result)
     except QueryError:
         logger.warning("Error retrieving or parsing report from AlienVault")
         return None
@@ -91,9 +90,7 @@ def get_endpoint(artifact: str, observable_type: str) -> str | None:
     return endpoint_map.get(observable_type)
 
 
-def query_alienvault(
-    observable_dict: dict, api_key: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True
-) -> dict:
+def query_alienvault(observable_dict: ObservableMap, api_key: str, proxies: Proxies, ssl_verify: bool = True) -> dict:
     artifact: str = observable_dict["value"]
 
     # If it's a URL, extract the domain portion for searching
@@ -120,7 +117,7 @@ def query_alienvault(
     return result
 
 
-def parse_alienvault_response(result: dict) -> dict:
+def parse_alienvault_response(result: dict) -> Report:
     try:
         otx_report: OTXReport = OTXReport(**result)
     except ValidationError as e:
@@ -209,10 +206,12 @@ def parse_alienvault_response(result: dict) -> dict:
 
     # The original observable is included in the OTXReport object as the "indicator"
     link = f"https://otx.alienvault.com/browse/global/pulses?q={quote(otx_report.indicator)}"
-    return {
-        "count": count,
-        "pulses": pulse_data,
-        "malware_families": report_malware_families,
-        "adversary": list(adversary),
-        "link": link,
-    }
+    return Report(
+        {
+            "count": count,
+            "pulses": pulse_data,
+            "malware_families": report_malware_families,
+            "adversary": list(adversary),
+            "link": link,
+        }
+    )
