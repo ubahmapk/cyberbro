@@ -1,18 +1,29 @@
 import pytest
+from models.datatypes import ObservableMap, Proxies
 
 
 @pytest.fixture()
-def ip_observable_dict():
-    return {"value": "1.1.1.1", "type": "IPv4"}
+def proxies():
+    return Proxies({"https": "", "http": ""})
 
 
 @pytest.fixture()
-def fqdn_observable_dict():
+def ssl_verify() -> bool:
+    return True
+
+
+@pytest.fixture()
+def ip_observable_dict() -> ObservableMap:
+    return ObservableMap({"value": "1.1.1.1", "type": "IPv4"})
+
+
+@pytest.fixture()
+def fqdn_observable_dict() -> ObservableMap:
     return {"value": "example.net", "type": "FQDN"}
 
 
 @pytest.fixture()
-def url_observable_dict():
+def url_observable_dict() -> ObservableMap:
     return {"value": "https://www.example.com", "type": "URL"}
 
 
