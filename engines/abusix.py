@@ -2,6 +2,8 @@ import logging
 
 import querycontacts
 
+from models.datatypes import ObservableMap, Report
+
 logger = logging.getLogger(__name__)
 
 SUPPORTED_OBSERVABLE_TYPES: list[str] = [
@@ -17,7 +19,7 @@ COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
 
-def run_engine(observable_dict: dict, *args, **kwargs) -> dict[str, str] | None:
+def run_engine(observable_dict: ObservableMap, *args, **kwargs) -> Report | None:
     """
     Queries the Abusix service for contact information related to the given observable.
 

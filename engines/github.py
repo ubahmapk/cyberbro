@@ -1,7 +1,8 @@
 import logging
-from typing import Any
 
 import requests
+
+from models.datatypes import ObservableMap, Proxies, Report
 
 logger = logging.getLogger(__name__)
 
@@ -24,25 +25,28 @@ COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
 
-def run_engine(
-    observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True
-) -> dict[str, Any] | None:
+def run_engine(observable_dict: ObservableMap, proxies: Proxies, ssl_verify: bool = True) -> Report | None:
     """
     Perform a search query using Grep API, limited to 5 search results, restricted to GitHub domains.
 
     Args:
-        observable (str): The search query string (e.g., an IoC or keyword).
-        proxies (dict): Dictionary containing proxy settings, e.g. {"http": "...", "https": "..."}.
+        observable_dict (ObservableMap): The observable mapping which contains:
+        - value (str): The observable to search for (e.g., URL, IP address, domain, hash).
+        - type (str): The type of the observable
+            (e.g., "URL", "IPv4", "IPv6", "FQDN", "SHA256", "SHA1", "MD5").
+        proxies (Proxies): A dictionary of proxies to use for the request.
+        ssl_verify (bool): Whether to verify SSL certificates.
 
     Returns:
-        dict: A dictionary containing the search results under the key "results":
+        (Report | None): A dictionary containing the search results under the key "results",
+            or None if there was an error.
+            Example:
             {
                 "results": [
                     {"title": ..., "url": ...},
                     ...
                 ]
             }
-        None: If an error occurs (network, parsing, etc.).
     """
 
     observable: str = observable_dict["value"]
