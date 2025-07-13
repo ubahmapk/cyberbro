@@ -346,6 +346,7 @@ def update_config():
             "crowdstrike_falcon_base_url", secrets.crowdstrike_falcon_base_url
         )
         secrets.webscout = request.form.get("webscout", secrets.webscout)
+        secrets.threatfox = request.form.get("threatfox", secrets.threatfox)
 
         # Apply the GUI_ENABLED_ENGINES configuration directly to the GUI to avoid restarting the app
         updated_gui_enabled_engines: str = request.form.get("gui_enabled_engines", "")
