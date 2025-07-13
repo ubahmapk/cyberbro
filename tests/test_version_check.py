@@ -6,11 +6,11 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest
 import requests
 
-from app import (
+from utils.version_check import (
     InvalidCachefileError,
-    check_for_new_version,
     get_latest_version_from_cache_file,
     get_latest_version_from_updated_cache_file,
+    check_for_new_version,
 )
 
 
@@ -121,7 +121,7 @@ def test_same_version():
     # Clear the lru_cache before running the test to avoide caching issues
     check_for_new_version.cache_clear()
 
-    with patch("app.get_latest_version_from_cache_file", return_value="v1.0.0"):
+    with patch("utils.version_check.get_latest_version_from_cache_file", return_value="v1.0.0"):
         result = check_for_new_version("v1.0.0")
         assert result is False
 
@@ -132,7 +132,7 @@ def test_different_version():
     # Clear the lru_cache before running the test to avoide caching issues
     check_for_new_version.cache_clear()
 
-    with patch("app.get_latest_version_from_cache_file", return_value="v1.1.0"):
+    with patch("utils.version_check.get_latest_version_from_cache_file", return_value="v1.1.0"):
         result = check_for_new_version("v1.0.0")
         assert result is True
 
@@ -144,9 +144,9 @@ def test_cache_file_invalid():
     check_for_new_version.cache_clear()
 
     with patch(
-        "app.get_latest_version_from_cache_file",
+        "utils.version_check.get_latest_version_from_cache_file",
         side_effect=InvalidCachefileError("Cache invalid"),
     ):
-        with patch("app.get_latest_version_from_updated_cache_file", return_value="v1.1.0"):
+        with patch("utils.version_check.get_latest_version_from_updated_cache_file", return_value="v1.1.0"):
             result = check_for_new_version("v1.0.0")
             assert result is True
