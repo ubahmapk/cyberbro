@@ -7,6 +7,7 @@ from types import ModuleType
 import flask
 
 from models.analysis_result import AnalysisResult
+from models.datatypes import ObservableMap, Proxies, Report
 from utils.config import Secrets, get_config
 from utils.database import get_analysis_result, save_analysis_result
 from utils.utils import is_bogon
@@ -16,13 +17,13 @@ logger = logging.getLogger(__name__)
 # Read the secrets from the config file
 secrets: Secrets = get_config()
 
-PROXIES: dict[str, str] = {"http": secrets.proxy_url, "https": secrets.proxy_url}
+PROXIES: Proxies = Proxies({"http": secrets.proxy_url, "https": secrets.proxy_url})
 
 SSL_VERIFY: bool = secrets.ssl_verify
 
 
 def perform_analysis(
-    app: flask.Flask, observables: list[dict], loaded_engines: list[ModuleType], analysis_id: str
+    app: flask.Flask, observables: list[ObservableMap], loaded_engines: list[ModuleType], analysis_id: str
 ) -> None:
     with app.app_context():
         start_time: float = time.time()
@@ -42,7 +43,7 @@ def perform_analysis(
         )
         save_analysis_result(analysis_result)
 
-        result_queue: queue.Queue = queue.Queue()
+        result_queue: queue.Queue[tuple[int, Report]] = queue.Queue()
         threads: list[threading.Thread] = [
             threading.Thread(
                 target=analyze_observable,
@@ -56,27 +57,32 @@ def perform_analysis(
         for thread in threads:
             thread.join()
 
-        results: list = collect_results_from_queue(result_queue, len(observables))
+        results: list[Report] = collect_results_from_queue(result_queue, len(observables))
         update_analysis_metadata(analysis_id, start_time, results)
 
 
 def analyze_observable(
-    observable: dict, index: int, loaded_engines: list[ModuleType], result_queue: queue.Queue
+    observable: ObservableMap,
+    index: int,
+    loaded_engines: list[ModuleType],
+    result_queue: queue.Queue[tuple[int, Report]],
 ) -> None:
-    result: dict[str, str | bool] = initialize_result(observable)
+    result: Report = initialize_result(observable)
     result = perform_engine_queries(observable, loaded_engines, result)
     result_queue.put((index, result))
 
 
-def initialize_result(observable: dict) -> dict[str, str | bool]:
-    return {
-        "observable": observable["value"],
-        "type": observable["type"],
-        "reversed_success": False,
-    }
+def initialize_result(observable: ObservableMap) -> Report:
+    return Report(
+        {
+            "observable": observable["value"],
+            "type": observable["type"],
+            "reversed_success": False,
+        }
+    )
 
 
-def perform_engine_queries(observable: dict, loaded_engines: list[ModuleType], result: dict) -> dict:
+def perform_engine_queries(observable: ObservableMap, loaded_engines: list[ModuleType], result: Report) -> Report:
     # 1. Check if IP is private
     if observable["type"] in ["IPv4", "IPv6"] and is_bogon(observable["value"]):
         observable["type"] = "BOGON"
@@ -122,8 +128,9 @@ def perform_engine_queries(observable: dict, loaded_engines: list[ModuleType], r
     return result
 
 
-def collect_results_from_queue(result_queue: queue.Queue, num_observables: int) -> list:
-    results = [None] * num_observables
+def collect_results_from_queue(result_queue: queue.Queue[tuple[int, Report]], num_observables: int) -> list[Report]:
+    results: list[Report] = []
+    # results: list[Report] = [Report * num_observables]
     while not result_queue.empty():
         index, result = result_queue.get()
         results[index] = result
@@ -135,7 +142,7 @@ def check_analysis_in_progress(analysis_id: str) -> bool:
     return analysis_result.in_progress if analysis_result else False
 
 
-def update_analysis_metadata(analysis_id: str, start_time: float, results: dict) -> None:
+def update_analysis_metadata(analysis_id: str, start_time: float, results: list[Report]) -> None:
     analysis_result: AnalysisResult | None = get_analysis_result(analysis_id)
     if analysis_result:
         end_time = time.time()
