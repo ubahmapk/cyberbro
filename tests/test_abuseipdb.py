@@ -3,6 +3,8 @@ import requests
 from requests.exceptions import HTTPError
 import responses
 from utils.config import QueryError
+from models.datatypes import ObservableMap, Report, Proxies
+from typing import Any
 
 from pytest_mock import MockerFixture
 
@@ -59,7 +61,7 @@ def test_request_timeout(ip_observable_dict, api_key, mocker: MockerFixture):
 
 def test_parse_abuseipdb_response(valid_api_response, ip_observable_dict):
     ip: str = ip_observable_dict["value"]
-    expected: dict = {
+    expected: dict[str, Any] = {
         "reports": 24,
         "risk_score": 0,
         "link": "https://www.abuseipdb.com/check/1.1.1.1",

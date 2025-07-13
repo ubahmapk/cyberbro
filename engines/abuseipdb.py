@@ -1,8 +1,10 @@
 import logging
+from typing import Any
 
 import requests
 from requests.exceptions import JSONDecodeError, RequestException
 
+from models.datatypes import ObservableMap, Proxies, Report
 from utils.config import APIKeyNotFoundError, QueryError, read_api_key
 
 logger = logging.getLogger(__name__)
@@ -17,7 +19,7 @@ COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
 
-def run_engine(observable: dict, proxies: dict[str, str] | None, ssl_verify: bool = True) -> dict | None:
+def run_engine(observable: ObservableMap, proxies: Proxies, ssl_verify: bool = True) -> Report | None:
     """
     Entrypoint for the AbuseIPDB engine.
 
@@ -41,7 +43,7 @@ def run_engine(observable: dict, proxies: dict[str, str] | None, ssl_verify: boo
             proxies=proxies,
             ssl_verify=ssl_verify,
         )
-        report: dict = parse_abuseipdb_response(response, ip)
+        report: Report = parse_abuseipdb_response(response, ip)
     except QueryError as e:
         logger.error("Error querying AbuseIPDB: %s", e, exc_info=True)
         return None
@@ -49,7 +51,7 @@ def run_engine(observable: dict, proxies: dict[str, str] | None, ssl_verify: boo
     return report
 
 
-def query_abuseipdb(ip: str, api_key: str, proxies: dict[str, str] | None, ssl_verify: bool = True) -> dict:
+def query_abuseipdb(ip: str, api_key: str, proxies: Proxies, ssl_verify: bool = True) -> dict[str, Any]:
     """
     Queries the AbuseIPDB API for information about a given IP address.
 
@@ -92,7 +94,7 @@ def query_abuseipdb(ip: str, api_key: str, proxies: dict[str, str] | None, ssl_v
     return json_response
 
 
-def parse_abuseipdb_response(json_response: dict, ip: str) -> dict:
+def parse_abuseipdb_response(json_response: dict, ip: str) -> Report:
     try:
         data = json_response["data"]
         reports = data.get("totalReports", 0)
@@ -102,4 +104,4 @@ def parse_abuseipdb_response(json_response: dict, ip: str) -> dict:
         logger.warning("AbuseIPDB response has no 'data' key. Full response: %s", json_response)
         raise QueryError("Invalid response format from AbuseIPDB") from e
 
-    return {"reports": reports, "risk_score": risk_score, "link": link}
+    return Report({"reports": reports, "risk_score": risk_score, "link": link})
