@@ -1,11 +1,13 @@
 import json
 import logging
+from typing import Any
 
 import requests
 from pydantic import ValidationError
 from requests.exceptions import RequestException
 
 from models.criminalip_datamodel import SuspiciousInfoReport
+from models.datatypes import ObservableMap, Proxies, Report
 from utils.config import APIKeyNotFoundError, QueryError, read_api_key
 
 """
@@ -34,9 +36,9 @@ BASE_URL: str = "https://api.criminalip.io"
 def query_criminalip(
     api_key: str,
     ip: str,
-    proxies: dict[str, str] | None = None,
+    proxies: Proxies,
     ssl_verify: bool = True,
-) -> dict:
+) -> dict[str, Any]:
     """Retrieve 'Suspicious Info' Report."""
 
     url: str = f"{BASE_URL}/v2/feature/ip/suspicious-info"
@@ -58,14 +60,25 @@ def parse_criminalip_response(response: dict) -> SuspiciousInfoReport:
     try:
         suspcious_info_report: SuspiciousInfoReport = SuspiciousInfoReport(**response)
     except ValidationError as e:
-        logger.error(f"Error validating Criminal IP Suspicious Info report for {ip}: {e}")
+        logger.error("Error validating Criminal IP Suspicious Info report")
         raise QueryError from e
 
     return suspcious_info_report
 
 
-def run_engine(observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True) -> dict | None:
-    """Perform Criminal IP analysis."""
+def run_engine(observable_dict: ObservableMap, proxies: Proxies, ssl_verify: bool = True) -> Report | None:
+    """
+    Queries the CriminalIP API for information about a given IP.
+
+    Args:
+        observable (ObservableMap): The observable mapping, including the value and type
+        proxies (Proxies): The proxy servers to use for the request.
+        ssl_verify (bool): TLS verification setting
+
+    Returns:
+        (Report | None): A Report object with summarized SuspiciousIPInfo report from
+            CriminalIP, or None if there is an error.
+    """
 
     try:
         api_key: str = read_api_key("criminalip")
@@ -95,6 +108,7 @@ if __name__ == "__main__":
         exit(1)
 
     ssl_verify: bool = False
+    proxies: Proxies = Proxies({"http": "", "https": ""})
 
     ip: str = input("Enter an IP address: ")
 
@@ -102,7 +116,8 @@ if __name__ == "__main__":
         logger.error("No observable provided.")
         exit(1)
 
-    report: SuspiciousInfoReport | None = query_criminalip(api_key, ip, ssl_verify=ssl_verify)
+    query_result: dict = query_criminalip(api_key, ip, proxies, ssl_verify)
+    report: SuspiciousInfoReport | None = parse_criminalip_response(query_result)
 
     if report:
         print("Suspicious Info Report:")
