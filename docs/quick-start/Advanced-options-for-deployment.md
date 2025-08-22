@@ -21,6 +21,7 @@ MDE_CLIENT_SECRET=api_key_here
 MISP_URL=https://misp.local
 MISP_API_KEY=api_key_here
 SHODAN=api_key_here
+SPUR_US=api_key_here
 THREATFOX=api_key_here
 OPENCTI_API_KEY=api_key_here
 OPENCTI_URL=https://demo.opencti.io
@@ -76,6 +77,7 @@ services:
       - OPENCTI_API_KEY=${OPENCTI_API_KEY}
       - OPENCTI_URL=${OPENCTI_URL}
       - SHODAN=${SHODAN}
+      - SPUR_US=${SPUR_US}
       - THREATFOX=${THREATFOX}
       - VIRUSTOTAL=${VIRUSTOTAL}
       - WEBSCOUT=${WEBSCOUT}
