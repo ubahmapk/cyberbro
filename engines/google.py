@@ -1,6 +1,5 @@
 import logging
 from typing import Any, Optional
-from urllib import parse as urlparse
 import requests
 from bs4 import BeautifulSoup
 import json
