@@ -347,6 +347,8 @@ def update_config():
         )
         secrets.webscout = request.form.get("webscout", secrets.webscout)
         secrets.threatfox = request.form.get("threatfox", secrets.threatfox)
+        secrets.dfir_iris_api_key = request.form.get("dfir_iris_api_key", secrets.dfir_iris_api_key)
+        secrets.dfir_iris_url = request.form.get("dfir_iris_url", secrets.dfir_iris_url)
 
         # Apply the GUI_ENABLED_ENGINES configuration directly to the GUI to avoid restarting the app
         updated_gui_enabled_engines: str = request.form.get("gui_enabled_engines", "")
