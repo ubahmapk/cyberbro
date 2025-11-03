@@ -1,6 +1,5 @@
-import base64
-import logging
 import json
+import logging
 from typing import Any, Optional
 
 import requests
@@ -30,18 +29,16 @@ def query_dfir_iris(
 
     Args:
         observable (str): The IoC to query (IPv4, IPv6, domain, URL, or file hash).
-        observable_type (str): The type of the observable ("IPv4", "FQDN", "URL", "MD5", etc.).
         dfir_iris_api_key (str): DFIR_IRIS API key.
         dfir_iris_url (str): DFIR_IRIS url.
         proxies (dict): Dictionary of proxies.
+        ssl_verify (bool): Verify certificate.
 
     Returns:
-        dict: Contains detection ratio, total malicious, link, and community_score, for example:
+        dict: A dictionary with number of cases with the indicator, and the case id links, for example:
             {
-                "detection_ratio": "5/70",
-                "total_malicious": 5,
-                "link": "{dfir_iris_url}/gui/ip-address/<ip>/detection",
-                "community_score": 10
+                "reports": 3,
+                "links": ["https://dfir_iris_url/case/ioc?cid=3","https://dfir_iris_url/case/ioc?cid=4"]
             }
         None: If any error occurs.
     """
@@ -67,10 +64,10 @@ def query_dfir_iris(
                 links.append(link)
 
             return {"reports": reports, "links": links}
-        else:
-            return None
+
+        return None
 
     except Exception as e:
-        logger.error("Error querying Dfir_Iris for '%s': %s", observable, e, exc_info=True)
+        logger.error("Error querying DFIR-IRIS for '%s': %s", observable, e, exc_info=True)
 
     return None
