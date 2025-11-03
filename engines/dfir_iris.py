@@ -19,20 +19,22 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
 
 def query_dfir_iris(
     observable: str,
+    observable_type: str,
     dfir_iris_api_key: str,
     dfir_iris_url: str,
     proxies: dict[str, str],
     ssl_verify: bool = True,
 ) -> Optional[dict[str, Any]]:
     """
-    Queries the DFIR_IRIS API for information about a given observable (IP, domain, URL, or file hash).
+    Queries the DFIR-IRIS API for information about a given observable (IP, domain, URL, or file hash).
 
     Args:
         observable (str): The IoC to query (IPv4, IPv6, domain, URL, or file hash).
+        observable_type (str): What type of IOC, (IPv4, IPv6, FQDN, MD5, SHA1, SHA256, URL)
         dfir_iris_api_key (str): DFIR_IRIS API key.
         dfir_iris_url (str): DFIR_IRIS url.
         proxies (dict): Dictionary of proxies.
-        ssl_verify (bool): Verify certificate.
+        ssl_verify (bool): Whether to verify SSL certificates.
 
     Returns:
         dict: A dictionary with number of cases with the indicator, and the case id links, for example:
@@ -42,28 +44,35 @@ def query_dfir_iris(
             }
         None: If any error occurs.
     """
-    url = f"{dfir_iris_url}/search?cid=1"
-    try:
-        headers = {"Authorization": f"Bearer {dfir_iris_api_key}", "Content-Type": "application/json"}
+
+    # Use selective wildcards to match ioc
+    if observable_type in ("IPv4", "IPv6", "MD5", "SHA1", "SHA256"):
+        body = {"search_value": f"%{observable}", "search_type": "ioc"}
+    elif observable_type in ("FQDN", "URL"):
+        body = {"search_value": f"{observable}%", "search_type": "ioc"}
+    else:
         body = {"search_value": f"{observable}", "search_type": "ioc"}
+
+    try:
+        url = f"{dfir_iris_url}/search?cid=1"
+        headers = {"Authorization": f"Bearer {dfir_iris_api_key}", "Content-Type": "application/json"}
         payload = json.dumps(body)
         response = requests.post(url, headers=headers, data=payload, proxies=None, verify=ssl_verify, timeout=5)
         response.raise_for_status()
 
         data = response.json()
         if "data" not in data:
-            logger.warning("DFIR_IRIS response has no 'data' key. Full response: %s", data)
+            logger.warning("DFIR-IRIS response has no 'data' key. Full response: %s", data)
             return None
 
         if len(data["data"]) > 0:
-            reports = len(data["data"])
             links = []
             for i in data["data"]:
                 case_id = i["case_id"]
                 link = f"{dfir_iris_url}/case/ioc?cid={case_id}"
                 links.append(link)
 
-            return {"reports": reports, "links": links}
+            return {"reports": len(set(links)), "links": sorted(set(links))}  # Return unique case id's
 
         return None
 
