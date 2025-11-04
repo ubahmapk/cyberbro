@@ -7,6 +7,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 SUPPORTED_OBSERVABLE_TYPES: list[str] = [
+    "BOGON",
     "FQDN",
     "IPv4",
     "IPv6",
@@ -46,7 +47,7 @@ def query_dfir_iris(
     """
 
     # Use selective wildcards to match ioc
-    if observable_type in ("IPv4", "IPv6", "MD5", "SHA1", "SHA256"):
+    if observable_type in ("IPv4", "IPv6", "MD5", "SHA1", "SHA256", "BOGON"):
         body = {"search_value": f"%{observable}", "search_type": "ioc"}
     elif observable_type in ("FQDN", "URL"):
         body = {"search_value": f"{observable}%", "search_type": "ioc"}
