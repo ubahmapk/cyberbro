@@ -19,7 +19,7 @@
 
 You can use the tags: 
 
-<img width="239" height="439" alt="image" src="https://github.com/user-attachments/assets/42ebfea9-65b3-4f86-84cc-aa6b4c197dc3" />
+<img width="239" height="439" alt="image" src="https://github.com/user-attachments/assets/282d8fa2-fe42-4731-9744-708ea37d1830" />
 
 - `1.18.0` and later matching your version.
 
