@@ -20,4 +20,5 @@ For details on contributing, community standards, and licensing, see:
 * Make sure any API key or configuration needed for the engine is added to `secrets.json` and `.env.sample`.
 * Make sure the engine is documented in `docs/api-keys/Get-Engine-API-Key.md` if relevant.
 * Make sure to add the link to the API key guide in `docs/index.md` if relevant.
+* Make sure to add the page to the sidebar in `mkdocs.yml`.
 * Make sure the engine is documented in `docs/quick-start/API-usage-and-engine-names.md`.
