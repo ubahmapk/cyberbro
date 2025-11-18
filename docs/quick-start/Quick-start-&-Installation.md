@@ -62,6 +62,8 @@ cp secrets-sample.json secrets.json
     "opencti_api_key": "token_here",
     "opencti_url": "https://demo.opencti.io",
     "proxy_url": "",
+    "rl_analyze_api_key": "token_here",
+    "rl_analyze_url": "https://spectra_analyze_url_here",
     "shodan": "token_here",
     "spur_us": "token_here",
     "threatfox": "token_here",
