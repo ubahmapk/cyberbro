@@ -33,6 +33,8 @@ CROWDSTRIKE_FALCON_BASE_URL=https://falcon.crowdstrike.com
 DFIR_IRIS_URL=https://dfir-iris.local
 DFIR_IRIS_API_KEY=token_here
 WEBSCOUT=token_here
+RL_ANALYZE_API_KEY=token_here
+RL_ANALYZE_URL=https://spectra_analyze_url_here
 SUPERVISORD_WORKERS_COUNT=4
 SUPERVISORD_THREADS_COUNT=4
 SUPERVISORD_TIMEOUT=200
@@ -84,6 +86,8 @@ services:
       - MISP_URL=${MISP_URL:-}
       - OPENCTI_API_KEY=${OPENCTI_API_KEY:-}
       - OPENCTI_URL=${OPENCTI_URL:-}
+      - RL_ANALYZE_API_KEY=${RL_ANALYZE_API_KEY:-}
+      - RL_ANALYZE_URL=${RL_ANALYZE_URL:-}
       - SHODAN=${SHODAN:-}
       - SPUR_US=${SPUR_US:-}
       - THREATFOX=${THREATFOX:-}

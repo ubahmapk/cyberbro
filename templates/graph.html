@@ -785,6 +785,25 @@
                 });
             }
 
+            // Check for Reversing Labs Spectra Analyze events
+            if (entry.rl_analyze && entry.rl_analyze.reports > 0) {
+                const rlNodeLabel = "Reversing Labs Spectra Analyze observed";
+                addNode(
+                    rlNodeLabel,
+                    rlNodeLabel,
+                    "rl_analyze",
+                    "https://img.icons8.com/officexs/32/hacking.png"
+                );
+                let rlEdgeLabel = "";
+                if (entry.rl_analyze.malicious || entry.rl_analyze.suspicious) {
+                    rlEdgeLabel += `RL Verdict: ${entry.rl_analyze.malicious}/${entry.rl_analyze.suspicious}/${entry.rl_analyze.reports}`;
+                }
+                if (entry.rl_analyze.scanners) {
+                    rlEdgeLabel += `RL AV: ${entry.rl_analyze.scanners}/${entry.rl_analyze.reports}, ${entry.rl_analyze.classification}`;
+                }
+                edges.push({ from: obs, to: rlNodeLabel, label: rlEdgeLabel });
+            }
+
             // Check for Chrome / Edge extension data
             if (entry.type == "CHROME_EXTENSION") {
                 const extensionName = entry.extension.name;
