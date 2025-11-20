@@ -25,7 +25,7 @@ COST: str = "Free"
 API_KEY_REQUIRED: bool = False
 
 
-def run_engine(observable_dict: dict, proxies: dict[str, str], ssl_verify: bool = True) -> Optional[dict[str, Any]]:
+def run_engine(observable_dict: dict, proxies: dict[str, str], ssl_verify: bool = True) -> dict[str, Any] | None:
     """
     Perform a deep search query on ioc.one (HTML).
 

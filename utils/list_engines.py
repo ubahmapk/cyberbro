@@ -11,6 +11,7 @@ class EngineModule(SimpleNamespace):
     COST: str
     API_KEY_REQUIRED: str
     SUPPORTED_OBSERVABLE_TYPES: str
+    MIGRATED: bool
 
 
 def load_engines(selected_engines: list[str]) -> list[EngineModule]:

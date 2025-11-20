@@ -1,8 +1,11 @@
 import logging
+from typing import Any
 
 import requests
+from requests.exceptions import JSONDecodeError, RequestException
 
 from models.datatypes import ObservableMap, Proxies, Report
+from utils.config import QueryError
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +55,17 @@ def run_engine(observable_dict: ObservableMap, proxies: Proxies, ssl_verify: boo
     observable: str = observable_dict["value"]
 
     try:
+        query_results: dict[str, Any] = query_engine(observable, proxies, ssl_verify)
+        report: Report = parse_results(query_results)
+    except QueryError as e:
+        logger.error(e)
+        return None
+
+    return report
+
+
+def query_engine(observable: str, proxies: Proxies, ssl_verify: bool = True) -> dict[str, Any]:
+    try:
         response = requests.get(
             f"https://grep.app/api/search?q={observable}",
             proxies=proxies,
@@ -61,28 +75,40 @@ def run_engine(observable_dict: ObservableMap, proxies: Proxies, ssl_verify: boo
         response.raise_for_status()
         data = response.json()
 
-        if data["hits"]["total"] == 0:
-            return {"results": []}
-
-        search_results = []
-        seen_repos = set()
-        for hit in data["hits"]["hits"]:
-            repo_name = hit["repo"]["raw"]
-            if repo_name not in seen_repos:
-                seen_repos.add(repo_name)
-                search_results.append(
-                    {
-                        "title": repo_name,
-                        "url": f"https://github.com/{repo_name}/blob/{hit['branch']['raw']}/{hit['path']['raw']}",
-                        "description": hit["path"]["raw"],
-                    }
-                )
-            if len(search_results) >= 5:
-                break
-
-        return {"results": search_results}
-
-    except Exception as e:
+    except (RequestException, JSONDecodeError) as e:
         logger.error("Error while querying GitHub for '%s': %s", observable, e, exc_info=True)
+        raise QueryError from e
 
-        return None
+    return data
+
+
+def parse_results(data: dict[str, Any]) -> Report:
+    try:
+        if data["hits"]["total"] == 0:
+            return Report({"results": []})
+    except KeyError as e:
+        logger.error("Unexpected data format from GitHub API: %s", data, exc_info=True)
+        raise QueryError(f"Unexpected data format: {e}") from e
+
+    search_results: list[dict[str, str]] = []
+    seen_repos: set[str] = set()
+    for hit in data["hits"]["hits"]:
+        try:
+            repo_name = hit["repo"]["raw"]
+        except KeyError:
+            logger.warning("Missing 'repo' field in hit: %s", hit)
+            continue
+
+        if repo_name not in seen_repos:
+            seen_repos.add(repo_name)
+            search_results.append(
+                {
+                    "title": repo_name,
+                    "url": f"https://github.com/{repo_name}/blob/{hit['branch']['raw']}/{hit['path']['raw']}",
+                    "description": hit["path"]["raw"],
+                }
+            )
+        if len(search_results) >= 5:
+            break
+
+    return Report(results=search_results)

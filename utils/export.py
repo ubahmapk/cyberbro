@@ -1,3 +1,4 @@
+import contextlib
 import threading
 import time
 from pathlib import Path
@@ -181,6 +182,11 @@ def prepare_row(result, selected_engines):
         row["opencti_global_count"] = opencti_data.get("global_count") if opencti_data else None
         row["opencti_last_seen"] = opencti_data.get("latest_created_at") if opencti_data else None
 
+    if "dfir_iris" in selected_engines:
+        dfir_iris_data = result.get("dfir_iris", {})
+        row["dfir_iris_total_count"] = dfir_iris_data.get("reports") if dfir_iris_data else None
+        row["dfir_iris_link"] = dfir_iris_data.get("links") if dfir_iris_data else None
+
     if "misp" in selected_engines:
         misp_data = result.get("misp", {})
         row["misp_count"] = misp_data.get("count") if misp_data else None
@@ -283,17 +289,16 @@ def export_to_excel(data, timestamp):
     with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
         df.to_excel(writer, index=False, sheet_name="Results")
         worksheet = writer.sheets["Results"]
-        (max_row, max_col) = df.shape
+        # (max_row, max_col) = df.shape
         worksheet.auto_filter.ref = worksheet.dimensions
         for col in worksheet.columns:
             max_length = 0
             column = col[0].column_letter
             for cell in col:
-                try:
+                # What exception are we suppressing here?
+                with contextlib.suppress(Exception):
                     if len(str(cell.value)) > max_length:
                         max_length = len(str(cell.value))
-                except Exception:
-                    pass
             adjusted_width = max_length + 2
             worksheet.column_dimensions[column].width = adjusted_width
     response = send_file(excel_path, as_attachment=True)

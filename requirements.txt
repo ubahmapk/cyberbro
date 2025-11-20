@@ -7,8 +7,6 @@ jwt
 openpyxl
 dnspython
 pycountry
-fake_useragent
-bs4
 pydantic
 querycontacts
 flask_sqlalchemy
@@ -16,4 +14,4 @@ gunicorn
 ioc-fanger
 tldextract
 crowdstrike-falconpy
-googlesearch-python
+beautifulsoup4

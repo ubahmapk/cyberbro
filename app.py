@@ -5,7 +5,6 @@ import time
 import uuid
 from dataclasses import asdict
 from pathlib import Path
-from types import ModuleType
 
 import ioc_fanger
 from flask import Flask, jsonify, render_template, request, send_from_directory
@@ -22,12 +21,12 @@ from utils.config import (
     save_secrets_to_file,
 )
 from utils.export import export_to_csv, export_to_excel, prepare_data_for_export
-from utils.list_engines import load_engines
+from utils.list_engines import EngineModule, load_engines
 from utils.stats import get_analysis_stats
 from utils.utils import extract_observables
 from utils.version_check import check_for_new_version
 
-VERSION: str = "v0.8.11"
+VERSION: str = "v0.9.6"
 
 
 app: Flask = Flask(__name__)
@@ -114,7 +113,7 @@ def analyze():
     form_data = ioc_fanger.fang(request.form.get("observables", ""))
     observables = extract_observables(form_data)
     selected_engines = request.form.getlist("engines")
-    loaded_engines: list[ModuleType] = load_engines(selected_engines)
+    loaded_engines: list[EngineModule] = load_engines(selected_engines)
     ignore_cache = request.args.get("ignore_cache", "false").lower() == "true"
 
     # Generate a secure hash for form data and engines using SHA-256
@@ -282,6 +281,8 @@ def update_config():
         )
         secrets.webscout = request.form.get("webscout", secrets.webscout)
         secrets.threatfox = request.form.get("threatfox", secrets.threatfox)
+        secrets.dfir_iris_api_key = request.form.get("dfir_iris_api_key", secrets.dfir_iris_api_key)
+        secrets.dfir_iris_url = request.form.get("dfir_iris_url", secrets.dfir_iris_url)
 
         # Apply the GUI_ENABLED_ENGINES configuration directly to the GUI to avoid restarting the app
         updated_gui_enabled_engines: str = request.form.get("gui_enabled_engines", "")

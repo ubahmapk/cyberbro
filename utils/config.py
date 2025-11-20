@@ -30,6 +30,8 @@ class Secrets:
     crowdstrike_client_id: str = ""
     crowdstrike_client_secret: str = ""
     crowdstrike_falcon_base_url: str = "https://falcon.crowdstrike.com"
+    dfir_iris_url: str = ""
+    dfir_iris_api_key: str = ""
     google_safe_browsing: str = ""
     gui_cache_timeout: int = 1800
     gui_enabled_engines: list[str] = field(default_factory=list)
@@ -44,6 +46,7 @@ class Secrets:
     opencti_url: str = ""
     proxy_url: str = ""
     shodan: str = ""
+    spur_us: str = ""
     threatfox: str = ""
     ssl_verify: bool = True
     virustotal: str = ""

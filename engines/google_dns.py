@@ -2,7 +2,9 @@ import logging
 from typing import Any
 
 import requests
+from requests.exceptions import RequestException
 
+from models.datatypes import Report
 from utils.utils import identify_observable_type
 
 logger = logging.getLogger(__name__)
@@ -79,28 +81,28 @@ def query_dmarc(
         response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
         data = response.json()
-
-        for answer in data.get("Answer", []):
-            txt = answer.get("data", "").replace('"', "").replace("; ", ";")
-            if txt.strip().lower().startswith("v=dmarc1"):
-                return {
-                    "type_name": "DMARC",
-                    "domain": domain,
-                    "present": True,
-                    "data": txt,
-                    "parsed": parse_dmarc_record(txt),
-                }
-        return {
-            "type_name": "DMARC",
-            "domain": domain,
-            "present": False,
-            "data": None,
-            "parsed": None,
-            "message": "No DMARC record found.",
-        }
-    except Exception as e:
-        logger.error("Error querying DMARC for '%s' (%s): %s", observable, observable_type, e, exc_info=True)
+    except RequestException as e:
+        logger.error("Error querying Google DNS for DMARC record of '%s': %s", observable, e, exc_info=True)
         return None
+
+    for answer in data.get("Answer", []):
+        txt = answer.get("data", "").replace('"', "").replace("; ", ";")
+        if txt.strip().lower().startswith("v=dmarc1"):
+            return {
+                "type_name": "DMARC",
+                "domain": domain,
+                "present": True,
+                "data": txt,
+                "parsed": parse_dmarc_record(txt),
+            }
+    return {
+        "type_name": "DMARC",
+        "domain": domain,
+        "present": False,
+        "data": None,
+        "parsed": None,
+        "message": "No DMARC record found.",
+    }
 
 
 def query_spf(
@@ -247,9 +249,7 @@ def url_lookups(
     return dns_result
 
 
-def run_engine(
-    observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True
-) -> dict[str, Any] | None:
+def run_engine(observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True) -> Report | None:
     observable: str = observable_dict["value"]
     observable_type: str = observable_dict["type"]
 

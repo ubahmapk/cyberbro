@@ -2,7 +2,7 @@
 
 !!! info
     Kasm Workspaces is a docker container streaming platform for delivering browser-based access to desktops, applications, and web services.  
-    See more on: [https://hub.docker.com/u/kasmweb](https://hub.docker.com/u/kasmweb) for the other images provided.
+    Link of Cyberbro KASM version (official image from KASM): [https://hub.docker.com/r/kasmweb/cyberbro](https://hub.docker.com/r/kasmweb/cyberbro)
 
 ## Demo
 
@@ -10,24 +10,18 @@
 
 ## Installation
 
-### Images for Cyberbro on DockerHub are built regularly
+### Images for Cyberbro on DockerHub are built regularly by KASM team (and we thank them for that!)
 
-* Link: https://hub.docker.com/r/stanfrbd/cyberbro
-
-### Configuration of the Workspace in KASM
-
-```
-Cores: default
-Memory: default
-Docker Registry: https://index.docker.io/v1/
-Docker image: stanfrbd/cyberbro:latest
-Thumnail URL: https://pbs.twimg.com/profile_images/1865474886505742336/Dzn6HiOA_400x400.jpg
-Categories: Security
-```
+* Link: [https://hub.docker.com/r/kasmweb/cyberbro](https://hub.docker.com/r/kasmweb/cyberbro)
+* See more on: [https://hub.docker.com/u/kasmweb](https://hub.docker.com/u/kasmweb) for the other images provided by KASM team.
 
 ### Example of config in the KASM GUI
 
-![image](https://github.com/user-attachments/assets/ae362f5e-c96b-4677-a1c0-4cadfb5b5148)
+You can use the tags: 
+
+<img width="239" height="439" alt="image" src="https://github.com/user-attachments/assets/282d8fa2-fe42-4731-9744-708ea37d1830" />
+
+- `1.18.0` and later matching your version.
 
 ![image](https://github.com/user-attachments/assets/f6ffb648-e161-4c59-9359-51183b0b0ca0)
 
@@ -51,11 +45,14 @@ MDE_TENANT_ID=api_key_here
 MDE_CLIENT_ID=api_key_here
 MDE_CLIENT_SECRET=api_key_here
 SHODAN=api_key_here
+SPUR_US=api_key_here
 OPENCTI_API_KEY=api_key_here
 OPENCTI_URL=https://demo.opencti.io
 CROWDSTRIKE_CLIENT_ID=client_id_here
 CROWDSTRIKE_CLIENT_SECRET=client_secret_here
 CROWDSTRIKE_FALCON_BASE_URL=https://falcon.crowdstrike.com
+DFIR_IRIS_URL=https://dfir-iris.local
+DFIR_IRIS_API_KEY=token_here
 WEBSCOUT=token_here
 API_PREFIX=my_api
 MAX_FORM_MEMORY_SIZE=1048576

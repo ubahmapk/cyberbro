@@ -1,7 +1,10 @@
+import json
 import logging
-from typing import Any, Optional
+import re
+from typing import Any
 
-from googlesearch import search
+import requests
+from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
@@ -22,13 +25,14 @@ SUPPORTS: list[str] = ["domain", "URL", "IP", "hash", "scraping", "chrome_extens
 DESCRIPTION: str = "Checks Google search results for all types of observable"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
+MIGRATED: bool = True
 
 
 def run_engine(
     observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
-    Perform a Google search query limited to 5 search results.
+    Perform a Google search query via Mullvad's Leta service and parse the results.
 
     Args:
         observable (str): The search query.
@@ -48,27 +52,54 @@ def run_engine(
     observable: str = observable_dict["value"]
 
     try:
-        search_iterator = search(
-            f'"{observable}"',
-            num_results=5,
-            proxy=proxies.get("http", None) if proxies else None,
-            ssl_verify=ssl_verify,
-            advanced=True,
-            lang="en",
-            region="US",
-        )
+        query = observable if observable_dict["type"] in ["IPv4", "IPv6"] else f"%22{observable}%22"
+        url = f"https://leta.mullvad.net/search?q={query}&engine=google"  # Use the encoded query
+        logger.info("Fetching URL: %s", url)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"  # noqa: E501
+        }
+        response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5, headers=headers)
+        response.encoding = "utf-8"  # Ensure proper decoding of response text
+        soup = BeautifulSoup(response.text, "html.parser")
 
-        search_results = []
-        for result in search_iterator:
-            search_results.append(
-                {
-                    "title": result.title,
-                    "description": result.description,
-                    "url": result.url,
-                }
-            )
+        # Step 1: Find the <script> tag containing "items"
+        script_tags = soup.find_all("script")
+        target_script = None
+        for script in script_tags:
+            if script.string and "items:[" in script.string:
+                target_script = script.string
+                break
 
-        return {"results": search_results}
+        # Step 2: Parse the JSON content directly
+        if target_script:
+            try:
+                # Extract the JSON content from the script string
+                start_index = target_script.find("items:[")
+                end_index = target_script.find("],", start_index) + 1
+                items_raw = target_script[start_index + len("items:") : end_index].strip()
+
+                # Add quotes around property names (title, snippet, link, favicon)
+                items_raw = re.sub(r'(?<!")\b(title|snippet|link|favicon)\b(?!")(?=\s*:)', r'"\1"', items_raw)
+
+                # Load the JSON data
+                items_json = json.loads(f'{{"items":{items_raw}}}')["items"]
+
+                # Extract the results
+                search_results = [
+                    {
+                        "title": item.get("title"),
+                        "description": item.get("snippet"),
+                        "url": item.get("link"),
+                    }
+                    for item in items_json
+                ]
+
+                return {"results": search_results}
+
+            except (json.JSONDecodeError, KeyError) as e:
+                logger.error("Error extracting data: %s", e, exc_info=True)
+        else:
+            logger.warning(f"No 'items' array found in the script tags for query \"{query}\": {response.text}")
 
     except Exception as e:
         logger.error("Error while querying Google for '%s': %s", observable, e, exc_info=True)

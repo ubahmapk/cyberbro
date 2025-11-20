@@ -144,6 +144,10 @@
             <th>OpenCTI</th>
             {% endif %}
 
+            {% if "dfir_iris" in analysis_results.selected_engines %}
+            <th>DFIR-IRIS</th>
+            {% endif %}
+
             {% if "hudsonrock" in analysis_results.selected_engines %}
             <th>Hudson Rock</th>
             {% endif %}
@@ -183,7 +187,8 @@
         <tr class="high-risk">
             {% elif result.virustotal and (result.virustotal.total_malicious > 10 or result.virustotal.community_score <
                 -10) %} <tr class="high-risk high-detection">
-                {% elif result.spur and result.spur.tunnels not in ['Not anonymous', 'Non applicable'] %}
+                {% elif result.spur and result.spur.tunnels not in
+                ['Unknown - Behind Captcha', 'Not anonymous', 'Non applicable'] %}
         <tr class="warning-row">
             {% elif result.ipquery and (result.ipquery.is_proxy or result.ipquery.is_vpn or result.ipquery.is_tor) %}
         <tr class="warning-row">
@@ -200,8 +205,6 @@
             result.webscout.network_provider_services | map('lower') or result.webscout.is_proxy or
             result.webscout.is_tor or result.webscout.is_vpn) %}
         <tr class="warning-row">
-            {% elif result.webscout and result.webscout.risk_score > 50 %}
-        <tr class="high-risk">
             {% elif result.virustotal and result.virustotal.community_score > 100 %}
         <tr class="clean-detection">
             {% endif %}
@@ -288,6 +291,10 @@
 
             {% if "opencti" in analysis_results.selected_engines %}
             {% include "engine_layouts/opencti_table.html" %}
+            {% endif %}
+
+            {% if "dfir_iris" in analysis_results.selected_engines %}
+            {% include "engine_layouts/dfir_iris_table.html" %}
             {% endif %}
 
             {% if "hudsonrock" in analysis_results.selected_engines %}

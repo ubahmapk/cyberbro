@@ -27,7 +27,7 @@ def run_engine(
     observable_dict: dict,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | None:
     """
     Queries the ThreatFox API for information about a given observable (URL, IP, hash).
 
