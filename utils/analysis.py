@@ -37,7 +37,7 @@ from engines import (
     webscout,
 )
 from models.analysis_result import AnalysisResult
-from models.datatypes import ObservableMap, Proxies, Report
+from models.datatypes import Engine, ObservableMap, Proxies, Report
 from utils.config import Secrets, get_config
 from utils.database import get_analysis_result, save_analysis_result
 from utils.utils import is_bogon
@@ -112,7 +112,7 @@ def initialize_result(observable: ObservableMap) -> Report:
     )
 
 
-def perform_engine_queries(observable: ObservableMap, loaded_engines: list[ModuleType], result: Report) -> Report:
+def perform_engine_queries(observable: ObservableMap, loaded_engines: list[Engine], result: Report) -> Report:
     # 1. Check if IP is private
     if observable["type"] in ["IPv4", "IPv6"] and is_bogon(observable["value"]):
         observable["type"] = "BOGON"
