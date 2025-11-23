@@ -25,12 +25,10 @@ SUPPORTS: list[str] = ["domain", "URL", "IP", "hash", "scraping", "chrome_extens
 DESCRIPTION: str = "Checks Google search results for all types of observable"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
-MIGRATED: bool = True
+MIGRATED: bool = False
 
 
-def run_engine(
-    observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True
-) -> dict[str, Any] | None:
+def run_engine(observable_dict: dict, proxies: dict[str, str], ssl_verify: bool) -> dict[str, Any] | None:
     """
     Perform a Google search query via Mullvad's Leta service and parse the results.
 

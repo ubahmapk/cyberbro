@@ -25,6 +25,7 @@ SUPPORTS: list[str] = ["IP", "domain", "URL", "hash"]
 DESCRIPTION: str = "Checks MISP for IP, domain, URL, hash, free API key required"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
+MIGRATED: bool = False
 
 
 def map_observable_type(observable_type: str) -> str | list[str]:

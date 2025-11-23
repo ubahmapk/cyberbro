@@ -17,6 +17,7 @@ SUPPORTS: list[str] = ["risk", "IP"]
 DESCRIPTION: str = "Checks AbuseIPDB for IP, reversed obtained IP for a given domain / URL"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
+MIGRATED: bool = True
 
 
 def run_engine(observable: ObservableMap, proxies: Proxies, ssl_verify: bool = True) -> Report | None:
@@ -96,9 +97,9 @@ def query_abuseipdb(ip: str, api_key: str, proxies: Proxies, ssl_verify: bool = 
 
 def parse_abuseipdb_response(json_response: dict, ip: str) -> Report:
     try:
-        data = json_response["data"]
-        reports = data.get("totalReports", 0)
-        risk_score = data.get("abuseConfidenceScore", 0)
+        data: dict[str, Any] = json_response["data"]
+        reports: int = data.get("totalReports", 0)
+        risk_score: int = data.get("abuseConfidenceScore", 0)
         link = f"https://www.abuseipdb.com/check/{ip}"
     except (KeyError, TypeError) as e:
         logger.warning("AbuseIPDB response has no 'data' key. Full response: %s", json_response)

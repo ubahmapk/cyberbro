@@ -27,6 +27,7 @@ SUPPORTS: list[str] = ["hash", "IP", "domain", "URL"]
 DESCRIPTION: str = "Checks Microsoft Defender for Endpoint, paid API info on Azure required"
 COST: str = "Paid Subscription"
 API_KEY_REQUIRED: bool = True
+MIGRATED: bool = False
 
 
 def check_token_validity(token: str) -> bool:

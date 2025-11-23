@@ -21,6 +21,7 @@ SUPPORTS: list[str] = ["hash", "domain", "IP"]
 DESCRIPTION: str = "Queries the urlscan.io API for information about a given observable (URL, IP, or file hash)"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
+MIGRATED: bool = False
 
 
 def run_engine(

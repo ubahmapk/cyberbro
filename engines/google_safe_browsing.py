@@ -20,12 +20,13 @@ SUPPORTS: list[str] = ["IP", "domain", "risk"]
 DESCRIPTION: str = "Checks Google Safe Browsing API to check if the given observable is associated with any threats."
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
+MIGRATED: bool = False
 
 
 def run_engine(
     observable_dict: dict,
-    proxies: dict[str, str] | None = None,
-    ssl_verify: bool = True,
+    proxies: dict[str, str],
+    ssl_verify: bool,
 ) -> dict[str, Any] | None:
     """
     Queries the Google Safe Browsing API to check if the given observable is associated with any threats.

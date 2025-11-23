@@ -21,6 +21,7 @@ SUPPORTS: list[str] = ["IP", "domain", "URL"]
 DESCRIPTION: str = "Checks ThreatFox by Abuse.ch for IP, domains, URL, free API key required"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
+MIGRATED: bool = False
 
 
 def run_engine(

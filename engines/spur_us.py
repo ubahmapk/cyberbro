@@ -10,6 +10,8 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "IPv6",
 ]
 
+MIGRATED: bool = False
+
 
 def query_spur_us(
     ip: str, proxies: dict[str, str], ssl_verify: bool = True, api_key: str | None = None

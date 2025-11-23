@@ -17,9 +17,10 @@ SUPPORTS: list[str] = ["abuse", "IP"]
 DESCRIPTION: str = "Checks abuse contact with Abusix for IP, reversed obtained IP for a given domain/URL"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
+MIGRATED: bool = True
 
 
-def run_engine(observable_dict: ObservableMap, *args, **kwargs) -> Report | None:
+def run_engine(observable_dict: ObservableMap, *_args, **_kwargs) -> Report | None:
     """
     Queries the Abusix service for contact information related to the given observable.
 
@@ -33,6 +34,8 @@ def run_engine(observable_dict: ObservableMap, *args, **kwargs) -> Report | None
                       "abuse": "abuse@example.com"
                   }
         None: If an error occurs or no contact information is found.
+
+    Receives PROXIES and SSL_VERIFY, as do all engines, but Abusix does not use them.
     """
     ip: str = observable_dict["value"]
 
@@ -43,7 +46,7 @@ def run_engine(observable_dict: ObservableMap, *args, **kwargs) -> Report | None
             return None
 
         # We assume the first item in 'results' is the most relevant contact
-        return {"abuse": results[0]}
+        return Report({"abuse": results[0]})
 
     except Exception as e:
         logger.error("Error querying Abusix for observable '%s': %s", ip, e, exc_info=True)

@@ -16,6 +16,7 @@ SUPPORTS: list[str] = ["default", "IP", "risk", "VPN", "proxy", "free_no_key"]
 DESCRIPTION: str = "Checks IPquery for IP, reversed obtained IP for a given domain/URL, free, no API key"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
+MIGRATED: bool = False
 
 
 def run_engine(

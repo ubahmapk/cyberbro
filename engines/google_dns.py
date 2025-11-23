@@ -22,6 +22,7 @@ SUPPORTS: list[str] = ["IP", "domain", "URL"]
 DESCRIPTION: str = "Checks Google common DNS records (A, AAAA, CNAME, NS, MX, TXT, PTR) for IP, domain, URL"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
+MIGRATED: bool = True
 
 # List of DNS record types and their identifiers (filtered for cybersecurity relevance)
 DNS_RECORD_TYPES = [
@@ -249,7 +250,7 @@ def url_lookups(
     return dns_result
 
 
-def run_engine(observable_dict: dict, proxies: dict[str, str] | None = None, ssl_verify: bool = True) -> Report | None:
+def run_engine(observable_dict: dict, proxies: dict[str, str], ssl_verify: bool) -> Report | None:
     observable: str = observable_dict["value"]
     observable_type: str = observable_dict["type"]
 

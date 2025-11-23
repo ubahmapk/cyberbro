@@ -20,9 +20,10 @@ SUPPORTS: list[str] = ["hash"]
 DESCRIPTION: str = "Fetch the name of a Chrome or Edge extension using its ID"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
+MIGRATED: bool = True
 
 
-def run_engine(observable: ObservableMap, proxies: Proxies, ssl_verify: bool = True) -> Report | None:
+def run_engine(observable: ObservableMap, proxies: Proxies, ssl_verify: bool) -> Report | None:
     """
     Fetch the name of a Chrome or Edge extension using its ID.
 
@@ -57,7 +58,7 @@ def run_engine(observable: ObservableMap, proxies: Proxies, ssl_verify: bool = T
     return None
 
 
-def fetch_extension_page(url: str, proxies: Proxies, ssl_verify: bool = True) -> Response:
+def fetch_extension_page(url: str, proxies: Proxies, ssl_verify: bool) -> Response:
     try:
         response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()

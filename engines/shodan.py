@@ -18,6 +18,7 @@ SUPPORTS: list[str] = ["ports", "IP"]
 DESCRIPTION: str = "Checks Shodan, reversed obtained IP for a given domain/URL, free API key required"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
+MIGRATED: bool = False
 
 
 def run_engine(

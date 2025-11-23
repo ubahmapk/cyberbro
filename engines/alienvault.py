@@ -26,12 +26,13 @@ SUPPORTS: list[str] = ["hash", "IP", "domain", "url", "risk"]
 DESCRIPTION: str = "Checks Alienvault for IP, domain, URL, hash"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
+MIGRATED: bool = True
 
 
 def run_engine(
     observable_dict: ObservableMap,
     proxies: Proxies,
-    ssl_verify: bool = True,
+    ssl_verify: bool,
 ) -> Report | None:
     """
     Queries the OTX AlienVault API for information about a given observable (URL, IP, domain, hash).
@@ -95,8 +96,8 @@ def query_alienvault(observable_dict: ObservableMap, api_key: str, proxies: Prox
 
     # If it's a URL, extract the domain portion for searching
     if (observable_type := observable_dict["type"]) == "URL":
-        artifact: str = observable_dict["value"].split("/")[2].split(":")[0]
-        observable_type = "FQDN"
+        artifact = observable_dict["value"].split("/")[2].split(":")[0]
+        observable_type: str = "FQDN"
 
     endpoint = get_endpoint(artifact, observable_type)
 

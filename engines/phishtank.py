@@ -18,6 +18,7 @@ SUPPORTS: list[str] = ["risk", "domain", "URL", "free_no_key"]
 DESCRIPTION: str = "Checks Phishtank for domains, URL, free, no API key required"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
+MIGRATED: bool = False
 
 
 def run_engine(

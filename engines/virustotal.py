@@ -24,6 +24,7 @@ SUPPORTS: list[str] = ["hash", "risk", "IP", "domain", "URL"]
 DESCRIPTION: str = "Checks VirusTotal for IP, domain, URL, hash, free API key required"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
+MIGRATED: bool = False
 
 
 def map_observable_type_to_url(observable: str, observable_type: str) -> tuple[str, str]:

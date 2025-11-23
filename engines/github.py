@@ -26,9 +26,10 @@ SUPPORTS: list[str] = ["domain", "URL", "IP", "hash", "scraping", "chrome_extens
 DESCRIPTION: str = "Get Github grep.app API search results for all types of observable"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
+MIGRATED: bool = True
 
 
-def run_engine(observable_dict: ObservableMap, proxies: Proxies, ssl_verify: bool = True) -> Report | None:
+def run_engine(observable_dict: ObservableMap, proxies: Proxies, ssl_verify: bool) -> Report | None:
     """
     Perform a search query using Grep API, limited to 5 search results, restricted to GitHub domains.
 
@@ -64,7 +65,7 @@ def run_engine(observable_dict: ObservableMap, proxies: Proxies, ssl_verify: boo
     return report
 
 
-def query_engine(observable: str, proxies: Proxies, ssl_verify: bool = True) -> dict[str, Any]:
+def query_engine(observable: str, proxies: Proxies, ssl_verify: bool) -> dict[str, Any]:
     try:
         response = requests.get(
             f"https://grep.app/api/search?q={observable}",

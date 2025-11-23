@@ -23,6 +23,7 @@ SUPPORTS: list[str] = ["domain", "URL", "IP", "hash", "scraping"]
 DESCRIPTION: str = "Scraps (can be long) Ioc.One PDF search results for all types of observable, free, no API key"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
+MIGRATED: bool = False
 
 
 def run_engine(observablei_dict: dict, proxies: dict[str, str], ssl_verify: bool = True) -> dict[str, Any] | None:

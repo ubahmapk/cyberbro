@@ -22,6 +22,7 @@ DESCRIPTION: str = (
 )
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
+MIGRATED: bool = False
 
 
 def run_engine(

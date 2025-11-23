@@ -17,6 +17,7 @@ SUPPORTS: list[str] = ["default", "domain", "IP", "abuse", "free_no_key"]
 DESCRIPTION: str = "Performs a reverse DNS lookup for IP, domain, URL (on the Cyberbro machine)"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
+MIGRATED: bool = False
 
 
 def run_engine(

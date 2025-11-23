@@ -17,6 +17,8 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
     "URL",
 ]
 
+MIGRATED: bool = False
+
 
 def query_dfir_iris(
     observable: str,

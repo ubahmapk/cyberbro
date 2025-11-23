@@ -25,6 +25,7 @@ SUPPORTS: list[str] = ["hash", "IP", "domain", "URL"]
 DESCRIPTION: str = "Checks CrowdStrike for IP, domain, URL, hash, paid API key required with Flacon XDR and Falcon Intelligence licence"  # noqa: E501
 COST: str = "Paid"
 API_KEY_REQUIRED: bool = True
+MIGRATED: bool = True
 
 
 def map_observable_type(observable_type: str) -> str | None:

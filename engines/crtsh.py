@@ -22,12 +22,13 @@ SUPPORTS: list[str] = ["domain", "IP"]
 DESCRIPTION: str = "Queries the crt.sh API for information about a given observable (URL or FQDN)."
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
+MIGRATED: bool = True
 
 
 def run_engine(
     observable_dict: ObservableMap,
     proxies: Proxies,
-    ssl_verify: bool = True,
+    ssl_verify: bool,
 ) -> Report | None:
     """
     Queries the crt.sh API for information about a given observable (URL or FQDN).

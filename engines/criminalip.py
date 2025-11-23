@@ -28,6 +28,7 @@ SUPPORTS: list[str] = ["IP", "risk", "VPN", "proxy"]
 DESCRIPTION: str = "Checks CriminalIP for IP, reversed obtained IP for a given domain / URL"
 COST: str = "Free, with paid upgrades available"
 API_KEY_REQUIRED: bool = True
+MIGRATED: bool = False
 
 
 BASE_URL: str = "https://api.criminalip.io"

@@ -18,12 +18,13 @@ SUPPORTS: list[str] = ["domain", "URL", "email", "free_no_key"]
 DESCRIPTION: str = "Searches Hudson Rocks results for domains, URL, Email, free, no API key"
 COST: str = "Free"
 API_KEY_REQUIRED: bool = False
+MIGRATED: bool = False
 
 
 def run_engine(
     observable_dict: dict,
     proxies: dict[str, str],
-    ssl_verify: bool = True,
+    ssl_verify: bool,
 ) -> dict[str, Any] | None:
     """
     Perform a search query using Hudson Rock API for email or domain observables.

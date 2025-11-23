@@ -25,6 +25,7 @@ SUPPORTS: list[str] = ["domain", "URL", "IP", "hash"]
 DESCRIPTION: str = "Searches OpenCTI results for all types of observable, API key required."
 COST: str = "Free"
 API_KEY_REQUIRED: bool = True
+MIGRATED: bool = False
 
 
 def run_engine(
