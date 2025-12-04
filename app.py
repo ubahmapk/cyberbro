@@ -27,6 +27,7 @@ from utils.export import export_to_csv, export_to_excel, prepare_data_for_export
 from utils.stats import get_analysis_stats
 from utils.utils import extract_observables
 
+# Canonical version string displayed in the about page and used for update checks
 VERSION: str = "v0.9.7"
 
 
