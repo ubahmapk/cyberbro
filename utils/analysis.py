@@ -17,6 +17,7 @@ from engines import (
     google_safe_browsing,
     hudsonrock,
     ioc_one,
+    ipapi,
     ipinfo,
     ipquery,
     microsoft_defender_for_endpoint,
@@ -240,6 +241,9 @@ def perform_engine_queries(observable, selected_engines, result):
             if observable["type"] in ["FQDN", "URL"]:
                 observable["type"] = "IPv4"
                 observable["value"] = reverse_dns_result["reverse_dns"][0]
+
+    if "ipapi" in selected_engines and observable["type"] in ipapi.SUPPORTED_OBSERVABLE_TYPES:
+        result["ipapi"] = ipapi.query_ipapi(observable["value"], PROXIES, SSL_VERIFY)
 
     if "ipquery" in selected_engines and observable["type"] in ipquery.SUPPORTED_OBSERVABLE_TYPES:
         result["ipquery"] = ipquery.query_ipquery(observable["value"], PROXIES, SSL_VERIFY)

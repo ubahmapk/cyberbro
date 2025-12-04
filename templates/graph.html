@@ -130,7 +130,7 @@
 
             addNode(obs, obs, "observable", "https://img.icons8.com/officexs/32/goal.png");
 
-            const providers = ["ipinfo", "ipquery", "webscout"];
+            const providers = ["ipinfo", "ipquery", "webscout", "ipapi"];
             providers.forEach((provider) => {
                 if (entry[provider]?.asn) {
                     let asn = String(entry[provider].asn || "");
@@ -206,6 +206,39 @@
                             edges.push({ from: obs, to: tunnels, label: "Tunnel (Spur.us)" });
                         }
                     }
+                    // check for IP address with IPAPI data (add vpn provider name if applicable)
+                    if (entry.ipapi?.is_vpn && entry.ipapi?.vpn?.service) {
+                        const vpnService = entry.ipapi.vpn.service;
+                        if (entry.type === "FQDN" || entry.type === "URL") {
+                            if (entry.reverse_dns?.reverse_dns) {
+                                if (
+                                    entry[provider].ip &&
+                                    entry.reverse_dns.reverse_dns.includes(entry[provider].ip)
+                                ) {
+                                    addNode(
+                                        vpnService,
+                                        vpnService,
+                                        "vpn_service",
+                                        "https://img.icons8.com/officexs/32/vpn.png",
+                                    );
+                                    edges.push({
+                                        from: entry[provider].ip,
+                                        to: vpnService,
+                                        label: "VPN Service (IPAPI)",
+                                    });
+                                }
+                            }
+                        } else {
+                            addNode(
+                                vpnService,
+                                vpnService,
+                                "vpn_service",
+                                "https://img.icons8.com/officexs/32/lock.png",
+                            );
+                            edges.push({ from: obs, to: vpnService, label: "VPN Service (IPAPI)" });
+                        }
+                    }
+
 
                     // Check for Abusix data
                     if (entry.abusix?.abuse) {

@@ -84,6 +84,10 @@
             <th>AbuseIPDB</th>
             {% endif %}
 
+            {% if "ipapi" in analysis_results.selected_engines %}
+            <th>IPapi</th>
+            {% endif %}
+
             {% if "spur" in analysis_results.selected_engines %}
             <th>Spur.us</th>
             {% endif %}
@@ -231,6 +235,10 @@
 
             {% if "abuseipdb" in analysis_results.selected_engines %}
             {% include "engine_layouts/abuseipdb_table.html" %}
+            {% endif %}
+
+            {% if "ipapi" in analysis_results.selected_engines %}
+            {% include "engine_layouts/ipapi_table.html" %}
             {% endif %}
 
             {% if "spur" in analysis_results.selected_engines %}
