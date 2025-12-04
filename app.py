@@ -27,7 +27,7 @@ from utils.export import export_to_csv, export_to_excel, prepare_data_for_export
 from utils.stats import get_analysis_stats
 from utils.utils import extract_observables
 
-VERSION: str = "v0.9.6"
+VERSION: str = "v0.9.7"
 
 
 class InvalidCachefileError(Exception):
@@ -331,6 +331,8 @@ def update_config():
         secrets.virustotal = request.form.get("virustotal", secrets.virustotal)
         secrets.abuseipdb = request.form.get("abuseipdb", secrets.abuseipdb)
         secrets.ipinfo = request.form.get("ipinfo", secrets.ipinfo)
+        secrets.google_cse_key = request.form.get("google_cse_key", secrets.google_cse_key)
+        secrets.google_cse_cx = request.form.get("google_cse_cx", secrets.google_cse_cx)
         secrets.google_safe_browsing = request.form.get("google_safe_browsing", secrets.google_safe_browsing)
         secrets.mde_tenant_id = request.form.get("mde_tenant_id", secrets.mde_tenant_id)
         secrets.mde_client_id = request.form.get("mde_client_id", secrets.mde_client_id)
