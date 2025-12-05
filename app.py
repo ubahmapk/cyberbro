@@ -331,6 +331,7 @@ def update_config():
         secrets.proxy_url = request.form.get("proxy_url", secrets.proxy_url)
         secrets.virustotal = request.form.get("virustotal", secrets.virustotal)
         secrets.abuseipdb = request.form.get("abuseipdb", secrets.abuseipdb)
+        secrets.ipapi = request.form.get("ipapi", secrets.ipapi)
         secrets.ipinfo = request.form.get("ipinfo", secrets.ipinfo)
         secrets.google_cse_key = request.form.get("google_cse_key", secrets.google_cse_key)
         secrets.google_cse_cx = request.form.get("google_cse_cx", secrets.google_cse_cx)

@@ -341,6 +341,11 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
 **Supports**: domain, URL, IP, hash, scraping  
 **Explaination**: Scraps (can be long) Ioc.One PDF search results for all types of observable, free, no API key
 
+### IPapi
+**Name**: `ipapi`  
+**Supports**: IP, risk, VPN, proxy, free API key required  
+**Explaination**: Checks IPapi for IP, reversed obtained IP for a given domain/URL, free API key required
+
 ### IPinfo
 **Name**: `ipinfo`  
 **Supports**: IP  

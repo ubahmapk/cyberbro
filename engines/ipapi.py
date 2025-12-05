@@ -11,12 +11,13 @@ SUPPORTED_OBSERVABLE_TYPES: list[str] = [
 ]
 
 
-def query_ipapi(ip: str, proxies: dict[str, str], ssl_verify: bool = True) -> Optional[dict[str, Any]]:
+def query_ipapi(ip: str, api_key: str, proxies: dict[str, str], ssl_verify: bool = True) -> Optional[dict[str, Any]]:
     """
-    Queries the IP information from the ipapi.is API.
+    Queries the IP information from the ipapi.is API using POST for better security.
 
     Args:
         ip (str): The IP address to query.
+        api_key (str): API key for authentication.
         proxies (dict): Dictionary containing proxy settings.
         ssl_verify (bool): Whether to verify SSL certificates.
 
@@ -25,11 +26,14 @@ def query_ipapi(ip: str, proxies: dict[str, str], ssl_verify: bool = True) -> Op
         None: If an error occurs.
     """
     try:
-        url = f"https://api.ipapi.is/?q={ip}"
-        response = requests.get(url, proxies=proxies, verify=ssl_verify, timeout=5)
+        url = "https://api.ipapi.is"
+        headers = {"Content-Type": "application/json"}
+        data = {"q": ip, "key": api_key}
+        response = requests.post(url, json=data, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
 
         data = response.json()
+        # Reformat ASN field to match other engines (e.g., "AS12345")
         if "ip" in data:
             if "asn" in data and "asn" in data["asn"]:
                 data["asn"]["asn"] = f"AS{data['asn']['asn']}"
