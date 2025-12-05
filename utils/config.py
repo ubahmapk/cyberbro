@@ -41,6 +41,8 @@ class Secrets:
     opencti_api_key: str = ""
     opencti_url: str = ""
     proxy_url: str = ""
+    rl_analyze_url: str = ""
+    rl_analyze_api_key: str = ""
     shodan: str = ""
     spur_us: str = ""
     threatfox: str = ""

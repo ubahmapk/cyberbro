@@ -26,6 +26,7 @@ from engines import (
     phishtank,
     rdap,
     reverse_dns,
+    reversinglabs_spectra_analyze,
     shodan,
     spur_us,
     threatfox,
@@ -162,6 +163,19 @@ def perform_engine_queries(observable, selected_engines, result):
             observable["type"],
             secrets.dfir_iris_api_key,
             secrets.dfir_iris_url,
+            PROXIES,
+            SSL_VERIFY,
+        )
+
+    if (
+        "rl_analyze" in selected_engines
+        and observable["type"] in reversinglabs_spectra_analyze.SUPPORTED_OBSERVABLE_TYPES
+    ):
+        result["rl_analyze"] = reversinglabs_spectra_analyze.query_rl_analyze(
+            observable["value"],
+            observable["type"],
+            secrets.rl_analyze_api_key,
+            secrets.rl_analyze_url,
             PROXIES,
             SSL_VERIFY,
         )
