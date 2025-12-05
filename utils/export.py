@@ -218,6 +218,19 @@ def prepare_row(result, selected_engines):
         row["cs_kill_chain"] = crowdstrike_data.get("kill_chain") if crowdstrike_data else None
         row["cs_vulns"] = crowdstrike_data.get("vulnerabilities") if crowdstrike_data else None
 
+    if "rl_analyze" in selected_engines:
+        rl_analyze_data = result.get("rl_analyze", {})
+        row["rl_analyze_total_count"] = rl_analyze_data.get("reports") if rl_analyze_data else None
+        row["rl_analyze_malicious"] = rl_analyze_data.get("malicious") if rl_analyze_data else None
+        row["rl_analyze_suspicious"] = rl_analyze_data.get("suspicious") if rl_analyze_data else None
+        row["rl_analyze_total_files"] = rl_analyze_data.get("total_files") if rl_analyze_data else None
+        row["rl_analyze_malicious_files"] = rl_analyze_data.get("malicious_files") if rl_analyze_data else None
+        row["rl_analyze_suspicious_files"] = rl_analyze_data.get("suspicious_files") if rl_analyze_data else None
+        row["rl_analyze_av_scanners"] = rl_analyze_data.get("scanners") if rl_analyze_data else None
+        row["rl_analyze_threats"] = rl_analyze_data.get("threats") if rl_analyze_data else None
+        row["rl_analyze_riskscore"] = rl_analyze_data.get("riskscore") if rl_analyze_data else None
+        row["rl_analyze_link"] = rl_analyze_data.get("link") if rl_analyze_data else None
+
     return row
 
 
