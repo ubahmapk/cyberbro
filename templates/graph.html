@@ -142,6 +142,11 @@
                     if (provider === "webscout" && entry[provider]?.as_org) {
                         asn = `${asn} ${entry[provider].as_org}`.trim();
                     }
+
+                    if (provider === "ipapi" && entry[provider]?.asn.org) {
+                        asn = `${entry[provider].asn.asn} ${entry[provider].asn.org}`.trim();
+                    }
+
                     if (entry.type === "FQDN" || entry.type === "URL") {
                         if (entry.reverse_dns?.reverse_dns) {
                             if (
@@ -158,12 +163,20 @@
                     }
                 }
 
-                if (entry[provider]?.country_code) {
+                if (entry[provider]?.country_code || (provider === "ipapi" && entry[provider]?.location?.country_code)) {
                     // Check to see if the provider already has a country name
-                    const country = entry[provider]?.country_name
-                        ? entry[provider].country_name
-                        : country_code_to_country_name(entry[provider].country_code);
-                    const countryCode = entry[provider].country_code.toLowerCase();
+                    let country, countryCode;
+
+                    if (provider === "ipapi" && entry[provider]?.location) {
+                        country = entry[provider].location.country || country_code_to_country_name(entry[provider].location.country_code);
+                        countryCode = entry[provider].location.country_code.toLowerCase();
+                    } else {
+                        country = entry[provider]?.country_name
+                            ? entry[provider].country_name
+                            : country_code_to_country_name(entry[provider].country_code);
+                        countryCode = entry[provider].country_code.toLowerCase();
+                    }
+
                     const flagUrl = `https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.6.6/flags/1x1/${countryCode}.svg`;
 
                     addNode(country, country, "country_name", flagUrl);
@@ -219,7 +232,7 @@
                                         vpnService,
                                         vpnService,
                                         "vpn_service",
-                                        "https://img.icons8.com/officexs/32/vpn.png",
+                                        "https://img.icons8.com/officexs/32/lock.png",
                                     );
                                     edges.push({
                                         from: entry[provider].ip,
