@@ -381,6 +381,11 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
 **Supports**: default, domain, IP, abuse, free_no_key  
 **Explaination**: Performs a reverse DNS lookup for IP, domain, URL (on the Cyberbro machine)
 
+### Reversing Labs Spectra Analyze
+**Name**: `rl_analyze`  
+**Supports**: domain, URL, IP, hash, paid API key required  
+**Explanation**: Looks up observables in the Reversing Labs Spectra Analyze service, paid API key required
+
 ### Shodan
 **Name**: `shodan`  
 **Supports**: ports, IP  

@@ -62,6 +62,7 @@ nav:
       - Get MDE (Microsoft Defender for Endpoint) API Credentials: api-keys/Get-MDE-(Microsoft-Defender-for-Endpoint)-API-credentials.md
       - Get MISP API Key: api-keys/Get-MISP-API-key.md
       - Get OpenCTI API Key: api-keys/Get-OpenCTI-API-key.md
+      - Get Reversing Labs Spectra Analyze API Key: api-keys/Get-ReversingLabs-Spectra-API-key.md
       - Get Shodan API Key: api-keys/Get-Shodan-API-key.md
       - Get Spur.us API Key: api-keys/Get-Spur-Us-API-key.md
       - Get ThreatFox API Key: api-keys/Get-ThreatFox-API-key.md
