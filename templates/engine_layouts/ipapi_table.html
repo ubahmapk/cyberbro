@@ -1,15 +1,12 @@
 <td>
     {% if result.ipapi %}
-    <strong>IP: </strong><a href="{{ result.ipapi.link }}" target="_blank">{{
-        result.ipapi.ip }}</a><br />
+    <strong>IP: </strong>{{ result.ipapi.ip }}<br />
 
     <div class="alert alert-warning">
         {% if result.ipapi.is_vpn %}<span class="badge badge-danger">VPN</span>{% endif %}
         {% if result.ipapi.is_tor %}<span class="badge badge-danger">TOR</span>{% endif %}
-        {% if result.ipapi.is_proxy %}<span class="badge badge-danger">PROXY</span>{% endif
-        %}
-        {% if result.ipapi.is_abuser %}<span class="badge badge-danger">ABUSER</span>{%
-        endif %}
+        {% if result.ipapi.is_proxy %}<span class="badge badge-danger">PROXY</span>{% endif %}
+        {% if result.ipapi.is_abuser %}<span class="badge badge-danger">ABUSER</span>{% endif %}
     </div>
 
     <strong>Location: </strong>{{ result.ipapi.location.city }}, {{
