@@ -5,4 +5,5 @@
 You can fill the `secrets.json` accordingly with the variable `ipapi` or the environment variable `IPAPI` in your custom docker-compose file.
 
 !!! info
-    The free tier allows up to 1,000 requests per day.
+    The free tier allows up to 1,000 requests per day.  
+    While it can be used without an API key, having one increases your rate limit.
