@@ -119,6 +119,7 @@ cp secrets-sample.json secrets.json
     "google_cse_cx": "cx_here",
     "google_cse_key": "key_here",
     "google_safe_browsing": "token_here",
+    "ipapi": "token_here",
     "ipinfo": "token_here",
     "mde_client_id": "client_id_here",
     "mde_client_secret": "client_secret_here",
@@ -128,6 +129,8 @@ cp secrets-sample.json secrets.json
     "opencti_api_key": "token_here",
     "opencti_url": "https://demo.opencti.io",
     "proxy_url": "",
+    "rl_analyze_api_key": "token_here",
+    "rl_analyze_url": "https://spectra_analyse_url_here",
     "shodan": "token_here",
     "spur_us": "token_here",
     "threatfox": "token_here",
@@ -302,6 +305,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 * [Grep.App](https://grep.app/)
 * [Hudson Rock](https://hudsonrock.com/)
 * [ICANN](https://lookup.icann.org/)
+* [IPapi](https://ipapi.is/)
 * [IPinfo](https://ipinfo.io/developers)
 * [IPquery](https://ipquery.gitbook.io/ipquery-docs)
 * [Ioc.One](https://ioc.one/)
@@ -314,6 +318,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 * [Spur.us](https://spur.us/)
 * [ThreatFox](https://threatfox.abuse.ch/api/)
 * [URLscan](https://urlscan.io/)
+* [ReversingLabs Spectra Analyze](https://www.reversinglabs.com/products/spectra-analyze)
 * [VirusTotal](https://developers.virustotal.com/v3.0/reference)
 * [WebScout](https://webscout.io/)
 
