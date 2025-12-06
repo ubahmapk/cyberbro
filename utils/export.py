@@ -1,9 +1,12 @@
+import logging
 import threading
 import time
 from pathlib import Path
 
 import pandas as pd
 from flask import send_file
+
+logger = logging.getLogger(__name__)
 
 
 def prepare_row(result, selected_engines):
@@ -75,6 +78,25 @@ def prepare_row(result, selected_engines):
         row["ipq_vpn"] = ipquery_data.get("is_vpn") if ipquery_data else None
         row["ipq_tor"] = ipquery_data.get("is_tor") if ipquery_data else None
         row["ipq_proxy"] = ipquery_data.get("is_proxy") if ipquery_data else None
+
+    if "ipapi" in selected_engines:
+        ipapi_data = result.get("ipapi", {})
+        row["ipapi_ip"] = ipapi_data.get("ip") if ipapi_data else None
+        row["ipapi_is_vpn"] = ipapi_data.get("is_vpn") if ipapi_data else None
+        row["ipapi_is_tor"] = ipapi_data.get("is_tor") if ipapi_data else None
+        row["ipapi_is_proxy"] = ipapi_data.get("is_proxy") if ipapi_data else None
+        row["ipapi_is_abuser"] = ipapi_data.get("is_abuser") if ipapi_data else None
+        location_data = ipapi_data.get("location", {}) if ipapi_data else {}
+        row["ipapi_city"] = location_data.get("city") if location_data else None
+        row["ipapi_state"] = location_data.get("state") if location_data else None
+        row["ipapi_country"] = location_data.get("country") if location_data else None
+        row["ipapi_country_code"] = location_data.get("country_code") if location_data else None
+        asn_data = ipapi_data.get("asn", {}) if ipapi_data else {}
+        row["ipapi_asn"] = asn_data.get("asn") if asn_data else None
+        row["ipapi_org"] = asn_data.get("org") if asn_data else None
+        vpn_data = ipapi_data.get("vpn", {}) if ipapi_data else {}
+        row["ipapi_vpn_service"] = vpn_data.get("service") if vpn_data else None
+        row["ipapi_vpn_url"] = vpn_data.get("url") if vpn_data else None
 
     if "ipinfo" in selected_engines:
         row["ipinfo_cn"] = ipinfo_data.get("country_code") if ipinfo_data else None
@@ -215,6 +237,19 @@ def prepare_row(result, selected_engines):
         row["cs_kill_chain"] = crowdstrike_data.get("kill_chain") if crowdstrike_data else None
         row["cs_vulns"] = crowdstrike_data.get("vulnerabilities") if crowdstrike_data else None
 
+    if "rl_analyze" in selected_engines:
+        rl_analyze_data = result.get("rl_analyze", {})
+        row["rl_analyze_total_count"] = rl_analyze_data.get("reports") if rl_analyze_data else None
+        row["rl_analyze_malicious"] = rl_analyze_data.get("malicious") if rl_analyze_data else None
+        row["rl_analyze_suspicious"] = rl_analyze_data.get("suspicious") if rl_analyze_data else None
+        row["rl_analyze_total_files"] = rl_analyze_data.get("total_files") if rl_analyze_data else None
+        row["rl_analyze_malicious_files"] = rl_analyze_data.get("malicious_files") if rl_analyze_data else None
+        row["rl_analyze_suspicious_files"] = rl_analyze_data.get("suspicious_files") if rl_analyze_data else None
+        row["rl_analyze_av_scanners"] = rl_analyze_data.get("scanners") if rl_analyze_data else None
+        row["rl_analyze_threats"] = rl_analyze_data.get("threats") if rl_analyze_data else None
+        row["rl_analyze_riskscore"] = rl_analyze_data.get("riskscore") if rl_analyze_data else None
+        row["rl_analyze_link"] = rl_analyze_data.get("link") if rl_analyze_data else None
+
     return row
 
 
@@ -297,8 +332,8 @@ def export_to_excel(data, timestamp):
                 try:
                     if len(str(cell.value)) > max_length:
                         max_length = len(str(cell.value))
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.error("Error exporting to Excel, column %s, cell %s, '%s'", column, cell, e, exc_info=True)
             adjusted_width = max_length + 2
             worksheet.column_dimensions[column].width = adjusted_width
     response = send_file(excel_path, as_attachment=True)
