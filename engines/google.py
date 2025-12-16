@@ -16,7 +16,7 @@ class GoogleCSEEngine(BaseEngine):
 
     @property
     def supported_types(self):
-        return ["CHROME_EXTENSION", "FQDN", "IPv4", "IPv6", "MD5", "SHA1", "SHA256", "URL"]
+        return ["CHROME_EXTENSION", "FQDN", "IPv4", "IPv6", "MD5", "SHA1", "SHA256", "URL", "Email"]
 
     def analyze(self, observable_value: str, observable_type: str, dorks: str = "") -> Optional[dict[str, Any]]:
         # This engine requires specific secrets (CSE_CX, CSE_KEY)
