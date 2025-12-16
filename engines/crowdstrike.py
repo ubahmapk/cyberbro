@@ -54,11 +54,7 @@ class CrowdstrikeEngine(BaseEngine):
             falcon = self._get_falcon_client()
             falcon_url = urljoin(self.secrets.crowdstrike_falcon_base_url, "/").rstrip("/")
 
-            if observable_type == "URL":
-                # Only take the domain part
-                observable = observable_value.split("/")[2].split(":")[0]
-            else:
-                observable = observable_value
+            observable = observable_value.split("/")[2].split(":")[0] if observable_type == "URL" else observable_value
 
             observable = observable.lower()
             mapped_type = self._map_observable_type(observable_type)

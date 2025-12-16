@@ -38,8 +38,8 @@ class MDEEngine(BaseEngine):
             token = token_path.read_text().strip()
             if self._check_token_validity(token):
                 return token
-        except Exception:
-            pass  # File not found or other read error is expected if token doesn't exist
+        except Exception as e:
+            logger.error("Failed to read token from file: %s", e, exc_info=True)
         return None
 
     def _get_token(self) -> str:

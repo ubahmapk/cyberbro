@@ -41,7 +41,7 @@ class GoogleCSEEngine(BaseEngine):
             try:
                 data = resp.json()
             except ValueError:
-                pass
+                data = None
 
             if resp.status_code >= 400 or (isinstance(data, dict) and "error" in data):
                 msg = "API Error"

@@ -2,11 +2,9 @@ from utils.config import Secrets
 
 from .abuseipdb import AbuseIPDBEngine
 from .abusix import AbusixEngine
-
-# from .alienvault import AlienVaultEngine
+from .alienvault import AlienVaultEngine
 from .chrome_extension import ChromeExtensionEngine
-
-# from .criminalip import CriminalIPEngine
+from .criminalip import CriminalIPEngine
 from .crowdstrike import CrowdstrikeEngine
 from .crtsh import CrtShEngine
 from .dfir_iris import DFIRIrisEngine
@@ -45,9 +43,9 @@ def get_engine_instances(secrets: Secrets, proxies: dict, ssl_verify: bool) -> d
         VirusTotalEngine(secrets, proxies, ssl_verify),
         ReverseDNSEngine(secrets, proxies, ssl_verify),
         AbusixEngine(secrets, proxies, ssl_verify),
-        # AlienVaultEngine(secrets, proxies, ssl_verify),
+        AlienVaultEngine(secrets, proxies, ssl_verify),
         ChromeExtensionEngine(secrets, proxies, ssl_verify),
-        # CriminalIPEngine(secrets, proxies, ssl_verify),
+        CriminalIPEngine(secrets, proxies, ssl_verify),
         CrowdstrikeEngine(secrets, proxies, ssl_verify),
         CrtShEngine(secrets, proxies, ssl_verify),
         DFIRIrisEngine(secrets, proxies, ssl_verify),

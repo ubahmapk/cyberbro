@@ -61,6 +61,6 @@ class ReverseDNSEngine(BaseEngine):
     def create_export_row(self, analysis_result: Any) -> dict:
         rev_dns_data = analysis_result
         return {
-            "rev_dns": True if rev_dns_data else False,
+            "rev_dns": bool(rev_dns_data),
             "dns_lookup": rev_dns_data.get("reverse_dns") if rev_dns_data else None,
         }
