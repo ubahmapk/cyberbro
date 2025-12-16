@@ -67,8 +67,8 @@ def export_to_excel(data, timestamp):
                 try:
                     if len(str(cell.value)) > max_length:
                         max_length = len(str(cell.value))
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.error("Error exporting to Excel, column %s, cell %s, '%s'", column, cell, e, exc_info=True)
             worksheet.column_dimensions[column].width = max_length + 2
     response = send_file(excel_path, as_attachment=True)
     threading.Thread(target=lambda path: (time.sleep(10), Path(path).unlink()), args=(excel_path,)).start()
