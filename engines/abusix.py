@@ -1,7 +1,7 @@
 import logging
 from typing import Any, Optional
 
-import querycontacts  # Assuming querycontacts is importable
+import querycontacts
 
 from engines.base_engine import BaseEngine
 
@@ -24,7 +24,6 @@ class AbusixEngine(BaseEngine):
 
     def analyze(self, observable_value: str, observable_type: str) -> Optional[dict[str, str]]:
         try:
-            # Note: Abusix doesn't use proxies/ssl_verify in the original implementation
             results = querycontacts.ContactFinder().find(observable_value)
             if not results:
                 logger.warning("No contact information returned for observable: %s", observable_value)
