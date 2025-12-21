@@ -4,7 +4,7 @@ from typing import Any, Optional
 import requests
 from requests.exceptions import HTTPError, JSONDecodeError
 
-from engines.base_engine import BaseEngine
+from models.base_engine import BaseEngine
 
 logger = logging.getLogger(__name__)
 
