@@ -5,8 +5,8 @@ from urllib.parse import quote
 import requests
 from pydantic import ValidationError
 
-from models.base_engine import BaseEngine
 from models.alienvault_datamodel import OTXReport, Pulse
+from models.base_engine import BaseEngine
 from utils.config import QueryError
 
 logger = logging.getLogger(__name__)
