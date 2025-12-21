@@ -4,7 +4,7 @@ from typing import Any, Optional
 import dns.resolver
 import dns.reversename
 
-from engines.base_engine import BaseEngine
+from models.base_engine import BaseEngine
 from utils.utils import identify_observable_type, is_really_ipv6
 
 logger = logging.getLogger(__name__)

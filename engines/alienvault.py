@@ -5,7 +5,7 @@ from urllib.parse import quote
 import requests
 from pydantic import ValidationError
 
-from engines.base_engine import BaseEngine
+from models.base_engine import BaseEngine
 from models.alienvault_datamodel import OTXReport, Pulse
 from utils.config import QueryError
 

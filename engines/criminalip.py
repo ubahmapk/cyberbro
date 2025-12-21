@@ -7,7 +7,7 @@ import requests
 from pydantic import BaseModel, Field, ValidationError, model_validator
 from requests.exceptions import HTTPError
 
-from engines.base_engine import BaseEngine
+from models.base_engine import BaseEngine
 from utils.config import Secrets, get_config
 
 logger = logging.getLogger(__name__)
