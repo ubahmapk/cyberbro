@@ -290,9 +290,94 @@ def request_entity_too_large(e):
 
 @app.route("/history")
 def history():
-    """Render the history page."""
-    analysis_results = db.session.query(AnalysisResult).filter(AnalysisResult.results != []).order_by(AnalysisResult.end_time.desc()).limit(60).all()
-    return render_template("history.html", analysis_results=analysis_results)
+    """Render the history page with pagination and search."""
+    # Get pagination parameters from query string
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 20, type=int)
+    search_query = request.args.get("search", "", type=str).strip()
+    search_type = request.args.get("search_type", "observable", type=str)
+    time_range = request.args.get("time_range", "7d", type=str)
+
+    # Validate parameters
+    if page < 1:
+        page = 1
+    if per_page < 1 or per_page > 100:
+        per_page = 20
+    if search_type not in ["observable", "engine", "id"]:
+        search_type = "observable"
+    if time_range not in ["7d", "30d", "all"]:
+        time_range = "7d"
+
+    # Calculate offset
+    offset = (page - 1) * per_page
+
+    # Build base query
+    base_query = db.session.query(AnalysisResult).filter(AnalysisResult.results != [])
+
+    # Apply time range filter
+    import time
+
+    current_time = time.time()
+    if time_range == "7d":
+        # Last 7 days
+        cutoff_time = current_time - (7 * 24 * 60 * 60)
+        base_query = base_query.filter(AnalysisResult.end_time >= cutoff_time)
+    elif time_range == "30d":
+        # Last 30 days
+        cutoff_time = current_time - (30 * 24 * 60 * 60)
+        base_query = base_query.filter(AnalysisResult.end_time >= cutoff_time)
+
+    # Apply search filter if provided
+    if search_query:
+        # Targeted search based on search_type
+        if search_type == "id":
+            # Search only in analysis ID (case-insensitive)
+            search_filter = AnalysisResult.id.ilike(f"%{search_query}%")
+            base_query = base_query.filter(search_filter)
+        elif search_type == "engine":
+            # Search only in selected engines (case-insensitive)
+            search_filter = AnalysisResult.selected_engines.ilike(f"%{search_query}%")
+            base_query = base_query.filter(search_filter)
+
+    # For observable search, we need to filter in Python
+    if search_query and search_type == "observable":
+        # Fetch all matching results (no pagination yet)
+        all_results = base_query.order_by(AnalysisResult.end_time.desc()).all()
+
+        # Filter results that have at least one observable matching the search
+        search_lower = search_query.lower()
+        filtered_results = [
+            result for result in all_results if any(search_lower in str(item.get("observable", "")).lower() for item in result.results if item is not None and isinstance(item, dict))
+        ]
+
+        # Apply pagination to filtered results
+        total_count = len(filtered_results)
+        analysis_results = filtered_results[offset : offset + per_page]
+    else:
+        # Query total count
+        total_count = base_query.count()
+
+        # Query paginated results
+        analysis_results = base_query.order_by(AnalysisResult.end_time.desc()).limit(per_page).offset(offset).all()
+
+    # Calculate pagination metadata
+    total_pages = (total_count + per_page - 1) // per_page if total_count > 0 else 1
+    has_prev = page > 1
+    has_next = page < total_pages
+
+    return render_template(
+        "history.html",
+        analysis_results=analysis_results,
+        page=page,
+        per_page=per_page,
+        total_count=total_count,
+        total_pages=total_pages,
+        has_prev=has_prev,
+        has_next=has_next,
+        search_query=search_query,
+        search_type=search_type,
+        time_range=time_range,
+    )
 
 
 @app.route("/stats")
