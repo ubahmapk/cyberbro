@@ -73,7 +73,14 @@ function toggleRowExpansion(toggleCell) {
 
                 const value = document.createElement('div');
                 value.className = 'expanded-value';
-                value.innerHTML = cell.innerHTML;
+
+                // Clone cell content but exclude copy buttons
+                const cellClone = cell.cloneNode(true);
+                const copyBtn = cellClone.querySelector('.copy-btn');
+                if (copyBtn) {
+                    copyBtn.remove();
+                }
+                value.innerHTML = cellClone.innerHTML;
 
                 item.appendChild(label);
                 item.appendChild(value);
