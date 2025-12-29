@@ -922,12 +922,6 @@ body.dark-mode .row-toggle:hover {
     }
 }
 
-@media (min-width: 1400px) {
-    .cards-results-container {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
 /* ============================================
    NAVIGATION & FOOTER
    ============================================ */
@@ -939,7 +933,7 @@ body.dark-mode .row-toggle:hover {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     color: white;
     text-align: center;
-    padding: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
     box-shadow: 0 -2px 10px var(--shadow-color);
     z-index: var(--z-fixed);
 }
@@ -951,12 +945,12 @@ body.dark-mode .row-toggle:hover {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-xs);
 }
 
 @media (min-width: 768px) {
     .footer nav ul {
-        gap: var(--spacing-lg);
+        gap: var(--spacing-md);
     }
 }
 
@@ -967,7 +961,7 @@ body.dark-mode .row-toggle:hover {
 .footer nav ul li a {
     color: white;
     text-decoration: none;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--radius-sm);
@@ -976,7 +970,7 @@ body.dark-mode .row-toggle:hover {
 
 @media (min-width: 768px) {
     .footer nav ul li a {
-        font-size: 1rem;
+        font-size: 0.9375rem;
     }
 }
 
@@ -986,7 +980,7 @@ body.dark-mode .row-toggle:hover {
 }
 
 .end-of-page-padding {
-    padding: var(--spacing-2xl);
+    padding-bottom: calc(var(--spacing-md) + 50px);
 }
 
 /* ============================================
@@ -1049,17 +1043,16 @@ body.dark-mode .row-toggle:hover {
    ============================================ */
 #network {
     width: 100%;
-    height: 60vh;
+    height: calc(100vh - 250px);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    margin-top: var(--spacing-lg);
     background-color: var(--surface-color);
     box-shadow: var(--shadow-md);
 }
 
 @media (min-width: 768px) {
     #network {
-        height: 80vh;
+        height: calc(100vh - 210px);
     }
 }
 
@@ -1615,6 +1608,131 @@ body.dark-mode .copy-btn:hover {
 
 .copy-toast-error {
     background-color: var(--danger-color);
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg) 0;
+}
+
+.pagination-buttons {
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.pagination-btn {
+    min-width: 40px;
+    height: 40px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-color);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-btn:hover:not(.disabled):not(.active) {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.pagination-btn:active:not(.disabled):not(.active) {
+    transform: translateY(0);
+    box-shadow: var(--shadow-sm);
+}
+
+.pagination-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    font-weight: 600;
+    cursor: default;
+}
+
+.pagination-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: var(--surface-color);
+}
+
+.pagination-ellipsis {
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+/* Dark mode pagination */
+body.dark-mode .pagination-btn {
+    background: var(--dark-surface-color);
+    border-color: var(--dark-border-color);
+    color: var(--dark-text-color);
+}
+
+body.dark-mode .pagination-btn:hover:not(.disabled):not(.active) {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+body.dark-mode .pagination-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+body.dark-mode .pagination-btn.disabled {
+    background: var(--dark-surface-color);
+}
+
+body.dark-mode .pagination-ellipsis {
+    color: var(--dark-text-secondary);
+}
+
+/* Mobile pagination */
+@media (max-width: 767px) {
+    .pagination-container {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+
+    .pagination-buttons {
+        gap: var(--spacing-2xs);
+    }
+
+    .pagination-btn {
+        min-width: 36px;
+        height: 36px;
+        padding: var(--spacing-2xs) var(--spacing-xs);
+        font-size: 0.8125rem;
+    }
+
+    .pagination-ellipsis {
+        min-width: 36px;
+        height: 36px;
+    }
 }
 
 /* ============================================
