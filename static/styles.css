@@ -1709,6 +1709,90 @@ body.dark-mode .filter-tab:hover {
 }
 
 /* ============================================
+   CONFIG PAGE SPECIFIC STYLES
+   ============================================ */
+/* Use monospace font for API keys and configuration values */
+.secrets_value,
+.enabled_engines_value {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace !important;
+    font-size: 0.9rem !important;
+}
+
+/* Ensure password inputs are readable in dark mode - keep light text for readonly */
+body.dark-mode .secrets_value[readonly],
+body.dark-mode .enabled_engines_value[readonly] {
+    color: var(--dark-text-color) !important;
+}
+
+/* When editing in dark mode, use white background with black text for better readability */
+body.dark-mode input.secrets_value:not([readonly]),
+body.dark-mode input.enabled_engines_value:not([readonly]) {
+    background-color: #ffffff !important;
+    color: #212529 !important;
+    border-color: var(--dark-border-color) !important;
+}
+
+/* Table cell labels in dark mode */
+body.dark-mode .secrets_key {
+    color: var(--dark-text-color);
+}
+
+/* Config table styling improvements */
+.table-wrapper table td {
+    vertical-align: middle;
+}
+
+/* Button spacing in config page */
+.table-wrapper table td .btn {
+    margin: 0.25rem;
+}
+
+/* Responsive button text for config page */
+@media (max-width: 991px) {
+    .table-wrapper table td .btn span:last-child {
+        display: none;
+    }
+
+    .table-wrapper table td .btn {
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+/* Ensure buttons are properly styled in dark mode */
+body.dark-mode .btn-outline {
+    background-color: transparent;
+    border-color: var(--primary-light);
+    color: var(--primary-light);
+}
+
+body.dark-mode .btn-outline:hover {
+    background-color: var(--primary-light);
+    color: var(--dark-background-color);
+}
+
+body.dark-mode .btn-secondary {
+    background-color: #5a6268;
+    color: white;
+    border-color: #5a6268;
+}
+
+body.dark-mode .btn-secondary:hover {
+    background-color: #4e555b;
+    border-color: #4e555b;
+}
+
+body.dark-mode .btn-success {
+    background-color: var(--success-color);
+    color: white;
+    border-color: var(--success-color);
+}
+
+body.dark-mode .btn-success:hover {
+    background-color: #218838;
+    border-color: #218838;
+}
+
+/* ============================================
    UTILITY CLASSES
    ============================================ */
 .text-center {
