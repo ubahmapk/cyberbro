@@ -702,22 +702,23 @@ body.dark-mode .expanded-value table th {
     border-bottom-color: #dee2e6 !important;
 }
 
-/* Dark mode for nested tables */
+/* Dark mode for nested tables - Enhanced contrast */
 body.dark-mode .expanded-value table {
-    background-color: #2c3e50 !important;
-    border-color: #34495e !important;
+    background-color: #1a252f !important;
+    border-color: #3d5a80 !important;
 }
 
 body.dark-mode .expanded-value table th {
-    background-color: #34495e !important;
-    color: #ecf0f1 !important;
-    border-bottom-color: #34495e !important;
+    background-color: #2d4263 !important;
+    color: #ffffff !important;
+    border-bottom-color: #3d5a80 !important;
+    font-weight: 700 !important;
 }
 
 body.dark-mode .expanded-value table td {
-    background-color: #2c3e50 !important;
-    color: #ecf0f1 !important;
-    border-bottom-color: #34495e !important;
+    background-color: #243447 !important;
+    color: #f0f4f8 !important;
+    border-bottom-color: #3d5a80 !important;
 }
 
 /* Force table styling even inside colored rows */
@@ -747,31 +748,32 @@ body.dark-mode .expanded-value table td {
     border-bottom-color: #dee2e6 !important;
 }
 
-/* Dark mode overrides for colored rows */
+/* Dark mode overrides for colored rows - Enhanced contrast */
 body.dark-mode .warning-row .expanded-value table,
 body.dark-mode .high-risk .expanded-value table,
 body.dark-mode .high-detection .expanded-value table,
 body.dark-mode .clean-detection .expanded-value table {
-    background-color: #2c3e50 !important;
-    border-color: #34495e !important;
+    background-color: #1a252f !important;
+    border-color: #3d5a80 !important;
 }
 
 body.dark-mode .warning-row .expanded-value table th,
 body.dark-mode .high-risk .expanded-value table th,
 body.dark-mode .high-detection .expanded-value table th,
 body.dark-mode .clean-detection .expanded-value table th {
-    background-color: #34495e !important;
-    color: #ecf0f1 !important;
-    border-bottom-color: #34495e !important;
+    background-color: #2d4263 !important;
+    color: #ffffff !important;
+    border-bottom-color: #3d5a80 !important;
+    font-weight: 700 !important;
 }
 
 body.dark-mode .warning-row .expanded-value table td,
 body.dark-mode .high-risk .expanded-value table td,
 body.dark-mode .high-detection .expanded-value table td,
 body.dark-mode .clean-detection .expanded-value table td {
-    background-color: #2c3e50 !important;
-    color: #ecf0f1 !important;
-    border-bottom-color: #34495e !important;
+    background-color: #243447 !important;
+    color: #f0f4f8 !important;
+    border-bottom-color: #3d5a80 !important;
 }
 
 /* Nested tables in main table cells (Google DNS, etc.) */
@@ -793,22 +795,23 @@ td table td {
     border-bottom-color: #dee2e6 !important;
 }
 
-/* Dark mode for nested tables in main table cells */
+/* Dark mode for nested tables in main table cells - Enhanced contrast */
 body.dark-mode td table {
-    background-color: #2c3e50 !important;
-    border-color: #34495e !important;
+    background-color: #1a252f !important;
+    border-color: #3d5a80 !important;
 }
 
 body.dark-mode td table th {
-    background-color: #34495e !important;
-    color: #ecf0f1 !important;
-    border-bottom-color: #34495e !important;
+    background-color: #2d4263 !important;
+    color: #ffffff !important;
+    border-bottom-color: #3d5a80 !important;
+    font-weight: 700 !important;
 }
 
 body.dark-mode td table td {
-    background-color: #2c3e50 !important;
-    color: #ecf0f1 !important;
-    border-bottom-color: #34495e !important;
+    background-color: #243447 !important;
+    color: #f0f4f8 !important;
+    border-bottom-color: #3d5a80 !important;
 }
 
 /* Ensure all content within expanded-value stays contained */
@@ -1147,16 +1150,34 @@ body.dark-mode table {
     color: var(--dark-text-color);
 }
 
+/* Enhanced table headers in dark mode */
 body.dark-mode th {
-    background-color: #34495e;
+    background-color: #2d4263;
+    color: #ffffff;
+    font-weight: 700;
 }
 
-body.dark-mode tr:nth-child(even) {
-    background-color: rgba(255, 255, 255, 0.02);
+/* Enhanced table cell contrast in dark mode */
+body.dark-mode td {
+    color: #f0f4f8;
 }
 
-body.dark-mode tr:hover {
-    background-color: rgba(0, 123, 255, 0.1);
+/* Alternating row backgrounds in dark mode */
+body.dark-mode tbody tr {
+    background-color: #243447;
+}
+
+body.dark-mode tbody tr:nth-child(even) {
+    background-color: #1e3042;
+}
+
+/* Hover state for dark mode - works properly with row backgrounds */
+body.dark-mode tbody tr:hover {
+    background-color: #2e5077 !important;
+}
+
+body.dark-mode tbody tr:hover td {
+    background-color: transparent !important;
 }
 
 body.dark-mode .filter-input:focus,
@@ -1213,6 +1234,7 @@ kbd {
 body.dark-mode kbd {
     background: var(--dark-surface-color);
     border-color: var(--dark-border-color);
+    color: var(--dark-text-color);
 }
 
 /* History Page Enhancements */
@@ -1229,8 +1251,13 @@ body.dark-mode .search-highlight {
     color: #000;
 }
 
+/* Badge styling improvements for dark mode */
+body.dark-mode .table-wrapper {
+    border-color: var(--dark-border-color);
+}
+
 #historyTable tbody tr {
-    transition: all var(--transition-fast);
+    transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 
 #historyTable tbody tr:hover {
@@ -1239,7 +1266,27 @@ body.dark-mode .search-highlight {
 }
 
 body.dark-mode #historyTable tbody tr:hover {
-    background-color: rgba(77, 163, 255, 0.1);
+    background-color: #2e5077 !important;
+    transform: translateX(4px);
+}
+
+body.dark-mode #historyTable tbody tr:hover td {
+    background-color: transparent !important;
+}
+
+/* Ensure cells transition smoothly with the row */
+body.dark-mode #historyTable tbody tr td {
+    transition: background-color var(--transition-fast);
+    background-color: transparent;
+}
+
+/* Reset cell backgrounds on normal state to use row color */
+body.dark-mode #historyTable tbody tr:nth-child(odd) td {
+    background-color: transparent;
+}
+
+body.dark-mode #historyTable tbody tr:nth-child(even) td {
+    background-color: transparent;
 }
 
 /* ============================================
