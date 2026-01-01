@@ -52,6 +52,8 @@ without having to deploy a **complex** solution. Read the docs at https://docs.c
 
 # Demo
 
+![graph_demo](https://github.com/user-attachments/assets/9116b9d8-ae81-4ff7-a6c3-b613929490ca)
+
 # Features
 
 * **Easy Input**: Paste raw logs or IoCs-automatic parsing and extraction.
