@@ -27,17 +27,22 @@
                         </td>
                         <td style="width: 60%;">
                             <input class="secrets_value" type="password" id="secret_{{ key }}" name="{{ key }}"
-                                value="{{ value }}" readonly style="width: 100%; border: none; background: transparent; padding: 0;">
+                                value="{{ value }}" readonly style="width: 100%; border: none; background: transparent; padding: 0; color: var(--text-color);">
                         </td>
                         <td style="width: 20%; text-align: center;">
-                            <button type="button" class="btn-small btn-outline" id="edit_{{ key }}" onclick="editSecret('{{ key }}')">✏️ Edit</button>
-                            <button type="button" class="btn-small btn-secondary" id="cancel_{{ key }}" onclick="cancelEdit('{{ key }}', '{{ value }}', 'password')"
-                                style="display:none;">
-                                ❌ Cancel
+                            <button type="button" class="btn btn-outline btn-icon btn-small" id="edit_{{ key }}" onclick="editSecret('{{ key }}')">
+                                <span>✏️</span>
+                                <span>Edit</span>
                             </button>
-                            <button type="button" class="btn-small btn-success" id="validate_{{ key }}" onclick="validateEdit('{{ key }}', 'password')"
+                            <button type="button" class="btn btn-secondary btn-icon btn-small" id="cancel_{{ key }}" onclick="cancelEdit('{{ key }}', '{{ value }}', 'password')"
                                 style="display:none;">
-                                ✅ Save
+                                <span>❌</span>
+                                <span>Cancel</span>
+                            </button>
+                            <button type="button" class="btn btn-success btn-icon btn-small" id="validate_{{ key }}" onclick="validateEdit('{{ key }}', 'password')"
+                                style="display:none;">
+                                <span>✅</span>
+                                <span>Save</span>
                             </button>
                         </td>
                     {% endif %}
@@ -49,17 +54,22 @@
                         </td>
                         <td style="width: 60%;">
                             <input class="enabled_engines_value" type="text" id="secret_{{ key }}" name="{{ key }}"
-                                value="{{ value | join(',') }}" readonly style="width: 100%; border: none; background: transparent; padding: 0;">
+                                value="{{ value | join(',') }}" readonly style="width: 100%; border: none; background: transparent; padding: 0; color: var(--text-color);">
                         </td>
                         <td style="width: 20%; text-align: center;">
-                            <button type="button" class="btn-small btn-outline" id="edit_{{ key }}" onclick="editSecret('{{ key }}')">✏️ Edit</button>
-                            <button type="button" class="btn-small btn-secondary" id="cancel_{{ key }}" onclick="cancelEdit('{{ key }}', '{{ value | join(',') }}', 'text')"
-                                style="display:none;">
-                                ❌ Cancel
+                            <button type="button" class="btn btn-outline btn-icon btn-small" id="edit_{{ key }}" onclick="editSecret('{{ key }}')">
+                                <span>✏️</span>
+                                <span>Edit</span>
                             </button>
-                            <button type="button" class="btn-small btn-success" id="validate_{{ key }}" onclick="validateEdit('{{ key }}', 'text')"
+                            <button type="button" class="btn btn-secondary btn-icon btn-small" id="cancel_{{ key }}" onclick="cancelEdit('{{ key }}', '{{ value | join(',') }}', 'text')"
                                 style="display:none;">
-                                ✅ Save
+                                <span>❌</span>
+                                <span>Cancel</span>
+                            </button>
+                            <button type="button" class="btn btn-success btn-icon btn-small" id="validate_{{ key }}" onclick="validateEdit('{{ key }}', 'text')"
+                                style="display:none;">
+                                <span>✅</span>
+                                <span>Save</span>
                             </button>
                         </td>
                     {% endif %}
@@ -88,6 +98,7 @@
             input.style.padding = '0.5rem';
             input.style.borderRadius = 'var(--radius-sm)';
             input.style.background = 'var(--surface-color)';
+            input.style.color = 'var(--text-color)';
             input.focus();
             document.getElementById('cancel_' + key).style.display = 'inline';
             document.getElementById('validate_' + key).style.display = 'inline';
@@ -102,6 +113,7 @@
             input.style.border = 'none';
             input.style.padding = '0';
             input.style.background = 'transparent';
+            input.style.color = 'var(--text-color)';
             document.getElementById('cancel_' + key).style.display = 'none';
             document.getElementById('validate_' + key).style.display = 'none';
             document.getElementById('edit_' + key).style.display = 'inline';
@@ -113,6 +125,7 @@
             input.style.border = 'none';
             input.style.padding = '0';
             input.style.background = 'transparent';
+            input.style.color = 'var(--text-color)';
             document.getElementById('cancel_' + key).style.display = 'none';
             document.getElementById('validate_' + key).style.display = 'none';
             document.getElementById('edit_' + key).style.display = 'inline';
