@@ -527,6 +527,150 @@ tr:hover {
     color: #000 !important;
 }
 
+/* Dark mode colored row adjustments for better contrast */
+body.dark-mode .high-risk,
+body.dark-mode .high-detection {
+    background-color: #c82333 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .clean-detection {
+    background-color: #218838 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .warning-row {
+    background-color: #e0a800 !important;
+    color: #000000 !important;
+}
+
+body.dark-mode .high-risk:hover,
+body.dark-mode .high-detection:hover {
+    background-color: #bd2130 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .clean-detection:hover {
+    background-color: #1e7e34 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .warning-row:hover {
+    background-color: #d39e00 !important;
+    color: #000000 !important;
+}
+
+/* Ensure text in colored row cells is readable in dark mode */
+body.dark-mode .high-risk td,
+body.dark-mode .high-detection td {
+    color: #ffffff !important;
+}
+
+body.dark-mode .clean-detection td {
+    color: #ffffff !important;
+}
+
+body.dark-mode .warning-row td {
+    color: #000000 !important;
+    font-weight: 600;
+}
+
+body.dark-mode .high-risk:hover td,
+body.dark-mode .high-detection:hover td,
+body.dark-mode .clean-detection:hover td {
+    color: #ffffff !important;
+}
+
+body.dark-mode .warning-row:hover td {
+    color: #000000 !important;
+}
+
+/* Colored cards in dark mode - ensure all text elements are readable */
+body.dark-mode .high-risk.card,
+body.dark-mode .high-detection.card {
+    background-color: #c82333 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .clean-detection.card {
+    background-color: #218838 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .warning-row.card {
+    background-color: #e0a800 !important;
+    color: #000000 !important;
+}
+
+/* Card text elements in colored cards */
+body.dark-mode .high-risk.card h3,
+body.dark-mode .high-risk.card p,
+body.dark-mode .high-risk.card strong,
+body.dark-mode .high-detection.card h3,
+body.dark-mode .high-detection.card p,
+body.dark-mode .high-detection.card strong {
+    color: #ffffff !important;
+}
+
+body.dark-mode .clean-detection.card h3,
+body.dark-mode .clean-detection.card p,
+body.dark-mode .clean-detection.card strong {
+    color: #ffffff !important;
+}
+
+body.dark-mode .warning-row.card h3,
+body.dark-mode .warning-row.card p,
+body.dark-mode .warning-row.card strong {
+    color: #000000 !important;
+    font-weight: 600;
+}
+
+/* Ensure ALL content in colored cards is readable - comprehensive coverage */
+body.dark-mode .high-risk.card *,
+body.dark-mode .high-detection.card *,
+body.dark-mode .clean-detection.card * {
+    color: #ffffff !important;
+}
+
+body.dark-mode .warning-row.card * {
+    color: #000000 !important;
+}
+
+/* Tables inside colored cards */
+body.dark-mode .high-risk.card table,
+body.dark-mode .high-detection.card table,
+body.dark-mode .clean-detection.card table {
+    color: #ffffff !important;
+}
+
+body.dark-mode .warning-row.card table {
+    color: #000000 !important;
+}
+
+/* Links inside colored cards - maintain link styling */
+body.dark-mode .high-risk.card a,
+body.dark-mode .high-detection.card a,
+body.dark-mode .clean-detection.card a {
+    color: #66d9ff !important;  /* Light blue for visibility on dark backgrounds */
+    text-decoration: underline;
+}
+
+body.dark-mode .high-risk.card a:hover,
+body.dark-mode .high-detection.card a:hover,
+body.dark-mode .clean-detection.card a:hover {
+    color: #99e6ff !important;  /* Lighter blue on hover */
+}
+
+body.dark-mode .warning-row.card a {
+    color: #0056b3 !important;  /* Dark blue for visibility on yellow */
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+body.dark-mode .warning-row.card a:hover {
+    color: #003d82 !important;  /* Darker blue on hover */
+}
+
 /* Value indicators */
 .good-value {
     color: var(--success-color);
