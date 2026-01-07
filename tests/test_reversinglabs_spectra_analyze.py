@@ -4,7 +4,8 @@ from urllib.parse import quote, quote_plus
 
 import pytest
 import responses
-from engines.reversinglabs_spectra_analyze import get_api_endpoint, get_ui_endpoint, parse_rl_response
+from engines.reversinglabs_spectra_analyze import RLAnalyzeEngine
+from models.base_engine import BaseEngine
 from pytest_mock import MockerFixture
 from requests.exceptions import HTTPError, Timeout
 from utils.config import QueryError
@@ -13,7 +14,6 @@ from utils.config import QueryError
 API_URL = "https://a1000-example123.reversinglabs.com"
 IP4 = "1.1.1.1"
 IP6 = "fe00::0"
-IP6_resp = "fe00::"
 FQDN = "kosmicband.com"
 URL = "https://datatracker.ietf.org/doc/html/rfc2606"
 MD5 = "3749f52bb326ae96782b42dc0a97b4c1"
@@ -97,7 +97,7 @@ def expected_md5_report():
         "reports": 29,
         "riskscore": 0,
         "scanners": 0,
-        "threats": ["goodware", None, None],
+        "threats": ["goodware", None, "Certificate Validation"],
     }
 
 
@@ -111,7 +111,7 @@ def expected_sha1_report():
         "reports": 29,
         "riskscore": 0,
         "scanners": 0,
-        "threats": ["goodware", None, None],
+        "threats": ["goodware", None, "Certificate Validation"],
     }
 
 
@@ -125,7 +125,7 @@ def expected_sha256_report():
         "reports": 29,
         "riskscore": 0,
         "scanners": 0,
-        "threats": ["goodware", None, None],
+        "threats": ["goodware", None, "Certificate Validation"],
     }
 
 
@@ -148,7 +148,7 @@ def expected_ipv4_report():
 @pytest.fixture()
 def expected_ipv6_report():
     return {
-        "link": f"{API_URL}/ip/{IP6_resp}/analysis/ip/",
+        "link": f"{API_URL}/ip/{IP6}/analysis/ip/",
         "malicious": 0,
         "malicious_files": 0,
         "report_color": "green",
@@ -205,7 +205,8 @@ def expected_url_report():
     ],
 )
 def test_get_api_endpoint(type: str, artifact: str, endpoint: str | None):
-    result: str | None = get_api_endpoint(artifact, type)
+    rlengine = RLAnalyzeEngine("secret", None, False)
+    result: str | None = rlengine._get_api_endpoint(artifact, type)
 
     assert endpoint == result
 
@@ -233,7 +234,8 @@ def test_get_api_endpoint(type: str, artifact: str, endpoint: str | None):
     ],
 )
 def test_get_ui_endpoint(type: str, artifact: str, endpoint: str | None):
-    result: str | None = get_ui_endpoint(artifact, type)
+    rlengine = RLAnalyzeEngine("secret", None, False)
+    result: str | None = rlengine._get_ui_endpoint(artifact, type)
 
     assert endpoint == result
 
@@ -261,6 +263,7 @@ def test_parse_rl_response(request: dict, input_query_response: dict, obs: str, 
     """
     input: dict = request.getfixturevalue(input_query_response)
     expected: dict = request.getfixturevalue(expected_report)
-    report: dict = parse_rl_response(input, obs, type, url)
+    rlengine = RLAnalyzeEngine("secret", None, False)
+    report: dict = rlengine._parse_rl_response(input, obs, type, url)
 
     assert report == expected
