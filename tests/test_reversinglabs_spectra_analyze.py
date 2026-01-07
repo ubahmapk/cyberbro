@@ -10,17 +10,21 @@ from requests.exceptions import HTTPError, Timeout
 from utils.config import QueryError
 
 # Test constants
+API_URL = "https://a1000-example123.reversinglabs.com"
 IP4 = "1.1.1.1"
 IP6 = "fe00::0"
+IP6_resp = "fe00::"
 FQDN = "kosmicband.com"
-URL = "https://example.com/level?api&text=3"
-MD5 = "3a30948f8cd5655fede389d73b5fecd91251df4a"
+URL = "https://datatracker.ietf.org/doc/html/rfc2606"
+MD5 = "3749f52bb326ae96782b42dc0a97b4c1"
 SHA1 = "3a30948f8cd5655fede389d73b5fecd91251df4a"
-SHA256 = "84d89877f0d4041efb6bf91a16f0248f2fd573e6af05c19f96bedb9f882f7882"
-API_URL = "https://a1000-example123.reversinglabs.com"
+SHA256 = "c67c199595622dfbdc9e415c4a0ad6166eb49cbf74c6aac7bb3e958604d5ecb8"
 
 
 # Tests
+
+
+# Example JSON data from Reversing Labs API response
 @pytest.fixture(scope="session")
 def fqdn_response_from_file():
     file_response: Path = Path("tests/api_responses/reversinglabs_spectra_analyze/domain_api_response.json")
@@ -30,29 +34,45 @@ def fqdn_response_from_file():
     return data
 
 
+@pytest.fixture(scope="session")
+def hash_response_from_file():
+    file_response: Path = Path("tests/api_responses/reversinglabs_spectra_analyze/hash_api_response.json")
+    with file_response.open() as f:
+        data: dict = json.loads(f.read())
+
+    return data
+
+
+@pytest.fixture(scope="session")
+def ipv4_response_from_file():
+    file_response: Path = Path("tests/api_responses/reversinglabs_spectra_analyze/ipv4_api_response.json")
+    with file_response.open() as f:
+        data: dict = json.loads(f.read())
+
+    return data
+
+
+@pytest.fixture(scope="session")
+def ipv6_response_from_file():
+    file_response: Path = Path("tests/api_responses/reversinglabs_spectra_analyze/ipv6_api_response.json")
+    with file_response.open() as f:
+        data: dict = json.loads(f.read())
+
+    return data
+
+
+@pytest.fixture(scope="session")
+def url_response_from_file():
+    file_response: Path = Path("tests/api_responses/reversinglabs_spectra_analyze/url_api_response.json")
+    with file_response.open() as f:
+        data: dict = json.loads(f.read())
+
+    return data
+
+
+# Example result from the Reversing Labs engine lookup
 @pytest.fixture()
 def expected_fqdn_report():
-    return {
-        "observable": "FQDN",
-        "reversed_success": False,
-        "rl_analyze": {
-            "link": f"{API_URL}/domain/{FQDN}/analysis/domain/",
-            "malicious": 0,
-            "malicious_files": 0,
-            "report_color": "green",
-            "report_type": "network",
-            "reports": 13,
-            "suspicious": 0,
-            "suspicious_files": 0,
-            "threats": [],
-            "total_files": 0,
-        },
-        "type": "FQDN",
-    }
-
-
-@pytest.fixture()
-def expected_fqdn_report_2():
     return {
         "link": f"{API_URL}/domain/{FQDN}/analysis/domain/",
         "malicious": 0,
@@ -67,6 +87,94 @@ def expected_fqdn_report_2():
     }
 
 
+@pytest.fixture()
+def expected_md5_report():
+    return {
+        "classification": "GOODWARE",
+        "link": f"{API_URL}/{MD5}/",
+        "report_color": "green",
+        "report_type": "file",
+        "reports": 29,
+        "riskscore": 0,
+        "scanners": 0,
+        "threats": ["goodware", None, None],
+    }
+
+
+@pytest.fixture()
+def expected_sha1_report():
+    return {
+        "classification": "GOODWARE",
+        "link": f"{API_URL}/{SHA1}/",
+        "report_color": "green",
+        "report_type": "file",
+        "reports": 29,
+        "riskscore": 0,
+        "scanners": 0,
+        "threats": ["goodware", None, None],
+    }
+
+
+@pytest.fixture()
+def expected_sha256_report():
+    return {
+        "classification": "GOODWARE",
+        "link": f"{API_URL}/{SHA256}/",
+        "report_color": "green",
+        "report_type": "file",
+        "reports": 29,
+        "riskscore": 0,
+        "scanners": 0,
+        "threats": ["goodware", None, None],
+    }
+
+
+@pytest.fixture()
+def expected_ipv4_report():
+    return {
+        "link": f"{API_URL}/ip/{IP4}/analysis/ip/",
+        "malicious": 2,
+        "malicious_files": 0,
+        "report_color": "yellow",
+        "report_type": "network",
+        "reports": 15,
+        "suspicious": 0,
+        "suspicious_files": 0,
+        "threats": [],
+        "total_files": 1733,
+    }
+
+
+@pytest.fixture()
+def expected_ipv6_report():
+    return {
+        "link": f"{API_URL}/ip/{IP6_resp}/analysis/ip/",
+        "malicious": 0,
+        "malicious_files": 0,
+        "report_color": "green",
+        "report_type": "network",
+        "reports": 13,
+        "suspicious": 0,
+        "suspicious_files": 0,
+        "threats": [],
+        "total_files": 0,
+    }
+
+
+@pytest.fixture()
+def expected_url_report():
+    return {
+        "link": f"{API_URL}/url/{quote_plus(URL)}/analysis/url/",
+        "malicious": 0,
+        "report_color": "green",
+        "report_type": "network",
+        "reports": 21,
+        "suspicious": 0,
+        "threats": [None, "information_technology", "business_economy"],
+    }
+
+
+# Test API endpoint conversion
 @pytest.mark.parametrize(
     "type,artifact,endpoint",
     [
@@ -102,6 +210,7 @@ def test_get_api_endpoint(type: str, artifact: str, endpoint: str | None):
     assert endpoint == result
 
 
+# Test UI endpoint conversion
 @pytest.mark.parametrize(
     "type,artifact,endpoint",
     [
@@ -129,10 +238,17 @@ def test_get_ui_endpoint(type: str, artifact: str, endpoint: str | None):
     assert endpoint == result
 
 
+# Verify testdata
 @pytest.mark.parametrize(
     "input_query_response,obs,type,url,expected_report",
     [
-        ("fqdn_response_from_file", FQDN, "FQDN", API_URL, "expected_fqdn_report_2"),
+        ("fqdn_response_from_file", FQDN, "FQDN", API_URL, "expected_fqdn_report"),
+        ("hash_response_from_file", MD5, "MD5", API_URL, "expected_md5_report"),
+        ("hash_response_from_file", SHA1, "SHA1", API_URL, "expected_sha1_report"),
+        ("hash_response_from_file", SHA256, "SHA256", API_URL, "expected_sha256_report"),
+        ("ipv4_response_from_file", IP4, "IPv4", API_URL, "expected_ipv4_report"),
+        ("ipv6_response_from_file", IP6, "IPv6", API_URL, "expected_ipv6_report"),
+        ("url_response_from_file", URL, "URL", API_URL, "expected_url_report"),
     ],
 )
 def test_parse_rl_response(request: dict, input_query_response: dict, obs: str, type: str, url: str, expected_report: dict):
@@ -141,6 +257,7 @@ def test_parse_rl_response(request: dict, input_query_response: dict, obs: str, 
     **as a string** in the parametrized list and retrieve the **actual**
     fixture data to be used in the test.
 
+    This is based on the tests from the Alienvault engine in this project.
     """
     input: dict = request.getfixturevalue(input_query_response)
     expected: dict = request.getfixturevalue(expected_report)
