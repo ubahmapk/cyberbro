@@ -1,0 +1,24 @@
+{% if analysis_results.results[0].bad_asn and analysis_results.results[0].bad_asn.status == 'malicious' %}
+<div class="card high-risk" style="background-color: red;">
+{% else %}
+<div class="card">
+{% endif %}
+
+    <h3>Bad ASN Check</h3>
+    {% if analysis_results.results[0].bad_asn %}
+        {% if analysis_results.results[0].bad_asn.status == 'malicious' %}
+            <p><strong>Status: </strong><span style="color: red;">⚠️ Listed</span></p>
+            <p><strong>ASN: </strong>{{ analysis_results.results[0].bad_asn.asn }}</p>
+            <p><strong>Source: </strong>{{ analysis_results.results[0].bad_asn.source }}</p>
+            <p><strong>Details: </strong>{{ analysis_results.results[0].bad_asn.details }}</p>
+        {% elif analysis_results.results[0].bad_asn.status == 'clean' %}
+            <p><strong>Status: </strong><span style="color: green;">✓ Clean</span></p>
+            <p><strong>ASN: </strong>{{ analysis_results.results[0].bad_asn.asn }}</p>
+            <p><strong>Details: </strong>{{ analysis_results.results[0].bad_asn.details }}</p>
+        {% else %}
+            <p>Status unknown</p>
+        {% endif %}
+    {% else %}
+        <p>No ASN data available (requires IP geolocation engine like ipapi, ipinfo, or ipquery. Use ipapi for best results.)</p>
+    {% endif %}
+</div>

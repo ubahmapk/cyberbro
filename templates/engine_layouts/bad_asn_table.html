@@ -1,0 +1,18 @@
+<td>
+    {% if result.bad_asn %}
+        {% if result.bad_asn.status == 'malicious' %}
+            <strong>Status: </strong><span style="color: red;">⚠️ Listed</span><br/>
+            <strong>ASN: </strong>{{ result.bad_asn.asn }}<br/>
+            <strong>Source: </strong>{{ result.bad_asn.source }}<br/>
+            <strong>Details: </strong>{{ result.bad_asn.details }}<br/>
+        {% elif result.bad_asn.status == 'clean' %}
+            <strong>Status: </strong><span style="color: green;">✓ Clean</span><br/>
+            <strong>ASN: </strong>{{ result.bad_asn.asn }}<br/>
+            <strong>Details: </strong>{{ result.bad_asn.details }}<br/>
+        {% else %}
+            Status unknown
+        {% endif %}
+    {% else %}
+        No ASN data available
+    {% endif %}
+</td>

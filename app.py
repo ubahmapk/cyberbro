@@ -16,6 +16,7 @@ from flask_cors import CORS
 
 from models.analysis_result import AnalysisResult, db
 from utils.analysis import check_analysis_in_progress, perform_analysis
+from utils.bad_asn_manager import background_updater
 from utils.config import (
     BASE_DIR,
     Secrets,
@@ -431,6 +432,12 @@ def graph(analysis_id):
     if analysis_results:
         return render_template("graph.html", analysis_id=analysis_id, API_PREFIX=API_PREFIX), 200
     return render_template("404.html"), 404
+
+
+# Start Bad ASN background updater thread
+bad_asn_thread = threading.Thread(target=background_updater, daemon=True, name="BadASNUpdater")
+bad_asn_thread.start()
+logger.info("Bad ASN background updater thread started")
 
 
 if __name__ == "__main__":
