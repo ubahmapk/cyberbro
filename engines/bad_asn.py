@@ -65,13 +65,13 @@ class BadASNEngine(BaseEngine):
             logger.info(f"Bad ASN detected: {asn} for IP {observable_value} - {result['source']}")
             return result
 
-        # ASN is clean
+        # ASN is unlisted
         logger.debug(f"ASN {asn} for IP {observable_value} is not listed in bad ASN databases")
-        return {"status": "clean", "asn": asn, "details": f"ASN {asn} is not listed in bad ASN databases"}
+        return {"status": "unlisted", "asn": asn, "details": f"ASN {asn} is not listed in bad ASN databases"}
 
     def _extract_asn_from_context(self, context: dict) -> str | None:
         """
-        Extract ASN from results of other engines (ipapi, ipinfo, ipquery, etc.).
+        Extract ASN from results of other engines (ipapi, ipinfo, ipquery, webscout).
 
         Args:
             context: Dictionary containing results from other engines
@@ -79,7 +79,7 @@ class BadASNEngine(BaseEngine):
         Returns:
             ASN as string (normalized), or None if not found
         """
-        # Priority order: ipapi > ipinfo > ipquery (based on reliability)
+        # Priority order: ipapi > ipinfo > ipquery > webscout (based on reliability)
 
         # Try ipapi first (uses api.ipapi.is)
         ipapi_data = context.get("ipapi")
@@ -101,7 +101,13 @@ class BadASNEngine(BaseEngine):
         if ipinfo_data and isinstance(ipinfo_data, dict):
             # ipinfo structure: {"asn": "AS13335 Cloudflare, Inc."}
             asn_str = ipinfo_data.get("asn", "")
-            if asn_str and isinstance(asn_str, str) and asn_str != "Unknown" and asn_str != "BOGON" and asn_str.startswith("AS"):
+            if (
+                asn_str
+                and isinstance(asn_str, str)
+                and asn_str != "Unknown"
+                and asn_str != "BOGON"
+                and asn_str.startswith("AS")
+            ):
                 # Extract ASN from format "AS13335 Cloudflare, Inc."
                 parts = asn_str.split()
                 if len(parts) > 0:
@@ -115,6 +121,19 @@ class BadASNEngine(BaseEngine):
             asn = ipquery_data.get("asn")
             if asn:
                 return str(asn)
+
+        # Try webscout
+        webscout_data = context.get("webscout")
+        if webscout_data and isinstance(webscout_data, dict):
+            # webscout structure: {"asn": "AS13335", "as_org": "..."}
+            asn = webscout_data.get("asn")
+            if asn and asn != "Unknown":
+                # ASN format: "AS13335" (string with AS prefix)
+                asn_str = str(asn).strip()
+                if asn_str.startswith("AS"):
+                    asn_str = asn_str[2:]
+                if asn_str and asn_str.isdigit():
+                    return asn_str
 
         return None
 
