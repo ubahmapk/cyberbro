@@ -101,13 +101,7 @@ class BadASNEngine(BaseEngine):
         if ipinfo_data and isinstance(ipinfo_data, dict):
             # ipinfo structure: {"asn": "AS13335 Cloudflare, Inc."}
             asn_str = ipinfo_data.get("asn", "")
-            if (
-                asn_str
-                and isinstance(asn_str, str)
-                and asn_str != "Unknown"
-                and asn_str != "BOGON"
-                and asn_str.startswith("AS")
-            ):
+            if asn_str and isinstance(asn_str, str) and asn_str != "Unknown" and asn_str != "BOGON" and asn_str.startswith("AS"):
                 # Extract ASN from format "AS13335 Cloudflare, Inc."
                 parts = asn_str.split()
                 if len(parts) > 0:
