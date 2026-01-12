@@ -11,7 +11,16 @@ from pathlib import Path
 
 import requests
 
+from utils.config import get_config
+
 logger = logging.getLogger(__name__)
+
+# Load configuration
+secrets = get_config()
+
+# Network configuration
+PROXIES = {"https": secrets.proxy_url, "http": secrets.proxy_url}
+SSL_VERIFY = secrets.ssl_verify
 
 # Cache file location
 CACHE_FILE = Path("data/bad_asn_cache.json")
@@ -49,7 +58,7 @@ def download_spamhaus_asndrop() -> dict[str, str]:
     result = {}
 
     try:
-        response = requests.get(SPAMHAUS_URL, timeout=30)
+        response = requests.get(SPAMHAUS_URL, proxies=PROXIES, verify=SSL_VERIFY, timeout=30)
         response.raise_for_status()
 
         # Parse JSONL format (one JSON object per line)
@@ -94,7 +103,7 @@ def download_brianhama_bad_asn() -> dict[str, str]:
     result = {}
 
     try:
-        response = requests.get(BRIANHAMA_URL, timeout=30)
+        response = requests.get(BRIANHAMA_URL, proxies=PROXIES, verify=SSL_VERIFY, timeout=30)
         response.raise_for_status()
 
         # Parse CSV
@@ -192,7 +201,12 @@ def check_asn(asn_value: str | int) -> dict | None:
     cache = load_bad_asn_cache()
 
     if asn in cache:
-        return {"status": "malicious", "source": cache[asn], "details": f"ASN {asn} is listed in bad ASN databases", "asn": asn}
+        return {
+            "status": "malicious",
+            "source": cache[asn],
+            "details": f"ASN {asn} is listed in bad ASN databases",
+            "asn": asn,
+        }
 
     return None
 
