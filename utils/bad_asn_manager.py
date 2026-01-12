@@ -146,13 +146,19 @@ def update_bad_asn_cache() -> bool:
     # Download both sources
     merged_data = {}
 
-    # Spamhaus ASNDROP
+    # Spamhaus ASNDROP (priority: has country codes)
     spamhaus_data = download_spamhaus_asndrop()
     merged_data.update(spamhaus_data)
 
-    # Brianhama Bad ASN List
+    # Brianhama Bad ASN List (merge intelligently, don't overwrite)
     brianhama_data = download_brianhama_bad_asn()
-    merged_data.update(brianhama_data)
+    for asn, source_description in brianhama_data.items():
+        if asn in merged_data:
+            # ASN exists in both lists - combine the information
+            merged_data[asn] = f"{merged_data[asn]} + {source_description}"
+        else:
+            # ASN only in Brianhama - add it
+            merged_data[asn] = source_description
 
     # Save to cache
     cache_data = {"last_updated": time.time(), "asns": merged_data}
