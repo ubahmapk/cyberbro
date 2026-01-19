@@ -32,6 +32,9 @@
     {% if analysis_results.results[0].abuseipdb %}
     {% include "engine_layouts/abuseipdb_card.html" %}
     {% endif %}
+    {% if analysis_results.results[0].bad_asn %}
+    {% include "engine_layouts/bad_asn_card.html" %}
+    {% endif %}
     {% if analysis_results.results[0].spur %}
     {% include "engine_layouts/spur_card.html" %}
     {% endif %}
@@ -55,6 +58,9 @@
     {% endif %}
     {% if analysis_results.results[0].threatfox %}
     {% include "engine_layouts/threatfox_card.html" %}
+    {% endif %}
+    {% if analysis_results.results[0].rosti %}
+    {% include "engine_layouts/rosti_card.html" %}
     {% endif %}
     {% if analysis_results.results[0].phishtank %}
     {% include "engine_layouts/phishtank_card.html" %}

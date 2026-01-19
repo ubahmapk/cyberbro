@@ -3,6 +3,7 @@ from utils.config import Secrets
 from .abuseipdb import AbuseIPDBEngine
 from .abusix import AbusixEngine
 from .alienvault import AlienVaultEngine
+from .bad_asn import BadASNEngine
 from .chrome_extension import ChromeExtensionEngine
 from .criminalip import CriminalIPEngine
 from .crowdstrike import CrowdstrikeEngine
@@ -24,6 +25,7 @@ from .phishtank import PhishTankEngine
 from .rdap import RDAPEngine
 from .reverse_dns import ReverseDNSEngine
 from .reversinglabs_spectra_analyze import RLAnalyzeEngine
+from .rosti import RostiEngine
 from .shodan import ShodanEngine
 from .spur_us import SpurUSEngine
 from .threatfox import ThreatFoxEngine
@@ -44,6 +46,7 @@ def get_engine_instances(secrets: Secrets, proxies: dict, ssl_verify: bool) -> d
         ReverseDNSEngine(secrets, proxies, ssl_verify),
         AbusixEngine(secrets, proxies, ssl_verify),
         AlienVaultEngine(secrets, proxies, ssl_verify),
+        BadASNEngine(secrets, proxies, ssl_verify),
         ChromeExtensionEngine(secrets, proxies, ssl_verify),
         CriminalIPEngine(secrets, proxies, ssl_verify),
         CrowdstrikeEngine(secrets, proxies, ssl_verify),
@@ -65,6 +68,7 @@ def get_engine_instances(secrets: Secrets, proxies: dict, ssl_verify: bool) -> d
         PhishTankEngine(secrets, proxies, ssl_verify),
         RDAPEngine(secrets, proxies, ssl_verify),
         RLAnalyzeEngine(secrets, proxies, ssl_verify),
+        RostiEngine(secrets, proxies, ssl_verify),
         SpurUSEngine(secrets, proxies, ssl_verify),
         ThreatFoxEngine(secrets, proxies, ssl_verify),
         URLScanEngine(secrets, proxies, ssl_verify),
