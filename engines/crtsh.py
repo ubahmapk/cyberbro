@@ -80,9 +80,16 @@ class CrtShEngine(BaseEngine):
             for domain in domains:
                 domain_count[domain] += 1
 
-        top_domains = [CrtShDomain(domain=dmn, count=cnt) for dmn, cnt in domain_count.most_common(5)]
+        top_domains = [
+            CrtShDomain(domain=dmn, count=cnt)
+            for dmn, cnt in domain_count.most_common(5)
+        ]
 
-        return CrtShReport(success=True, top_domains=top_domains, link=f"https://crt.sh/?q={observable}")
+        return CrtShReport(
+            success=True,
+            top_domains=top_domains,
+            link=f"https://crt.sh/?q={observable}",
+        )
 
     @classmethod
     def create_export_row(cls, analysis_result: Mapping) -> dict:

@@ -87,7 +87,12 @@ class BaseEngine(ABC):
             params = {}
 
         response = requests.get(
-            url, params=params, headers=headers, proxies=self.proxies, verify=self.ssl_verify, timeout=timeout
+            url,
+            params=params,
+            headers=headers,
+            proxies=self.proxies,
+            verify=self.ssl_verify,
+            timeout=timeout,
         )
         response.raise_for_status()
         return response
