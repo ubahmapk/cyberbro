@@ -1,8 +1,11 @@
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Mapping
+from dataclasses import asdict
 from typing import Any
 
 import requests
+from pydantic.dataclasses import dataclass
 from tenacity import after_log, retry, stop_after_attempt, wait_exponential
 
 from utils.config import Secrets
@@ -96,3 +99,18 @@ class BaseEngine(ABC):
         Format the raw result into a flat dictionary for CSV/Excel export.
         """
         pass
+
+
+@dataclass(slots=True)
+class BaseReport:
+    success: bool
+    error_msg: str | None = None
+
+    def __iter__(self):
+        yield from asdict(self)
+
+    def __getitem__(self, key):
+        return asdict(self)[key]
+
+    def get(self, name, default: Any | None = None):
+        return getattr(self, name, default)
