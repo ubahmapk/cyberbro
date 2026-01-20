@@ -89,8 +89,9 @@ class BaseEngine(ABC):
         response.raise_for_status()
         return response
 
+    @classmethod
     @abstractmethod
-    def create_export_row(self, analysis_result: Any) -> dict:
+    def create_export_row(cls, analysis_result: Mapping) -> dict:
         """
         Format the raw result into a flat dictionary for CSV/Excel export.
         """
