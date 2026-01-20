@@ -3,9 +3,27 @@ from typing import Any, Optional
 
 import requests
 
-from models.base_engine import BaseEngine
+from models.base_engine import BaseEngine, BaseReport
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(slots=True)
+class CrtShDomain:
+    domain: str
+    count: int
+
+    def __iter__(self):
+        yield from asdict(self)
+
+    def __getitem__(self, key):
+        return asdict(self)[key]
+
+
+@dataclass(slots=True)
+class CrtShReport(BaseReport):
+    top_domains: list[CrtShDomain] = Field(default_factory=list)
+    link: str = ""
 
 
 class CrtShEngine(BaseEngine):
