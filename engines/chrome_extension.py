@@ -1,8 +1,10 @@
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 import requests
 from bs4 import BeautifulSoup
+from typing_extensions import override
 
 from models.base_engine import BaseEngine
 
@@ -11,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 class ChromeExtensionEngine(BaseEngine):
     @property
+    @override
     def name(self):
         """
         NOTE: The original analysis logic uses "extension" as the result key,
@@ -23,6 +26,7 @@ class ChromeExtensionEngine(BaseEngine):
         return "chrome_extension"
 
     @property
+    @override
     def supported_types(self):
         return ["CHROME_EXTENSION"]
 
@@ -55,6 +59,7 @@ class ChromeExtensionEngine(BaseEngine):
             )
             return None
 
+    @override
     def analyze(
         self, observable_value: str, observable_type: str
     ) -> dict[str, Any] | None:
@@ -73,7 +78,9 @@ class ChromeExtensionEngine(BaseEngine):
 
         return None
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    @classmethod
+    @override
+    def create_export_row(cls, analysis_result: Mapping) -> dict:
         # Note: In the original export.py, this was explicitly handled for the
         # "CHROME_EXTENSION" type using the "extension" key in the result.
         # This implementation aligns with the goal of moving all logic into the class.

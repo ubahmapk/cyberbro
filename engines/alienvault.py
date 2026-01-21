@@ -1,9 +1,11 @@
 import logging
+from collections.abc import Mapping
 from typing import Any
 from urllib.parse import quote
 
 import requests
 from pydantic import ValidationError
+from typing_extensions import override
 
 from models.alienvault_datamodel import OTXReport, Pulse
 from models.base_engine import BaseEngine
@@ -14,10 +16,12 @@ logger = logging.getLogger(__name__)
 
 class AlienVaultEngine(BaseEngine):
     @property
+    @override
     def name(self):
         return "alienvault"
 
     @property
+    @override
     def supported_types(self):
         return [
             "FQDN",
@@ -29,6 +33,7 @@ class AlienVaultEngine(BaseEngine):
             "URL",
         ]
 
+    @override
     def analyze(
         self, observable_value: str, observable_type: str
     ) -> dict[str, Any] | None:
@@ -62,7 +67,8 @@ class AlienVaultEngine(BaseEngine):
             return None
 
     @classmethod
-    def create_export_row(cls, analysis_result: Any) -> dict:
+    @override
+    def create_export_row(cls, analysis_result: Mapping) -> dict:
         if not analysis_result:
             return {
                 "alienvault_pulses": None,

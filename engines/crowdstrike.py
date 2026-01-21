@@ -1,9 +1,11 @@
 import logging
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urljoin
 
 from falconpy import APIHarnessV2  # Assuming falconpy is installed
+from typing_extensions import override
 
 from models.base_engine import BaseEngine
 
@@ -12,10 +14,12 @@ logger = logging.getLogger(__name__)
 
 class CrowdstrikeEngine(BaseEngine):
     @property
+    @override
     def name(self):
         return "crowdstrike"
 
     @property
+    @override
     def supported_types(self):
         return ["FQDN", "IPv4", "IPv6", "MD5", "SHA1", "SHA256", "URL"]
 
@@ -40,7 +44,7 @@ class CrowdstrikeEngine(BaseEngine):
             return f"hash_sha256_{observable}"
         if observable_type == "sha1":
             return f"hash_sha1_{observable}"
-        return None
+        return ""
 
     def _get_falcon_client(self) -> APIHarnessV2:
         return APIHarnessV2(
@@ -52,6 +56,7 @@ class CrowdstrikeEngine(BaseEngine):
             timeout=5,
         )
 
+    @override
     def analyze(
         self, observable_value: str, observable_type: str
     ) -> dict[str, Any] | None:
@@ -120,7 +125,9 @@ class CrowdstrikeEngine(BaseEngine):
             )
             return None
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    @classmethod
+    @override
+    def create_export_row(cls, analysis_result: Mapping) -> dict:
         if not analysis_result:
             return {
                 f"cs_{k}": None

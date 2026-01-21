@@ -1,11 +1,13 @@
 import json
 import logging
+from collections.abc import Mapping
 from enum import StrEnum
-from typing import Any, Self
+from typing import Self
 
 import requests
 from pydantic import BaseModel, Field, ValidationError, model_validator
 from requests.exceptions import HTTPError
+from typing_extensions import override
 
 from models.base_engine import BaseEngine
 from utils.config import Secrets, get_config
@@ -163,18 +165,22 @@ def get_suspicious_info_report(
 
 class CriminalIPEngine(BaseEngine):
     @property
+    @override
     def name(self):
         return "criminalip"
 
     @property
+    @override
     def supported_types(self):
         return ["IPv4", "IPv6"]
 
     @property
+    @override
     def execute_after_reverse_dns(self):
         # IP-only engine, runs after potential IP pivot
         return True
 
+    @override
     def analyze(self, observable_value: str, observable_type: str) -> dict | None:
         """Perform Criminal IP analysis using the preserved helper/models."""
 
@@ -195,7 +201,9 @@ class CriminalIPEngine(BaseEngine):
         # Convert the Pydantic model to a standard dict for the rest of the app
         return json.loads(report.model_dump_json())
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    @classmethod
+    @override
+    def create_export_row(cls, analysis_result: Mapping) -> dict:
         if not analysis_result:
             return {
                 "cip_score_inbound": None,
