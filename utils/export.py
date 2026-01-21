@@ -60,7 +60,7 @@ def export_to_csv(data: list[str], timestamp: str) -> Response:
     return send_file(csv_path, as_attachment=True)
 
 
-def export_to_excel(data, timestamp):
+def export_to_excel(data: list[str], timestamp: str) -> Response:
     df = pd.DataFrame(data)
     excel_path = f"{timestamp}_analysis_result.xlsx"
     with pd.ExcelWriter(excel_path, engine="openpyxl") as writer:
