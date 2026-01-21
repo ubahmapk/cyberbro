@@ -21,7 +21,6 @@ from flask import (
 )
 from flask_caching import Cache
 from flask_cors import CORS
-from flask_sqlalchemy import BaseQuery
 
 from models.analysis_result import AnalysisResult, db
 from utils.analysis import check_analysis_in_progress, perform_analysis
@@ -338,9 +337,7 @@ def history() -> str:
     offset = (page - 1) * per_page
 
     # Build base query
-    base_query: BaseQuery = db.session.query(AnalysisResult).filter(
-        AnalysisResult.results != []
-    )
+    base_query = db.session.query(AnalysisResult).filter(AnalysisResult.results != [])
     base_query = apply_time_range_filter(base_query, time_range)
     base_query = apply_search_filter(base_query, search_query, search_type)
 
