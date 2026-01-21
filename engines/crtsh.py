@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from dataclasses import asdict
 
 import requests
-from pydantic import Field, ValidationError
+from pydantic import Field
 from pydantic.dataclasses import dataclass
 
 from models.base_engine import BaseEngine, BaseReport
@@ -40,7 +40,7 @@ class CrtShEngine(BaseEngine):
     def supported_types(self):
         return ["FQDN", "URL"]
 
-    def analyze(self, observable_value: str, observable_type: str) -> CrtShReport:
+    def analyze(self, observable_value: str, observable_type: str) -> dict:
         # If observable is a URL, extract domain
         if observable_type == "URL":
             domain_part = observable_value.split("/")[2].split(":")[0]
@@ -51,13 +51,14 @@ class CrtShEngine(BaseEngine):
         url = "https://crt.sh/json"
 
         try:
-            response = self._make_request(url=url, params={"q": observable}, timeout=20)
+            response = self._make_request(url=url, params={"q": observable}, timeout=60)
             response.raise_for_status()
 
             results = response.json()
         except requests.exceptions.RequestException as e:
-            logger.error(f"Error fetching data from crt.sh: {e}")
-            return CrtShReport(success=False)
+            message: str = f"Error fetching data from crt.sh: {e}"
+            logger.error(message)
+            return CrtShReport(success=False, error_msg=message).__json__()
 
         domain_count: Counter = Counter()
         for entry in results:
@@ -89,7 +90,7 @@ class CrtShEngine(BaseEngine):
             success=True,
             top_domains=top_domains,
             link=f"https://crt.sh/?q={observable}",
-        )
+        ).__json__()
 
     @classmethod
     def create_export_row(cls, analysis_result: Mapping) -> dict:
