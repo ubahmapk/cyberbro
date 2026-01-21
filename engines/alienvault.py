@@ -29,7 +29,9 @@ class AlienVaultEngine(BaseEngine):
             "URL",
         ]
 
-    def analyze(self, observable_value: str, observable_type: str) -> Optional[dict[str, Any]]:
+    def analyze(
+        self, observable_value: str, observable_type: str
+    ) -> Optional[dict[str, Any]]:
         """
         Queries the OTX AlienVault API for information about a given observable.
         Reuses the original maintainer's logic for querying and parsing.
@@ -44,7 +46,9 @@ class AlienVaultEngine(BaseEngine):
 
         try:
             # Reuse the existing query logic
-            result: dict = query_alienvault(observable_dict, api_key, self.proxies, self.ssl_verify)
+            result: dict = query_alienvault(
+                observable_dict, api_key, self.proxies, self.ssl_verify
+            )
 
             # Reuse the existing parsing logic
             report: dict = parse_alienvault_response(result)
@@ -88,12 +92,17 @@ def get_endpoint(artifact: str, observable_type: str) -> str | None:
     return endpoint_map.get(observable_type)
 
 
-def query_alienvault(observable_dict: dict, api_key: str, proxies: dict[str, str] | None = None, ssl_verify: bool = True) -> dict:
+def query_alienvault(
+    observable_dict: dict,
+    api_key: str,
+    proxies: dict[str, str] | None = None,
+    ssl_verify: bool = True,
+) -> dict:
     artifact: str = observable_dict["value"]
 
     # If it's a URL, extract the domain portion for searching
     if (observable_type := observable_dict["type"]) == "URL":
-        artifact: str = observable_dict["value"].split("/")[2].split(":")[0]
+        artifact = observable_dict["value"].split("/")[2].split(":")[0]
         observable_type = "FQDN"
 
     endpoint = get_endpoint(artifact, observable_type)
@@ -105,11 +114,15 @@ def query_alienvault(observable_dict: dict, api_key: str, proxies: dict[str, str
     headers = {"X-OTX-API-KEY": api_key}
 
     try:
-        response = requests.get(url, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5)
+        response = requests.get(
+            url, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5
+        )
         response.raise_for_status()
         result = response.json()
     except requests.exceptions.RequestException as req_err:
-        logger.error("Network error while querying OTX AlienVault: %s", req_err, exc_info=True)
+        logger.error(
+            "Network error while querying OTX AlienVault: %s", req_err, exc_info=True
+        )
         raise QueryError from req_err
 
     return result
@@ -131,9 +144,21 @@ def parse_alienvault_response(result: dict) -> dict:
     - Related.Other (string)
     """
     report_malware_families: list[str] = []
-    report_malware_families.extend([family for family in otx_report.pulse_info.related.alienvault.malware_families if family.lower() not in map(str.lower, report_malware_families)])
+    report_malware_families.extend(
+        [
+            family
+            for family in otx_report.pulse_info.related.alienvault.malware_families
+            if family.lower() not in map(str.lower, report_malware_families)
+        ]
+    )
 
-    report_malware_families.extend([family for family in otx_report.pulse_info.related.other.malware_families if family.lower() not in map(str.lower, report_malware_families)])
+    report_malware_families.extend(
+        [
+            family
+            for family in otx_report.pulse_info.related.other.malware_families
+            if family.lower() not in map(str.lower, report_malware_families)
+        ]
+    )
 
     """
     Adversary
@@ -153,7 +178,9 @@ def parse_alienvault_response(result: dict) -> dict:
 
         # Link to default pulse URL if no other more specific link is present
         pulse_url_default_value: str = f"https://otx.alienvault.com/pulse/{pulse.id}"
-        pulse_url: str = pulse.references[0] if pulse.references else pulse_url_default_value
+        pulse_url: str = (
+            pulse.references[0] if pulse.references else pulse_url_default_value
+        )
 
         # Skip if this pulse URL has already been seen (excluding None entries)
         if pulse_url != pulse_url_default_value and pulse_url in seen_urls:
@@ -164,7 +191,14 @@ def parse_alienvault_response(result: dict) -> dict:
         pulse_data.append({"title": pulse.name, "url": pulse_url})
 
         # Add the pulse malware_family to the set
-        report_malware_families.extend([family.display_name for family in pulse.malware_families if family.display_name.lower() not in map(str.lower, report_malware_families)])
+        report_malware_families.extend(
+            [
+                family.display_name
+                for family in pulse.malware_families
+                if family.display_name.lower()
+                not in map(str.lower, report_malware_families)
+            ]
+        )
 
         if pulse.adversary:
             adversary.add(pulse.adversary)

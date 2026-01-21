@@ -21,7 +21,7 @@ from flask import (
 )
 from flask_caching import Cache
 from flask_cors import CORS
-from sqlalchemy.orm import Query
+from flask_sqlalchemy import BaseQuery
 
 from models.analysis_result import AnalysisResult, db
 from utils.analysis import check_analysis_in_progress, perform_analysis
@@ -190,7 +190,7 @@ def check_for_new_version(current_version: str) -> bool:
     try:
         latest_version: str = get_latest_version_from_cache_file(cache_file)
     except InvalidCachefileError:
-        latest_version: str = get_latest_version_from_updated_cache_file(cache_file)
+        latest_version = get_latest_version_from_updated_cache_file(cache_file)
 
     return latest_version != current_version
 
@@ -338,7 +338,7 @@ def history() -> str:
     offset = (page - 1) * per_page
 
     # Build base query
-    base_query: Query = db.session.query(AnalysisResult).filter(
+    base_query: BaseQuery = db.session.query(AnalysisResult).filter(
         AnalysisResult.results != []
     )
     base_query = apply_time_range_filter(base_query, time_range)
@@ -357,8 +357,8 @@ def history() -> str:
             offset : offset + per_page
         ]
     else:
-        total_count: int = base_query.count()
-        analysis_results: list[AnalysisResult] = (
+        total_count = base_query.count()
+        analysis_results = (
             base_query.order_by(AnalysisResult.end_time.desc())
             .limit(per_page)
             .offset(offset)
@@ -417,7 +417,7 @@ def update_config() -> tuple[Response, int]:
     # Update global GUI_ENABLED_ENGINES if engines were updated
     if response_data.get("updated_engines"):
         global GUI_ENABLED_ENGINES
-        GUI_ENABLED_ENGINES = response_data["updated_engines"]
+        GUI_ENABLED_ENGINES = response_data["updated_engines"]  # pyright: ignore[reportConstantRedefinition]
 
     return jsonify({"message": response_data["message"]}), status_code
 

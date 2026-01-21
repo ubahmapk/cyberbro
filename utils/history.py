@@ -5,7 +5,9 @@ import time
 from models.analysis_result import AnalysisResult
 
 
-def validate_history_params(page: int, per_page: int, search_type: str, time_range: str) -> tuple[int, int, str, str]:
+def validate_history_params(
+    page: int, per_page: int, search_type: str, time_range: str
+) -> tuple[int, int, str, str]:
     """Validate and sanitize history page parameters.
 
     Args:
@@ -19,7 +21,9 @@ def validate_history_params(page: int, per_page: int, search_type: str, time_ran
     """
     page = max(1, page)
     per_page = 20 if per_page < 1 or per_page > 100 else per_page
-    search_type = search_type if search_type in ["observable", "engine", "id"] else "observable"
+    search_type = (
+        search_type if search_type in ["observable", "engine", "id"] else "observable"
+    )
     time_range = time_range if time_range in ["7d", "30d", "all"] else "7d"
     return page, per_page, search_type, time_range
 
@@ -60,7 +64,9 @@ def apply_search_filter(base_query, search_query: str, search_type: str):
     if search_type == "id":
         return base_query.filter(AnalysisResult.id.ilike(f"%{search_query}%"))
     if search_type == "engine":
-        return base_query.filter(AnalysisResult.selected_engines.ilike(f"%{search_query}%"))
+        return base_query.filter(
+            AnalysisResult.selected_engines.ilike(f"%{search_query}%")
+        )
 
     return base_query
 
@@ -76,10 +82,20 @@ def filter_by_observable(results: list, search_query: str) -> list:
         Filtered list of results
     """
     search_lower = search_query.lower()
-    return [result for result in results if any(search_lower in str(item.get("observable", "")).lower() for item in result.results if item is not None and isinstance(item, dict))]
+    return [
+        result
+        for result in results
+        if any(
+            search_lower in str(item.get("observable", "")).lower()
+            for item in result.results
+            if item is not None and isinstance(item, dict)
+        )
+    ]
 
 
-def calculate_pagination_metadata(page: int, per_page: int, total_count: int) -> dict:
+def calculate_pagination_metadata(
+    page: int, per_page: int, total_count: int
+) -> dict[str, int]:
     """Calculate pagination metadata.
 
     Args:
@@ -91,4 +107,8 @@ def calculate_pagination_metadata(page: int, per_page: int, total_count: int) ->
         Dict with total_pages, has_prev, has_next
     """
     total_pages = (total_count + per_page - 1) // per_page if total_count > 0 else 1
-    return {"total_pages": total_pages, "has_prev": page > 1, "has_next": page < total_pages}
+    return {
+        "total_pages": total_pages,
+        "has_prev": page > 1,
+        "has_next": page < total_pages,
+    }
