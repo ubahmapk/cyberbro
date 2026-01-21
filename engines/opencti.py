@@ -1,8 +1,10 @@
 import logging
+from collections.abc import Mapping
 from typing import Any
 from urllib.parse import urljoin
 
 import requests
+from typing_extensions import override
 
 from models.base_engine import BaseEngine
 
@@ -11,10 +13,12 @@ logger = logging.getLogger(__name__)
 
 class OpenCTIEngine(BaseEngine):
     @property
+    @override
     def name(self):
         return "opencti"
 
     @property
+    @override
     def supported_types(self):
         return [
             "CHROME_EXTENSION",
@@ -27,6 +31,7 @@ class OpenCTIEngine(BaseEngine):
             "URL",
         ]
 
+    @override
     def analyze(
         self, observable_value: str, observable_type: str
     ) -> dict[str, Any] | None:
@@ -225,7 +230,9 @@ class OpenCTIEngine(BaseEngine):
             )
             return None
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    @classmethod
+    @override
+    def create_export_row(cls, analysis_result: Mapping) -> dict:
         if not analysis_result:
             return {
                 f"opencti_{k}": None

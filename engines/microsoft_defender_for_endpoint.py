@@ -1,10 +1,12 @@
 import logging
 import time
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
 import jwt
 import requests
+from typing_extensions import override
 
 from models.base_engine import BaseEngine
 
@@ -13,10 +15,12 @@ logger = logging.getLogger(__name__)
 
 class MDEEngine(BaseEngine):
     @property
+    @override
     def name(self):
         return "mde"
 
     @property
+    @override
     def supported_types(self):
         return ["BOGON", "FQDN", "IPv4", "IPv6", "MD5", "SHA1", "SHA256", "URL"]
 
@@ -75,6 +79,7 @@ class MDEEngine(BaseEngine):
             )
             return "invalid"
 
+    @override
     def analyze(
         self, observable_value: str, observable_type: str
     ) -> dict[str, Any] | None:
@@ -165,7 +170,9 @@ class MDEEngine(BaseEngine):
             )
             return None
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    @classmethod
+    @override
+    def create_export_row(cls, analysis_result: Mapping) -> dict:
         if not analysis_result:
             return {
                 f"mde_{k}": None for k in ["first_seen", "last_seen", "org_prevalence"]

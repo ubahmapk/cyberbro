@@ -1,9 +1,11 @@
 import logging
+from collections.abc import Mapping
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import quote
 
 import requests
+from typing_extensions import override
 
 from models.base_engine import BaseEngine
 
@@ -12,15 +14,17 @@ logger = logging.getLogger(__name__)
 
 class MISPEngine(BaseEngine):
     @property
+    @override
     def name(self):
         return "misp"
 
     @property
+    @override
     def supported_types(self):
         return ["FQDN", "IPv4", "IPv6", "MD5", "SHA1", "SHA256", "URL"]
 
-    def _map_observable_type(self, observable_type: str) -> str:
-        mapping = {
+    def _map_observable_type(self, observable_type: str) -> str | list[str]:
+        mapping: dict[str, str | list[str]] = {
             "URL": "url",
             "IPv4": ["ip-dst", "ip-src", "ip-src|port", "ip-dst|port", "domain|ip"],
             "IPv6": ["ip-dst", "ip-src", "ip-src|port", "ip-dst|port", "domain|ip"],
@@ -31,6 +35,7 @@ class MISPEngine(BaseEngine):
         }
         return mapping.get(observable_type, "")
 
+    @override
     def analyze(
         self, observable_value: str, observable_type: str
     ) -> dict[str, Any] | None:
@@ -137,7 +142,9 @@ class MISPEngine(BaseEngine):
             )
             return None
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    @classmethod
+    @override
+    def create_export_row(cls, analysis_result: Mapping) -> dict:
         if not analysis_result:
             return {f"misp_{k}": None for k in ["count", "first_seen", "last_seen"]}
 
