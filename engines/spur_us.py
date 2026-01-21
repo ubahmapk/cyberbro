@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import requests
 
@@ -21,7 +21,9 @@ class SpurUSEngine(BaseEngine):
     def execute_after_reverse_dns(self):
         return True  # IP-only engine
 
-    def analyze(self, observable_value: str, observable_type: str) -> Optional[dict[str, Any]]:
+    def analyze(
+        self, observable_value: str, observable_type: str
+    ) -> dict[str, Any] | None:
         spur_url = f"https://spur.us/context/{observable_value}"
         api_key = self.secrets.spur_us
 
@@ -54,7 +56,12 @@ class SpurUSEngine(BaseEngine):
             return {"link": spur_url, "tunnels": "Unknown - Behind Captcha"}
 
         except Exception as e:
-            logger.error("Error querying spur.us for IP '%s': %s", observable_value, e, exc_info=True)
+            logger.error(
+                "Error querying spur.us for IP '%s': %s",
+                observable_value,
+                e,
+                exc_info=True,
+            )
             return {"link": spur_url, "tunnels": "Unknown - Behind Captcha"}
 
     def create_export_row(self, analysis_result: Any) -> dict:

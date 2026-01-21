@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import quote
 
 import requests
@@ -31,7 +31,9 @@ class MISPEngine(BaseEngine):
         }
         return mapping.get(observable_type, "")
 
-    def analyze(self, observable_value: str, observable_type: str) -> Optional[dict[str, Any]]:
+    def analyze(
+        self, observable_value: str, observable_type: str
+    ) -> dict[str, Any] | None:
         api_key = self.secrets.misp_api_key
         misp_url = self.secrets.misp_url
 
@@ -42,16 +44,33 @@ class MISPEngine(BaseEngine):
 
             misp_url = misp_url.rstrip("/")
             url = f"{misp_url}/attributes/restSearch"
-            headers = {"Authorization": api_key, "Accept": "application/json", "Content-Type": "application/json"}
+            headers = {
+                "Authorization": api_key,
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+            }
 
             misp_type = self._map_observable_type(observable_type)
             if not misp_type:
-                logger.error("Unsupported observable type for MISP: %s", observable_type)
+                logger.error(
+                    "Unsupported observable type for MISP: %s", observable_type
+                )
                 return None
 
-            payload = {"returnFormat": "json", "value": observable_value, "type": misp_type}
+            payload = {
+                "returnFormat": "json",
+                "value": observable_value,
+                "type": misp_type,
+            }
 
-            response = requests.post(url, json=payload, headers=headers, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
+            response = requests.post(
+                url,
+                json=payload,
+                headers=headers,
+                proxies=self.proxies,
+                verify=self.ssl_verify,
+                timeout=5,
+            )
             response.raise_for_status()
 
             result = response.json()
@@ -80,9 +99,13 @@ class MISPEngine(BaseEngine):
 
                     seen_event_ids.add(event_id)
                     event_title = event.get("info", "Unknown")
-                    event_url = f"{misp_url}/events/view/{event_id}" if event_id else None
+                    event_url = (
+                        f"{misp_url}/events/view/{event_id}" if event_id else None
+                    )
 
-                    event_data.append({"title": event_title, "url": event_url, "timestamp": timestamp})
+                    event_data.append(
+                        {"title": event_title, "url": event_url, "timestamp": timestamp}
+                    )
 
                     count = len(attributes)  # Total attributes count
 
@@ -92,9 +115,13 @@ class MISPEngine(BaseEngine):
             link = f"{misp_url}/attributes/index?value={quote(observable_value)}"
 
             if first_seen:
-                first_seen = datetime.fromtimestamp(int(first_seen), tz=timezone.utc).strftime("%Y-%m-%d")
+                first_seen = datetime.fromtimestamp(
+                    int(first_seen), tz=timezone.utc
+                ).strftime("%Y-%m-%d")
             if last_seen:
-                last_seen = datetime.fromtimestamp(int(last_seen), tz=timezone.utc).strftime("%Y-%m-%d")
+                last_seen = datetime.fromtimestamp(
+                    int(last_seen), tz=timezone.utc
+                ).strftime("%Y-%m-%d")
 
             return {
                 "count": count,
@@ -105,7 +132,9 @@ class MISPEngine(BaseEngine):
             }
 
         except Exception as e:
-            logger.error("Error querying MISP for '%s': %s", observable_value, e, exc_info=True)
+            logger.error(
+                "Error querying MISP for '%s': %s", observable_value, e, exc_info=True
+            )
             return None
 
     def create_export_row(self, analysis_result: Any) -> dict:

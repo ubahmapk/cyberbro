@@ -1,7 +1,7 @@
 import logging
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import jwt
 import requests
@@ -35,7 +35,7 @@ class MDEEngine(BaseEngine):
             logger.error("Failed to decode MDE token: %s", e, exc_info=True)
             return False
 
-    def _read_token(self) -> Optional[str]:
+    def _read_token(self) -> str | None:
         try:
             token_path = Path("mde_token.txt")
             token = token_path.read_text().strip()
@@ -55,7 +55,9 @@ class MDEEngine(BaseEngine):
             "grant_type": "client_credentials",
         }
         try:
-            response = requests.post(url, data=body, proxies=self.proxies, verify=self.ssl_verify)
+            response = requests.post(
+                url, data=body, proxies=self.proxies, verify=self.ssl_verify
+            )
             response.raise_for_status()
             json_response = response.json()
         except Exception as err:
@@ -68,14 +70,20 @@ class MDEEngine(BaseEngine):
             token_path.write_text(aad_token)
             return aad_token
         except KeyError:
-            logger.error("Unable to retrieve token from JSON response: %s", json_response)
+            logger.error(
+                "Unable to retrieve token from JSON response: %s", json_response
+            )
             return "invalid"
 
-    def analyze(self, observable_value: str, observable_type: str) -> Optional[dict[str, Any]]:
+    def analyze(
+        self, observable_value: str, observable_type: str
+    ) -> dict[str, Any] | None:
         try:
             jwt_token = self._read_token() or self._get_token()
             if "invalid" in jwt_token:
-                logger.error("No valid token available for Microsoft Defender for Endpoint.")
+                logger.error(
+                    "No valid token available for Microsoft Defender for Endpoint."
+                )
                 return None
 
             headers = {"Authorization": f"Bearer {jwt_token}"}
@@ -87,7 +95,9 @@ class MDEEngine(BaseEngine):
 
             if observable_type in ["MD5", "SHA1", "SHA256"]:
                 url = f"https://api.securitycenter.microsoft.com/api/files/{observable}/stats"
-                file_info_url = f"https://api.securitycenter.microsoft.com/api/files/{observable}"
+                file_info_url = (
+                    f"https://api.securitycenter.microsoft.com/api/files/{observable}"
+                )
                 link = f"https://security.microsoft.com/file/{observable}"
             elif observable_type in ["IPv4", "IPv6", "BOGON"]:
                 url = f"https://api.securitycenter.microsoft.com/api/ips/{observable}/stats"
@@ -102,7 +112,13 @@ class MDEEngine(BaseEngine):
             else:
                 return None
 
-            response = requests.get(url, headers=headers, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
+            response = requests.get(
+                url,
+                headers=headers,
+                proxies=self.proxies,
+                verify=self.ssl_verify,
+                timeout=5,
+            )
             response.raise_for_status()
 
             data = response.json()
@@ -110,16 +126,27 @@ class MDEEngine(BaseEngine):
 
             # Retrieve extended file info if applicable
             if file_info_url:
-                file_info_response = requests.get(file_info_url, headers=headers, proxies=self.proxies, verify=self.ssl_verify)
+                file_info_response = requests.get(
+                    file_info_url,
+                    headers=headers,
+                    proxies=self.proxies,
+                    verify=self.ssl_verify,
+                )
                 file_info_response.raise_for_status()
                 file_info = file_info_response.json()
                 data["issuer"] = file_info.get("issuer", "Unknown")
                 data["signer"] = file_info.get("signer", "Unknown")
-                data["isValidCertificate"] = file_info.get("isValidCertificate", "Unknown")
+                data["isValidCertificate"] = file_info.get(
+                    "isValidCertificate", "Unknown"
+                )
                 data["filePublisher"] = file_info.get("filePublisher", "Unknown")
                 data["fileProductName"] = file_info.get("fileProductName", "Unknown")
-                data["determinationType"] = file_info.get("determinationType", "Unknown")
-                data["determinationValue"] = file_info.get("determinationValue", "Unknown")
+                data["determinationType"] = file_info.get(
+                    "determinationType", "Unknown"
+                )
+                data["determinationValue"] = file_info.get(
+                    "determinationValue", "Unknown"
+                )
 
             # Simplify dates
             if data.get("orgFirstSeen"):
@@ -130,12 +157,19 @@ class MDEEngine(BaseEngine):
             return data
 
         except Exception as e:
-            logger.error("Error querying Microsoft Defender for Endpoint for '%s': %s", observable_value, e, exc_info=True)
+            logger.error(
+                "Error querying Microsoft Defender for Endpoint for '%s': %s",
+                observable_value,
+                e,
+                exc_info=True,
+            )
             return None
 
     def create_export_row(self, analysis_result: Any) -> dict:
         if not analysis_result:
-            return {f"mde_{k}": None for k in ["first_seen", "last_seen", "org_prevalence"]}
+            return {
+                f"mde_{k}": None for k in ["first_seen", "last_seen", "org_prevalence"]
+            }
 
         return {
             "mde_first_seen": analysis_result.get("orgFirstSeen"),

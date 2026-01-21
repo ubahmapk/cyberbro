@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import requests
 from bs4 import BeautifulSoup
@@ -8,7 +8,16 @@ from models.base_engine import BaseEngine
 
 logger = logging.getLogger(__name__)
 
-BASE_SUPPORTED_TYPES = ["CHROME_EXTENSION", "FQDN", "IPv4", "IPv6", "MD5", "SHA1", "SHA256", "URL"]
+BASE_SUPPORTED_TYPES = [
+    "CHROME_EXTENSION",
+    "FQDN",
+    "IPv4",
+    "IPv6",
+    "MD5",
+    "SHA1",
+    "SHA256",
+    "URL",
+]
 
 
 class IOCOneHTMLEngine(BaseEngine):
@@ -20,7 +29,9 @@ class IOCOneHTMLEngine(BaseEngine):
     def supported_types(self):
         return BASE_SUPPORTED_TYPES
 
-    def analyze(self, observable_value: str, observable_type: str) -> Optional[dict[str, Any]]:
+    def analyze(
+        self, observable_value: str, observable_type: str
+    ) -> dict[str, Any] | None:
         try:
             url = f"https://ioc.one/auth/deep_search?search={observable_value}"
             response = requests.get(
@@ -39,18 +50,35 @@ class IOCOneHTMLEngine(BaseEngine):
             for card in cards[:5]:
                 header = card.find("div", class_="card-header").get_text(strip=True)
                 title = card.find("h5", class_="card-title").get_text(strip=True)
-                source = card.find("a", class_="btn border btn-primary m-1", target="_blank")["href"]
-                search_results.append({"header": header, "title": title, "source": source})
+                source = card.find(
+                    "a", class_="btn border btn-primary m-1", target="_blank"
+                )["href"]
+                search_results.append(
+                    {"header": header, "title": title, "source": source}
+                )
 
-            return {"results": search_results, "link": url, "count": len(search_results)}
+            return {
+                "results": search_results,
+                "link": url,
+                "count": len(search_results),
+            }
 
         except Exception as e:
-            logger.error("Error querying ioc.one (HTML) for '%s': %s", observable_value, e, exc_info=True)
+            logger.error(
+                "Error querying ioc.one (HTML) for '%s': %s",
+                observable_value,
+                e,
+                exc_info=True,
+            )
             return None
 
     def create_export_row(self, analysis_result: Any) -> dict:
         # Since original export fields are missing, provide a count
-        return {"ioc_one_html_count": analysis_result.get("count") if analysis_result else None}
+        return {
+            "ioc_one_html_count": analysis_result.get("count")
+            if analysis_result
+            else None
+        }
 
 
 class IOCOnePDFEngine(BaseEngine):
@@ -62,7 +90,9 @@ class IOCOnePDFEngine(BaseEngine):
     def supported_types(self):
         return BASE_SUPPORTED_TYPES
 
-    def analyze(self, observable_value: str, observable_type: str) -> Optional[dict[str, Any]]:
+    def analyze(
+        self, observable_value: str, observable_type: str
+    ) -> dict[str, Any] | None:
         try:
             url = f"https://ioc.one/auth/deep_search/pdf?search={observable_value}"
             response = requests.get(
@@ -81,16 +111,34 @@ class IOCOnePDFEngine(BaseEngine):
             for card in cards[:5]:
                 header = card.find("div", class_="card-header").get_text(strip=True)
                 title = card.find("h5", class_="card-title").get_text(strip=True)
-                # Note the difference in class name for the source link from the HTML engine
-                source = card.find("a", class_="btn border btn-primary mx-1", target="_blank")["href"]
-                search_results.append({"header": header, "title": title, "source": source})
+                # Note the difference in class name for the source link
+                # from the HTML engine
+                source = card.find(
+                    "a", class_="btn border btn-primary mx-1", target="_blank"
+                )["href"]
+                search_results.append(
+                    {"header": header, "title": title, "source": source}
+                )
 
-            return {"results": search_results, "link": url, "count": len(search_results)}
+            return {
+                "results": search_results,
+                "link": url,
+                "count": len(search_results),
+            }
 
         except Exception as e:
-            logger.error("Error querying ioc.one (PDF) for '%s': %s", observable_value, e, exc_info=True)
+            logger.error(
+                "Error querying ioc.one (PDF) for '%s': %s",
+                observable_value,
+                e,
+                exc_info=True,
+            )
             return None
 
     def create_export_row(self, analysis_result: Any) -> dict:
         # Since original export fields are missing, provide a count
-        return {"ioc_one_pdf_count": analysis_result.get("count") if analysis_result else None}
+        return {
+            "ioc_one_pdf_count": analysis_result.get("count")
+            if analysis_result
+            else None
+        }

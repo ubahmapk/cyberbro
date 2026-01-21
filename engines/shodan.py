@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import requests
 from requests.exceptions import HTTPError, JSONDecodeError
@@ -22,13 +22,20 @@ class ShodanEngine(BaseEngine):
     def execute_after_reverse_dns(self):
         return True
 
-    def analyze(self, observable_value: str, observable_type: str) -> Optional[dict]:
+    def analyze(self, observable_value: str, observable_type: str) -> dict | None:
         headers = {"Accept": "application/json"}
         params = {"key": self.secrets.shodan}
         url = f"https://api.shodan.io/shodan/host/{observable_value}"
 
         try:
-            response = requests.get(url, headers=headers, params=params, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
+            response = requests.get(
+                url,
+                headers=headers,
+                params=params,
+                proxies=self.proxies,
+                verify=self.ssl_verify,
+                timeout=5,
+            )
             if response.status_code == 404:
                 return None
             response.raise_for_status()
@@ -44,4 +51,6 @@ class ShodanEngine(BaseEngine):
             return None
 
     def create_export_row(self, analysis_result: Any) -> dict:
-        return {"shodan_ports": analysis_result.get("ports") if analysis_result else None}
+        return {
+            "shodan_ports": analysis_result.get("ports") if analysis_result else None
+        }

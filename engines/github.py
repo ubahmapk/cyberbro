@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import requests
 
@@ -15,9 +15,21 @@ class GitHubEngine(BaseEngine):
 
     @property
     def supported_types(self):
-        return ["CHROME_EXTENSION", "FQDN", "IPv4", "IPv6", "MD5", "SHA1", "SHA256", "URL", "Email"]
+        return [
+            "CHROME_EXTENSION",
+            "FQDN",
+            "IPv4",
+            "IPv6",
+            "MD5",
+            "SHA1",
+            "SHA256",
+            "URL",
+            "Email",
+        ]
 
-    def analyze(self, observable_value: str, observable_type: str) -> Optional[dict[str, Any]]:
+    def analyze(
+        self, observable_value: str, observable_type: str
+    ) -> dict[str, Any] | None:
         try:
             response = requests.get(
                 f"https://grep.app/api/search?q={observable_value}",
@@ -50,9 +62,18 @@ class GitHubEngine(BaseEngine):
             return {"results": search_results, "total": data["hits"]["total"]}
 
         except Exception as e:
-            logger.error("Error while querying GitHub for '%s': %s", observable_value, e, exc_info=True)
+            logger.error(
+                "Error while querying GitHub for '%s': %s",
+                observable_value,
+                e,
+                exc_info=True,
+            )
             return None
 
     def create_export_row(self, analysis_result: Any) -> dict:
         # Since original export fields are missing, provide a count
-        return {"github_results_count": analysis_result.get("total") if analysis_result else None}
+        return {
+            "github_results_count": analysis_result.get("total")
+            if analysis_result
+            else None
+        }

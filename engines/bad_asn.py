@@ -168,7 +168,9 @@ class BadASNEngine(BaseEngine):
         """
         return True
 
-    def analyze(self, observable_value: str, observable_type: str, context: dict | None = None) -> dict | None:
+    def analyze(
+        self, observable_value: str, observable_type: str, context: dict | None = None
+    ) -> dict | None:
         """
         Check if the IP's ASN is listed in bad ASN databases.
 
@@ -178,58 +180,75 @@ class BadASNEngine(BaseEngine):
             context: Dictionary containing results from other engines (optional)
 
         Returns:
-            Dictionary with status, source, and details if ASN is malicious, None otherwise
+            Dictionary with status, source, and details if ASN is malicious,
+            None otherwise
         """
         if not context:
-            logger.warning(f"Bad ASN engine called without context for {observable_value}")
+            logger.warning(
+                f"Bad ASN engine called without context for {observable_value}"
+            )
             return None
 
         # Try to extract ASN from various possible engine results
         asn = self._extract_asn_from_context(context)
 
         if not asn:
-            logger.debug(f"No ASN found in context for {observable_value}, skipping Bad ASN check")
+            logger.debug(
+                f"No ASN found in context for {observable_value}, skipping Bad ASN check"  # noqa: E501
+            )
             return None
 
         # Check ASN against bad ASN databases
         result = check_asn(asn)
 
-        if result:
-            # Extract ASN org name from context for verification
-            context_asn_name = extract_asn_org_name(context)
+        if not result:
+            # ASN is unlisted
+            logger.debug(
+                f"ASN {asn} for IP {observable_value} is not listed in bad ASN databases"  # noqa: E501
+            )
+            return {
+                "status": "unlisted",
+                "asn": asn,
+                "details": f"ASN {asn} is not listed in bad ASN databases",
+            }
 
-            # Check if this is a legitimate provider that can be abused
-            # by checking keywords in the source description
-            source_description = result.get("source", "")
-            is_legit = is_legitimate_provider(source_description)
+        # Extract ASN org name from context for verification
+        context_asn_name = extract_asn_org_name(context)
 
-            # Calculate risk score
-            risk_score = calculate_risk_score(source_description, is_legit)
+        # Check if this is a legitimate provider that can be abused
+        # by checking keywords in the source description
+        source_description = result.get("source", "")
+        is_legit = is_legitimate_provider(source_description)
 
-            # Add enriched data to result
-            result["legitimate_but_abused"] = is_legit
-            result["risk_score"] = risk_score
-            result["asn_org_name"] = context_asn_name
+        # Calculate risk score
+        risk_score = calculate_risk_score(source_description, is_legit)
 
-            # Determine status based on legitimacy
-            if is_legit:
-                result["status"] = "potentially_legitimate"
-                result["details"] = (
-                    f"ASN {asn} is listed in bad ASN databases BUT this appears to be a legitimate cloud/hosting provider "
-                    f"that can be abused by malicious actors. Risk Score: {risk_score}/100. "
-                    f"Exercise caution but verify further context."
-                )
-                logger.info(f"Legitimate provider potentially abused: {asn} (score: {risk_score}) for IP {observable_value} - {result['source']}")
-            else:
-                result["status"] = "malicious"
-                result["details"] = f"ASN {asn} is listed in bad ASN databases. Risk Score: {risk_score}/100. Source: {source_description}"
-                logger.info(f"Bad ASN detected: {asn} (score: {risk_score}) for IP {observable_value} - {result['source']}")
+        # Add enriched data to result
+        result["legitimate_but_abused"] = is_legit
+        result["risk_score"] = risk_score
+        result["asn_org_name"] = context_asn_name
 
-            return result
+        # Determine status based on legitimacy
+        if is_legit:
+            result["status"] = "potentially_legitimate"
+            result["details"] = (
+                f"ASN {asn} is listed in bad ASN databases BUT this appears to be a legitimate cloud/hosting provider "  # noqa: E501
+                f"that can be abused by malicious actors. Risk Score: {risk_score}/100. "  # noqa: E501
+                f"Exercise caution but verify further context."
+            )
+            logger.info(
+                f"Legitimate provider potentially abused: {asn} (score: {risk_score}) for IP {observable_value} - {result['source']}"  # noqa: E501
+            )
+        else:
+            result["status"] = "malicious"
+            result["details"] = (
+                f"ASN {asn} is listed in bad ASN databases. Risk Score: {risk_score}/100. Source: {source_description}"  # noqa: E501
+            )
+            logger.info(
+                f"Bad ASN detected: {asn} (score: {risk_score}) for IP {observable_value} - {result['source']}"  # noqa: E501
+            )
 
-        # ASN is unlisted
-        logger.debug(f"ASN {asn} for IP {observable_value} is not listed in bad ASN databases")
-        return {"status": "unlisted", "asn": asn, "details": f"ASN {asn} is not listed in bad ASN databases"}
+        return result
 
     def _extract_asn_from_context(self, context: dict) -> str | None:
         """
@@ -263,7 +282,13 @@ class BadASNEngine(BaseEngine):
         if ipinfo_data and isinstance(ipinfo_data, dict):
             # ipinfo structure: {"asn": "AS13335 Cloudflare, Inc."}
             asn_str = ipinfo_data.get("asn", "")
-            if asn_str and isinstance(asn_str, str) and asn_str != "Unknown" and asn_str != "BOGON" and asn_str.startswith("AS"):
+            if (
+                asn_str
+                and isinstance(asn_str, str)
+                and asn_str != "Unknown"
+                and asn_str != "BOGON"
+                and asn_str.startswith("AS")
+            ):
                 # Extract ASN from format "AS13335 Cloudflare, Inc."
                 parts = asn_str.split()
                 if len(parts) > 0:
@@ -319,7 +344,9 @@ class BadASNEngine(BaseEngine):
             "bad_asn_asn": analysis_result.get("asn", ""),
             "bad_asn_source": analysis_result.get("source", ""),
             "bad_asn_details": analysis_result.get("details", ""),
-            "bad_asn_legitimate_but_abused": analysis_result.get("legitimate_but_abused", False),
+            "bad_asn_legitimate_but_abused": analysis_result.get(
+                "legitimate_but_abused", False
+            ),
             "bad_asn_risk_score": analysis_result.get("risk_score", 0),
             "bad_asn_org_name": analysis_result.get("asn_org_name", ""),
         }

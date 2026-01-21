@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import querycontacts
 
@@ -22,11 +22,16 @@ class AbusixEngine(BaseEngine):
         # IP-only engine, runs after potential IP pivot
         return True
 
-    def analyze(self, observable_value: str, observable_type: str) -> Optional[dict[str, str]]:
+    def analyze(
+        self, observable_value: str, observable_type: str
+    ) -> dict[str, str] | None:
         try:
             results = querycontacts.ContactFinder().find(observable_value)
             if not results:
-                logger.warning("No contact information returned for observable: %s", observable_value)
+                logger.warning(
+                    "No contact information returned for observable: %s",
+                    observable_value,
+                )
                 return None
 
             return {"abuse": results[0]}
@@ -40,4 +45,6 @@ class AbusixEngine(BaseEngine):
             return None
 
     def create_export_row(self, analysis_result: Any) -> dict:
-        return {"abusix_abuse": analysis_result.get("abuse") if analysis_result else None}
+        return {
+            "abusix_abuse": analysis_result.get("abuse") if analysis_result else None
+        }

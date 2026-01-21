@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import dns.resolver
 import dns.reversename
@@ -24,7 +24,7 @@ class ReverseDNSEngine(BaseEngine):
         # This engine can change the observable type (e.g., FQDN -> IP)
         return True
 
-    def analyze(self, observable_value: str, observable_type: str) -> Optional[dict]:
+    def analyze(self, observable_value: str, observable_type: str) -> dict | None:
         try:
             if observable_type in ["IPv4", "IPv6", "BOGON"]:
                 reverse_name = dns.reversename.from_address(observable_value)

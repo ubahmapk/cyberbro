@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import quote
 
 import requests
@@ -31,7 +31,7 @@ class AlienVaultEngine(BaseEngine):
 
     def analyze(
         self, observable_value: str, observable_type: str
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Queries the OTX AlienVault API for information about a given observable.
         Reuses the original maintainer's logic for querying and parsing.
