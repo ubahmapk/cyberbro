@@ -117,5 +117,8 @@ class BaseReport:
     def __getitem__(self, key):
         return asdict(self)[key]
 
+    def __json__(self):
+        return asdict(self)
+
     def get(self, name, default: Any | None = None):
         return getattr(self, name, default)
