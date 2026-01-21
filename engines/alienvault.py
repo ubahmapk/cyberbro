@@ -61,9 +61,14 @@ class AlienVaultEngine(BaseEngine):
             logger.error(f"Unexpected error in AlienVault engine: {e}")
             return None
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    @classmethod
+    def create_export_row(cls, analysis_result: Any) -> dict:
         if not analysis_result:
-            return {"alienvault_pulses": None, "alienvault_malwares": None, "alienvault_adversary": None}
+            return {
+                "alienvault_pulses": None,
+                "alienvault_malwares": None,
+                "alienvault_adversary": None,
+            }
 
         malware_families = ", ".join(analysis_result.get("malware_families", []))
         adversaries = ", ".join(analysis_result.get("adversary", []))
