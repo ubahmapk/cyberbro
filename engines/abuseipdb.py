@@ -1,7 +1,8 @@
 import logging
-from typing import Any
+from collections.abc import Mapping
 
 import requests
+from typing_extensions import override
 
 from models.base_engine import BaseEngine
 
@@ -10,14 +11,17 @@ logger = logging.getLogger(__name__)
 
 class AbuseIPDBEngine(BaseEngine):
     @property
+    @override
     def name(self):
         return "abuseipdb"
 
     @property
+    @override
     def supported_types(self):
         return ["IPv4", "IPv6"]
 
     @property
+    @override
     def execute_after_reverse_dns(self):
         """
         AbuseIPDB only supports IPs, so we want it to run AFTER
@@ -26,6 +30,7 @@ class AbuseIPDBEngine(BaseEngine):
 
         return True
 
+    @override
     def analyze(self, observable_value: str, observable_type: str) -> dict | None:
         url = "https://api.abuseipdb.com/api/v2/check"
         headers = {"Key": self.secrets.abuseipdb, "Accept": "application/json"}
@@ -56,7 +61,9 @@ class AbuseIPDBEngine(BaseEngine):
             logger.error(f"Error querying AbuseIPDB: {e}")
             return None
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    @classmethod
+    @override
+    def create_export_row(cls, analysis_result: Mapping) -> dict:
         if not analysis_result:
             return {"a_ipdb_reports": None, "a_ipdb_risk": None}
         return {

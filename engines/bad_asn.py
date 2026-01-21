@@ -5,6 +5,9 @@ Requires ASN data from other engines (ipapi, ipinfo, ipquery).
 """
 
 import logging
+from collections.abc import Mapping
+
+from typing_extensions import override
 
 from models.base_engine import BaseEngine
 from utils.bad_asn_manager import check_asn
@@ -152,15 +155,18 @@ class BadASNEngine(BaseEngine):
     """
 
     @property
+    @override
     def name(self) -> str:
         return "bad_asn"
 
     @property
+    @override
     def supported_types(self) -> list[str]:
         """Supports IPv4 and IPv6 addresses."""
         return ["IPv4", "IPv6"]
 
     @property
+    @override
     def execute_after_reverse_dns(self) -> bool:
         """
         Execute in Phase 3 (Post-Pivot) to ensure other IP info engines
@@ -168,6 +174,7 @@ class BadASNEngine(BaseEngine):
         """
         return True
 
+    @override
     def analyze(
         self, observable_value: str, observable_type: str, context: dict | None = None
     ) -> dict | None:
@@ -318,7 +325,9 @@ class BadASNEngine(BaseEngine):
 
         return None
 
-    def create_export_row(self, analysis_result: dict | None) -> dict:
+    @classmethod
+    @override
+    def create_export_row(cls, analysis_result: Mapping) -> dict:
         """
         Format Bad ASN check result for CSV/Excel export.
 
