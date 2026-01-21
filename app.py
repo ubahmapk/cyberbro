@@ -7,7 +7,6 @@ import uuid
 from dataclasses import asdict
 from functools import lru_cache
 from pathlib import Path
-from typing import Literal
 
 import ioc_fanger
 import requests
@@ -158,13 +157,9 @@ def get_latest_version_from_updated_cache_file(cache_file: Path) -> str:
     try:
         response = requests.get(url, proxies=PROXIES, verify=SSL_VERIFY, timeout=5)
         response.raise_for_status()
-        # latest_release: dict = response.json()
-        latest_version = response.json().get("tag_name", "")
+        latest_version: str = response.json().get("tag_name", "")
     except requests.exceptions.RequestException as e:
         logger.error(f"Error fetching latest version: {e}")
-        return ""
-    except requests.exceptions.JSONDecodeError as e:
-        logger.error(f"Error decoding JSON response: {e}")
         return ""
 
     try:
