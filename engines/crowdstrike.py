@@ -31,7 +31,11 @@ class CrowdstrikeEngine(BaseEngine):
             return observable_type.lower()
         if observable_type in ["FQDN", "URL"]:
             return "domain"
-        return None
+
+        # We should never get here...
+        raise ValueError(
+            "Unsupported observable type passed to CrowdstrikeEngine"
+        ) from None
 
     def _generate_ioc_id(self, observable: str, observable_type: str) -> str:
         if observable_type == "domain":
@@ -44,7 +48,11 @@ class CrowdstrikeEngine(BaseEngine):
             return f"hash_sha256_{observable}"
         if observable_type == "sha1":
             return f"hash_sha1_{observable}"
-        return ""
+
+        # We should never get here...
+        raise ValueError(
+            "Unsupported observable type passed to CrowdstrikeEngine"
+        ) from None
 
     def _get_falcon_client(self) -> APIHarnessV2:
         return APIHarnessV2(
