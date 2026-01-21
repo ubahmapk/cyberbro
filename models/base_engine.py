@@ -7,6 +7,7 @@ from typing import Any
 import requests
 from pydantic.dataclasses import dataclass
 from tenacity import after_log, retry, stop_after_attempt, wait_exponential
+from typing_extensions import override
 
 from utils.config import Secrets
 
@@ -19,9 +20,23 @@ class BaseEngine(ABC):
     """
 
     def __init__(self, secrets: Secrets, proxies: dict, ssl_verify: bool):
-        self.secrets = secrets
-        self.proxies = proxies
-        self.ssl_verify = ssl_verify
+        self.secrets: Secrets = secrets
+        self.proxies: dict[str, str] = proxies
+        self.ssl_verify: bool = ssl_verify
+
+    @override
+    def __eq__(self, other):
+        """Allow an engine to be identified by it's name."""
+        if isinstance(other, str):
+            return self.name == other
+        if isinstance(other, BaseEngine):
+            return self.name == other.name
+        raise NotImplementedError
+
+    def __req__(self, other):
+        """Allow an engine to be identified by it's name, on the right hand
+        side of an equation."""
+        return other == self
 
     @property
     @abstractmethod
