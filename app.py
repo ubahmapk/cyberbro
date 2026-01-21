@@ -274,10 +274,16 @@ def is_analysis_complete(analysis_id: str) -> Response:
 @app.route("/export/<analysis_id>")
 def export(analysis_id: str) -> Response | tuple[Response, int]:
     """Export the analysis results."""
-    format: Literal["csv", "excel"] = request.args.get("format")
-    analysis_results: AnalysisResult = db.session.get(AnalysisResult, analysis_id)
+    analysis_results: AnalysisResult | None = db.session.get(
+        AnalysisResult, analysis_id
+    )
+
+    if not analysis_results:
+        return jsonify({"error": "Analysis not found."}), 404
+
     data: list = prepare_data_for_export(analysis_results)
     timestamp: str = time.strftime("%Y-%m-%d_%H_%M_%S", time.localtime())
+    format: str | None = request.args.get("format")
 
     if format == "csv":
         return export_to_csv(data, timestamp)
