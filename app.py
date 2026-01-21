@@ -303,19 +303,19 @@ def favicon() -> Response:
 
 
 @app.errorhandler(404)
-def page_not_found(e) -> tuple[str, int]:
+def page_not_found(_) -> tuple[str, int]:
     """Handle 404 errors."""
     return render_template("404.html"), 404
 
 
 @app.errorhandler(500)
-def internal_server_error(e) -> tuple[str, int]:
+def internal_server_error(_) -> tuple[str, int]:
     """Handle 500 errors."""
     return render_template("500.html"), 500
 
 
 @app.errorhandler(413)
-def request_entity_too_large(e) -> tuple[str, int]:
+def request_entity_too_large(_) -> tuple[str, int]:
     """Handle 413 errors."""
     return render_template("413.html"), 413
 
