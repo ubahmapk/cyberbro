@@ -1,14 +1,16 @@
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 import requests
 from bs4 import BeautifulSoup
+from typing_extensions import override
 
 from models.base_engine import BaseEngine
 
 logger = logging.getLogger(__name__)
 
-BASE_SUPPORTED_TYPES = [
+BASE_SUPPORTED_TYPES: list[str] = [
     "CHROME_EXTENSION",
     "FQDN",
     "IPv4",
@@ -22,13 +24,16 @@ BASE_SUPPORTED_TYPES = [
 
 class IOCOneHTMLEngine(BaseEngine):
     @property
+    @override
     def name(self):
         return "ioc_one_html"
 
     @property
+    @override
     def supported_types(self):
         return BASE_SUPPORTED_TYPES
 
+    @override
     def analyze(
         self, observable_value: str, observable_type: str
     ) -> dict[str, Any] | None:
@@ -72,7 +77,9 @@ class IOCOneHTMLEngine(BaseEngine):
             )
             return None
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    @classmethod
+    @override
+    def create_export_row(cls, analysis_result: Mapping) -> dict:
         # Since original export fields are missing, provide a count
         return {
             "ioc_one_html_count": analysis_result.get("count")
@@ -83,13 +90,16 @@ class IOCOneHTMLEngine(BaseEngine):
 
 class IOCOnePDFEngine(BaseEngine):
     @property
+    @override
     def name(self):
         return "ioc_one_pdf"
 
     @property
+    @override
     def supported_types(self):
         return BASE_SUPPORTED_TYPES
 
+    @override
     def analyze(
         self, observable_value: str, observable_type: str
     ) -> dict[str, Any] | None:
@@ -135,7 +145,9 @@ class IOCOnePDFEngine(BaseEngine):
             )
             return None
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    @classmethod
+    @override
+    def create_export_row(cls, analysis_result: Mapping) -> dict:
         # Since original export fields are missing, provide a count
         return {
             "ioc_one_pdf_count": analysis_result.get("count")

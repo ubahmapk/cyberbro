@@ -7,6 +7,7 @@ from dataclasses import asdict
 import requests
 from pydantic import Field
 from pydantic.dataclasses import dataclass
+from typing_extensions import override
 
 from models.base_engine import BaseEngine, BaseReport
 
@@ -33,13 +34,16 @@ class CrtShReport(BaseReport):
 
 class CrtShEngine(BaseEngine):
     @property
+    @override
     def name(self):
         return "crtsh"
 
     @property
+    @override
     def supported_types(self):
         return ["FQDN", "URL"]
 
+    @override
     def analyze(self, observable_value: str, observable_type: str) -> dict:
         # If observable is a URL, extract domain
         if observable_type == "URL":
@@ -93,6 +97,7 @@ class CrtShEngine(BaseEngine):
         ).__json__()
 
     @classmethod
+    @override
     def create_export_row(cls, analysis_result: Mapping) -> dict:
         if not analysis_result.get("success"):
             return {"crtsh_top_domains": None}

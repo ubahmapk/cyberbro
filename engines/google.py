@@ -1,8 +1,10 @@
 import logging
 import time
+from collections.abc import Mapping
 from typing import Any
 
 import requests
+from typing_extensions import override
 
 from models.base_engine import BaseEngine
 
@@ -11,10 +13,12 @@ logger = logging.getLogger(__name__)
 
 class GoogleCSEEngine(BaseEngine):
     @property
+    @override
     def name(self):
         return "google"
 
     @property
+    @override
     def supported_types(self):
         return [
             "CHROME_EXTENSION",
@@ -28,6 +32,7 @@ class GoogleCSEEngine(BaseEngine):
             "Email",
         ]
 
+    @override
     def analyze(
         self, observable_value: str, observable_type: str, dorks: str = ""
     ) -> dict[str, Any] | None:
@@ -122,7 +127,9 @@ class GoogleCSEEngine(BaseEngine):
 
         return None
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    @classmethod
+    @override
+    def create_export_row(cls, analysis_result: Mapping) -> dict:
         # Since original export fields are missing, provide a count
         return {
             "google_results_count": analysis_result.get("total")
