@@ -37,9 +37,9 @@ def get_analysis_stats() -> dict:
             observable_type_counter[observable_type] += 1
             observable_counter[observable] += 1
 
+        engine_counter += Counter(analysis.selected_engines)
         for engine in analysis.selected_engines:
             engines_set.add(engine)
-            engine_counter[engine] += 1
 
     return {
         "total_analyses_count": total_analyses,

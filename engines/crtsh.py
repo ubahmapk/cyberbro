@@ -82,8 +82,7 @@ class CrtShEngine(BaseEngine):
             with contextlib.suppress(KeyError):
                 domains.remove("")
 
-            for domain in domains:
-                domain_count[domain] += 1
+            domain_count += Counter(domains)
 
         top_domains = [
             CrtShDomain(domain=dmn, count=cnt)
