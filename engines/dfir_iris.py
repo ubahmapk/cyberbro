@@ -30,12 +30,13 @@ class DFIRIrisEngine(BaseEngine):
         dfir_iris_url = self.secrets.dfir_iris_url
 
         # Use selective wildcards to match ioc
-        if observable_type in ("IPv4", "IPv6", "MD5", "SHA1", "SHA256", "BOGON"):
-            body = {"search_value": f"%{observable_value}", "search_type": "ioc"}
-        elif observable_type in ("FQDN", "URL"):
-            body = {"search_value": f"{observable_value}%", "search_type": "ioc"}
-        else:
-            body = {"search_value": f"{observable_value}", "search_type": "ioc"}
+        match observable_type:
+            case "IPv4" | "IPv6" | "MD5" | "SHA1" | "SHA256" | "BOGON":
+                body = {"search_value": f"%{observable_value}", "search_type": "ioc"}
+            case "FQDN" | "URL":
+                body = {"search_value": f"{observable_value}%", "search_type": "ioc"}
+            case _:
+                body = {"search_value": f"{observable_value}", "search_type": "ioc"}
 
         try:
             url = f"{dfir_iris_url}/search?cid=1"
