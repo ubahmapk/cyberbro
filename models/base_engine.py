@@ -1,6 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import asdict
 from typing import Any
 
@@ -19,13 +19,13 @@ class BaseEngine(ABC):
     Abstract base class for all analysis engines.
     """
 
-    def __init__(self, secrets: Secrets, proxies: dict, ssl_verify: bool):
+    def __init__(self, secrets: Secrets, proxies: dict, ssl_verify: bool) -> None:
         self.secrets: Secrets = secrets
         self.proxies: dict[str, str] = proxies
         self.ssl_verify: bool = ssl_verify
 
     @override
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """Allow an engine to be identified by it's name."""
         if isinstance(other, str):
             return self.name == other
@@ -33,13 +33,13 @@ class BaseEngine(ABC):
             return self.name == other.name
         raise NotImplementedError
 
-    def __req__(self, other):
+    def __req__(self, other) -> bool:
         """Allow an engine to be identified by it's name, on the right hand
         side of an equation."""
         return other == self
 
     @override
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.name)
 
     @property
@@ -50,7 +50,7 @@ class BaseEngine(ABC):
 
     @property
     @abstractmethod
-    def supported_types(self) -> list[str]:
+    def supported_types(self) -> Iterable[str]:
         """List of observable types this engine supports (e.g., ['IPv4', 'URL'])."""
         pass
 
@@ -118,7 +118,7 @@ class BaseEngine(ABC):
 
     @classmethod
     @abstractmethod
-    def create_export_row(cls, analysis_result: Mapping) -> dict:
+    def create_export_row(cls, analysis_result: Mapping) -> Mapping:
         """
         Format the raw result into a flat dictionary for CSV/Excel export.
         """
