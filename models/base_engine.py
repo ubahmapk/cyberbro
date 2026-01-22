@@ -38,6 +38,10 @@ class BaseEngine(ABC):
         side of an equation."""
         return other == self
 
+    @override
+    def __hash__(self):
+        return hash(self.name)
+
     @property
     @abstractmethod
     def name(self) -> str:
