@@ -2,7 +2,6 @@ import logging
 from collections.abc import Mapping
 from typing import Any
 
-import requests
 from bs4 import BeautifulSoup
 from typing_extensions import override
 
@@ -32,9 +31,7 @@ class ChromeExtensionEngine(BaseEngine):
 
     def _fetch_extension_name(self, url: str) -> dict[str, str] | None:
         try:
-            response = requests.get(
-                url, proxies=self.proxies, verify=self.ssl_verify, timeout=5
-            )
+            response = self._make_request(url, timeout=5)
             response.raise_for_status()
 
             soup = BeautifulSoup(response.content, "html.parser")
