@@ -15,7 +15,7 @@ from utils.bad_asn_manager import check_asn
 logger = logging.getLogger(__name__)
 
 # Keywords to identify legitimate cloud/hosting providers that can be abused
-LEGITIMATE_PROVIDER_KEYWORDS = [
+LEGITIMATE_PROVIDER_KEYWORDS: set[str] = {
     "amazon",
     "aws",
     "google",
@@ -34,10 +34,10 @@ LEGITIMATE_PROVIDER_KEYWORDS = [
     "rackspace",
     "contabo",
     "scaleway",
-]
+}
 
 # High-risk countries for cybersecurity threats
-HIGH_RISK_COUNTRIES = [
+HIGH_RISK_COUNTRIES: set[str] = {
     "RU",
     "CN",
     "UA",
@@ -58,7 +58,7 @@ HIGH_RISK_COUNTRIES = [
     "LT",
     "AL",
     "EE",  # India, Hong Kong, Turkey, Indonesia, Lithuania, Albania, Estonia
-]
+}
 
 
 def is_legitimate_provider(source_description: str) -> bool:
