@@ -2,7 +2,6 @@ import logging
 from collections.abc import Mapping
 from typing import Any
 
-import requests
 from typing_extensions import override
 
 from models.base_engine import BaseEngine
@@ -35,13 +34,10 @@ class GitHubEngine(BaseEngine):
     def analyze(
         self, observable_value: str, observable_type: str
     ) -> dict[str, Any] | None:
+        url: str = f"https://grep.app/api/search?q={observable_value}"
+
         try:
-            response = requests.get(
-                f"https://grep.app/api/search?q={observable_value}",
-                proxies=self.proxies,
-                verify=self.ssl_verify,
-                timeout=5,
-            )
+            response = self._make_request(url, timeout=5)
             response.raise_for_status()
             data = response.json()
 
