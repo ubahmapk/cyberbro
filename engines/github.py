@@ -13,13 +13,13 @@ logger = logging.getLogger(__name__)
 class GitHubEngine(BaseEngine):
     @property
     @override
-    def name(self):
+    def name(self) -> str:
         return "github"
 
     @property
     @override
-    def supported_types(self):
-        return [
+    def supported_types(self) -> set[str]:
+        return {
             "CHROME_EXTENSION",
             "FQDN",
             "IPv4",
@@ -29,7 +29,7 @@ class GitHubEngine(BaseEngine):
             "SHA256",
             "URL",
             "Email",
-        ]
+        }
 
     @override
     def analyze(
