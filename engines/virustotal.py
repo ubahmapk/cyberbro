@@ -27,26 +27,20 @@ class VirusTotalEngine(BaseEngine):
 
         try:
             if observable_type in ["IPv4", "IPv6"]:
-                url = (
-                    f"https://www.virustotal.com/api/v3/ip_addresses/{observable_value}"
-                )
+                url = f"https://www.virustotal.com/api/v3/ip_addresses/{observable_value}"
                 link = f"https://www.virustotal.com/gui/ip-address/{observable_value}/detection"
             elif observable_type == "FQDN":
                 url = f"https://www.virustotal.com/api/v3/domains/{observable_value}"
                 link = f"https://www.virustotal.com/gui/domain/{observable_value}/detection"
             elif observable_type == "URL":
                 encoded_url = (
-                    base64.urlsafe_b64encode(observable_value.encode())
-                    .decode()
-                    .strip("=")
+                    base64.urlsafe_b64encode(observable_value.encode()).decode().strip("=")
                 )
                 url = f"https://www.virustotal.com/api/v3/urls/{encoded_url}"
                 link = f"https://www.virustotal.com/gui/url/{encoded_url}/detection"
             else:
                 url = f"https://www.virustotal.com/api/v3/files/{observable_value}"
-                link = (
-                    f"https://www.virustotal.com/gui/file/{observable_value}/detection"
-                )
+                link = f"https://www.virustotal.com/gui/file/{observable_value}/detection"
 
             response = requests.get(
                 url,

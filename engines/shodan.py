@@ -58,6 +58,4 @@ class ShodanEngine(BaseEngine):
     @classmethod
     @override
     def create_export_row(cls, analysis_result: Mapping) -> dict:
-        return {
-            "shodan_ports": analysis_result.get("ports") if analysis_result else None
-        }
+        return {"shodan_ports": analysis_result.get("ports") if analysis_result else None}

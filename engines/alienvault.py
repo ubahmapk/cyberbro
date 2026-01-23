@@ -34,9 +34,7 @@ class AlienVaultEngine(BaseEngine):
         ]
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         """
         Queries the OTX AlienVault API for information about a given observable.
         Reuses the original maintainer's logic for querying and parsing.
@@ -51,9 +49,7 @@ class AlienVaultEngine(BaseEngine):
 
         try:
             # Reuse the existing query logic
-            result: dict = query_alienvault(
-                observable_dict, api_key, self.proxies, self.ssl_verify
-            )
+            result: dict = query_alienvault(observable_dict, api_key, self.proxies, self.ssl_verify)
 
             # Reuse the existing parsing logic
             report: dict = parse_alienvault_response(result)
@@ -125,15 +121,11 @@ def query_alienvault(
     headers = {"X-OTX-API-KEY": api_key}
 
     try:
-        response = requests.get(
-            url, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5
-        )
+        response = requests.get(url, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5)
         response.raise_for_status()
         result = response.json()
     except requests.exceptions.RequestException as req_err:
-        logger.error(
-            "Network error while querying OTX AlienVault: %s", req_err, exc_info=True
-        )
+        logger.error("Network error while querying OTX AlienVault: %s", req_err, exc_info=True)
         raise QueryError from req_err
 
     return result
@@ -189,9 +181,7 @@ def parse_alienvault_response(result: dict) -> dict:
 
         # Link to default pulse URL if no other more specific link is present
         pulse_url_default_value: str = f"https://otx.alienvault.com/pulse/{pulse.id}"
-        pulse_url: str = (
-            pulse.references[0] if pulse.references else pulse_url_default_value
-        )
+        pulse_url: str = pulse.references[0] if pulse.references else pulse_url_default_value
 
         # Skip if this pulse URL has already been seen (excluding None entries)
         if pulse_url != pulse_url_default_value and pulse_url in seen_urls:
@@ -206,8 +196,7 @@ def parse_alienvault_response(result: dict) -> dict:
             [
                 family.display_name
                 for family in pulse.malware_families
-                if family.display_name.lower()
-                not in map(str.lower, report_malware_families)
+                if family.display_name.lower() not in map(str.lower, report_malware_families)
             ]
         )
 

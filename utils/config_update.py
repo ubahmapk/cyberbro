@@ -72,9 +72,7 @@ def update_gui_enabled_engines(secrets: Secrets, request: Request) -> list[str]:
     return []
 
 
-def process_config_update(
-    secrets: Secrets, request: Request
-) -> tuple[dict[str, Any], int]:
+def process_config_update(secrets: Secrets, request: Request) -> tuple[dict[str, Any], int]:
     """Process configuration update from form data.
 
     Args:

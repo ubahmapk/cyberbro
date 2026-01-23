@@ -28,16 +28,10 @@ class IPInfoEngine(BaseEngine):
         return True  # IP-only engine
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         try:
-            url = (
-                f"https://ipinfo.io/{observable_value}/json?token={self.secrets.ipinfo}"
-            )
-            response = requests.get(
-                url, proxies=self.proxies, verify=self.ssl_verify, timeout=5
-            )
+            url = f"https://ipinfo.io/{observable_value}/json?token={self.secrets.ipinfo}"
+            response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
             response.raise_for_status()
 
             data = response.json()
@@ -94,11 +88,7 @@ class IPInfoEngine(BaseEngine):
         if not analysis_result:
             return {f"ipinfo_{k}": None for k in ["cn", "country", "geo", "asn", "org"]}
 
-        asn_data = (
-            analysis_result.get("asn").split(" ", 1)
-            if analysis_result.get("asn")
-            else []
-        )
+        asn_data = analysis_result.get("asn").split(" ", 1) if analysis_result.get("asn") else []
 
         return {
             "ipinfo_cn": analysis_result.get("country_code"),

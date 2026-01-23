@@ -21,9 +21,7 @@ def validate_history_params(
     """
     page = max(1, page)
     per_page = 20 if per_page < 1 or per_page > 100 else per_page
-    search_type = (
-        search_type if search_type in ["observable", "engine", "id"] else "observable"
-    )
+    search_type = search_type if search_type in ["observable", "engine", "id"] else "observable"
     time_range = time_range if time_range in ["7d", "30d", "all"] else "7d"
     return page, per_page, search_type, time_range
 
@@ -64,9 +62,7 @@ def apply_search_filter(base_query, search_query: str, search_type: str):
     if search_type == "id":
         return base_query.filter(AnalysisResult.id.ilike(f"%{search_query}%"))
     if search_type == "engine":
-        return base_query.filter(
-            AnalysisResult.selected_engines.ilike(f"%{search_query}%")
-        )
+        return base_query.filter(AnalysisResult.selected_engines.ilike(f"%{search_query}%"))
 
     return base_query
 
@@ -93,9 +89,7 @@ def filter_by_observable(results: list, search_query: str) -> list:
     ]
 
 
-def calculate_pagination_metadata(
-    page: int, per_page: int, total_count: int
-) -> dict[str, int]:
+def calculate_pagination_metadata(page: int, per_page: int, total_count: int) -> dict[str, int]:
     """Calculate pagination metadata.
 
     Args:

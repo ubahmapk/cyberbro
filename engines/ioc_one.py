@@ -34,9 +34,7 @@ class IOCOneHTMLEngine(BaseEngine):
         return BASE_SUPPORTED_TYPES
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         try:
             url = f"https://ioc.one/auth/deep_search?search={observable_value}"
             response = requests.get(
@@ -55,12 +53,10 @@ class IOCOneHTMLEngine(BaseEngine):
             for card in cards[:5]:
                 header = card.find("div", class_="card-header").get_text(strip=True)
                 title = card.find("h5", class_="card-title").get_text(strip=True)
-                source = card.find(
-                    "a", class_="btn border btn-primary m-1", target="_blank"
-                )["href"]
-                search_results.append(
-                    {"header": header, "title": title, "source": source}
-                )
+                source = card.find("a", class_="btn border btn-primary m-1", target="_blank")[
+                    "href"
+                ]
+                search_results.append({"header": header, "title": title, "source": source})
 
             return {
                 "results": search_results,
@@ -81,11 +77,7 @@ class IOCOneHTMLEngine(BaseEngine):
     @override
     def create_export_row(cls, analysis_result: Mapping) -> dict:
         # Since original export fields are missing, provide a count
-        return {
-            "ioc_one_html_count": analysis_result.get("count")
-            if analysis_result
-            else None
-        }
+        return {"ioc_one_html_count": analysis_result.get("count") if analysis_result else None}
 
 
 class IOCOnePDFEngine(BaseEngine):
@@ -100,9 +92,7 @@ class IOCOnePDFEngine(BaseEngine):
         return BASE_SUPPORTED_TYPES
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         try:
             url = f"https://ioc.one/auth/deep_search/pdf?search={observable_value}"
             response = requests.get(
@@ -123,12 +113,10 @@ class IOCOnePDFEngine(BaseEngine):
                 title = card.find("h5", class_="card-title").get_text(strip=True)
                 # Note the difference in class name for the source link
                 # from the HTML engine
-                source = card.find(
-                    "a", class_="btn border btn-primary mx-1", target="_blank"
-                )["href"]
-                search_results.append(
-                    {"header": header, "title": title, "source": source}
-                )
+                source = card.find("a", class_="btn border btn-primary mx-1", target="_blank")[
+                    "href"
+                ]
+                search_results.append({"header": header, "title": title, "source": source})
 
             return {
                 "results": search_results,
@@ -149,8 +137,4 @@ class IOCOnePDFEngine(BaseEngine):
     @override
     def create_export_row(cls, analysis_result: Mapping) -> dict:
         # Since original export fields are missing, provide a count
-        return {
-            "ioc_one_pdf_count": analysis_result.get("count")
-            if analysis_result
-            else None
-        }
+        return {"ioc_one_pdf_count": analysis_result.get("count") if analysis_result else None}

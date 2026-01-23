@@ -37,9 +37,7 @@ class RDAPEngine(BaseEngine):
         return ""
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         try:
             if observable_type == "URL":
                 domain_part = observable_value.split("/")[2].split(":")[0]
@@ -78,8 +76,7 @@ class RDAPEngine(BaseEngine):
                 roles = entity.get("roles", [])
                 if "abuse" in roles:
                     result["abuse_contact"] = (
-                        self._extract_vcard_field(entity, "email")
-                        or result["abuse_contact"]
+                        self._extract_vcard_field(entity, "email") or result["abuse_contact"]
                     )
                 if "registrar" in roles:
                     result["registrar"] = (
@@ -90,12 +87,10 @@ class RDAPEngine(BaseEngine):
                         self._extract_vcard_field(entity, "fn") or result["registrant"]
                     )
                     result["registrant_email"] = (
-                        self._extract_vcard_field(entity, "email")
-                        or result["registrant_email"]
+                        self._extract_vcard_field(entity, "email") or result["registrant_email"]
                     )
                     result["organization"] = (
-                        self._extract_vcard_field(entity, "org")
-                        or result["organization"]
+                        self._extract_vcard_field(entity, "org") or result["organization"]
                     )
 
                 for sub_entity in entity.get("entities", []):
@@ -131,9 +126,7 @@ class RDAPEngine(BaseEngine):
             return result
 
         except Exception as e:
-            logger.error(
-                "Error querying RDAP for '%s': %s", observable_value, e, exc_info=True
-            )
+            logger.error("Error querying RDAP for '%s': %s", observable_value, e, exc_info=True)
             return None
 
     @classmethod

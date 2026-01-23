@@ -27,9 +27,7 @@ class AbusixEngine(BaseEngine):
         return True
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, str] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, str] | None:
         try:
             results = querycontacts.ContactFinder().find(observable_value)
             if not results:
@@ -52,6 +50,4 @@ class AbusixEngine(BaseEngine):
     @classmethod
     @override
     def create_export_row(cls, analysis_result: Mapping) -> dict:
-        return {
-            "abusix_abuse": analysis_result.get("abuse") if analysis_result else None
-        }
+        return {"abusix_abuse": analysis_result.get("abuse") if analysis_result else None}

@@ -85,8 +85,7 @@ class CrtShEngine(BaseEngine):
             domain_count += Counter(domains)
 
         top_domains = [
-            CrtShDomain(domain=dmn, count=cnt)
-            for dmn, cnt in domain_count.most_common(5)
+            CrtShDomain(domain=dmn, count=cnt) for dmn, cnt in domain_count.most_common(5)
         ]
 
         return CrtShReport(

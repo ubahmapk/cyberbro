@@ -32,9 +32,7 @@ class OpenCTIEngine(BaseEngine):
         ]
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         api_key = self.secrets.opencti_api_key
         opencti_url = self.secrets.opencti_url
 
@@ -88,7 +86,7 @@ class OpenCTIEngine(BaseEngine):
                 }
               }
             }
-            """  # noqa: E501
+            """
 
             variables = {
                 "count": 100,
@@ -193,9 +191,7 @@ class OpenCTIEngine(BaseEngine):
                 indicator_data = additional_data.get("data", {}).get("indicator", {})
 
             # Format dates
-            latest_created_at = (
-                latest_created_at.split("T")[0] if latest_created_at else None
-            )
+            latest_created_at = latest_created_at.split("T")[0] if latest_created_at else None
             valid_from = (
                 indicator_data.get("valid_from", "").split("T")[0]
                 if indicator_data.get("valid_from")
@@ -234,10 +230,7 @@ class OpenCTIEngine(BaseEngine):
     @override
     def create_export_row(cls, analysis_result: Mapping) -> dict:
         if not analysis_result:
-            return {
-                f"opencti_{k}": None
-                for k in ["entity_counts", "global_count", "last_seen"]
-            }
+            return {f"opencti_{k}": None for k in ["entity_counts", "global_count", "last_seen"]}
 
         entity_counts = analysis_result.get("entity_counts", {})
         entity_counts_str = ", ".join(f"{k}:{v}" for k, v in entity_counts.items())

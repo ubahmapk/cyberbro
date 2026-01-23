@@ -23,9 +23,7 @@ class HudsonRockEngine(BaseEngine):
         return ["Email", "FQDN", "URL"]
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         try:
             if observable_type == "URL":
                 parsed_url = urlparse(observable_value)
@@ -42,9 +40,7 @@ class HudsonRockEngine(BaseEngine):
                 logger.error("Unsupported observable type: %s", observable_type)
                 return None
 
-            response = requests.get(
-                url, proxies=self.proxies, verify=self.ssl_verify, timeout=5
-            )
+            response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
             response.raise_for_status()
             data = response.json()
 
@@ -103,16 +99,12 @@ class HudsonRockEngine(BaseEngine):
             }
 
         return {
-            "hr_total_corporate_services": analysis_result.get(
-                "total_corporate_services"
-            ),
+            "hr_total_corporate_services": analysis_result.get("total_corporate_services"),
             "hr_total_user_services": analysis_result.get("total_user_services"),
             "hr_total": analysis_result.get("total"),
             "hr_total_stealers": analysis_result.get("totalStealers"),
             "hr_employees": analysis_result.get("employees"),
             "hr_users": analysis_result.get("users"),
             "hr_third_parties": analysis_result.get("third_parties"),
-            "hr_stealer_families": ", ".join(
-                analysis_result.get("stealerFamilies", [])
-            ),
+            "hr_stealer_families": ", ".join(analysis_result.get("stealerFamilies", [])),
         }

@@ -28,9 +28,7 @@ CACHE_MAX_AGE = 24 * 60 * 60  # 24 hours in seconds
 
 # Data sources
 SPAMHAUS_URL = "https://www.spamhaus.org/drop/asndrop.json"
-BRIANHAMA_URL = (
-    "https://raw.githubusercontent.com/brianhama/bad-asn-list/master/bad-asn-list.csv"
-)
+BRIANHAMA_URL = "https://raw.githubusercontent.com/brianhama/bad-asn-list/master/bad-asn-list.csv"
 
 
 def normalize_asn(asn_value: str | int) -> str:
@@ -60,9 +58,7 @@ def download_spamhaus_asndrop() -> dict[str, str]:
     result = {}
 
     try:
-        response = requests.get(
-            SPAMHAUS_URL, proxies=PROXIES, verify=SSL_VERIFY, timeout=30
-        )
+        response = requests.get(SPAMHAUS_URL, proxies=PROXIES, verify=SSL_VERIFY, timeout=30)
         response.raise_for_status()
 
         # Parse JSONL format (one JSON object per line)
@@ -86,9 +82,7 @@ def download_spamhaus_asndrop() -> dict[str, str]:
                     asname = entry.get("asname", "Unknown")
                     result[asn] = f"Spamhaus ASNDROP ({asname}, {domain}, {cc})"
             except json.JSONDecodeError as e:
-                logger.warning(
-                    f"Failed to parse Spamhaus ASNDROP line: {line[:100]}... Error: {e}"
-                )
+                logger.warning(f"Failed to parse Spamhaus ASNDROP line: {line[:100]}... Error: {e}")
                 continue
 
         logger.info(f"Loaded {len(result)} ASNs from Spamhaus ASNDROP")
@@ -109,9 +103,7 @@ def download_brianhama_bad_asn() -> dict[str, str]:
     result = {}
 
     try:
-        response = requests.get(
-            BRIANHAMA_URL, proxies=PROXIES, verify=SSL_VERIFY, timeout=30
-        )
+        response = requests.get(BRIANHAMA_URL, proxies=PROXIES, verify=SSL_VERIFY, timeout=30)
         response.raise_for_status()
 
         # Parse CSV
@@ -144,7 +136,7 @@ def update_bad_asn_cache() -> bool:
         file_age = time.time() - CACHE_FILE.stat().st_mtime
         if file_age < CACHE_MAX_AGE:
             logger.info(
-                f"Bad ASN cache is fresh (age: {file_age / 3600:.1f} hours), skipping update"  # noqa: E501
+                f"Bad ASN cache is fresh (age: {file_age / 3600:.1f} hours), skipping update"
             )
             return False
 

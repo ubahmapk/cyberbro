@@ -57,13 +57,9 @@ class ChromeExtensionEngine(BaseEngine):
             return None
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         chrome_url = f"https://chromewebstore.google.com/detail/{observable_value}"
-        edge_url = (
-            f"https://microsoftedge.microsoft.com/addons/detail/{observable_value}"
-        )
+        edge_url = f"https://microsoftedge.microsoft.com/addons/detail/{observable_value}"
 
         result = self._fetch_extension_name(chrome_url)
         if result and result["name"]:
@@ -81,6 +77,4 @@ class ChromeExtensionEngine(BaseEngine):
         # Note: In the original export.py, this was explicitly handled for the
         # "CHROME_EXTENSION" type using the "extension" key in the result.
         # This implementation aligns with the goal of moving all logic into the class.
-        return {
-            "extension_name": analysis_result.get("name") if analysis_result else None
-        }
+        return {"extension_name": analysis_result.get("name") if analysis_result else None}

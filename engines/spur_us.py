@@ -27,9 +27,7 @@ class SpurUSEngine(BaseEngine):
         return True  # IP-only engine
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         spur_url = f"https://spur.us/context/{observable_value}"
         api_key = self.secrets.spur_us
 

@@ -62,9 +62,7 @@ class GoogleDNSEngine(BaseEngine):
         try:
             dmarc_domain = f"_dmarc.{domain}"
             url = f"https://dns.google/resolve?name={dmarc_domain}&type=TXT"
-            response = requests.get(
-                url, proxies=self.proxies, verify=self.ssl_verify, timeout=5
-            )
+            response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
             response.raise_for_status()
             data = response.json()
 
@@ -80,9 +78,7 @@ class GoogleDNSEngine(BaseEngine):
     def _query_spf(self, domain: str) -> dict[str, Any] | None:
         try:
             url = f"https://dns.google/resolve?name={domain}&type=TXT"
-            response = requests.get(
-                url, proxies=self.proxies, verify=self.ssl_verify, timeout=5
-            )
+            response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
             response.raise_for_status()
             data = response.json()
 
@@ -96,16 +92,12 @@ class GoogleDNSEngine(BaseEngine):
             return None
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         try:
             if observable_type in ["IPv4", "IPv6"]:
                 reverse_name = f"{observable_value}.in-addr.arpa"
                 url = f"https://dns.google/resolve?name={reverse_name}&type=PTR"
-                response = requests.get(
-                    url, proxies=self.proxies, verify=self.ssl_verify
-                )
+                response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify)
                 response.raise_for_status()
                 data = response.json()
                 for answer in data.get("Answer", []):
@@ -125,9 +117,7 @@ class GoogleDNSEngine(BaseEngine):
             # Query all standard records
             for record in dns_record_types:
                 url = f"https://dns.google/resolve?name={domain}&type={record['id']}"
-                response = requests.get(
-                    url, proxies=self.proxies, verify=self.ssl_verify
-                )
+                response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify)
                 response.raise_for_status()
                 data = response.json()
                 for answer in data.get("Answer", []):
@@ -188,9 +178,7 @@ class GoogleDNSEngine(BaseEngine):
             type_name = record["type"].lower()
             key = f"google_dns_{type_name}"
             row[key] = (
-                ", ".join(dns_records.get(type_name, []))
-                if type_name in dns_records
-                else None
+                ", ".join(dns_records.get(type_name, [])) if type_name in dns_records else None
             )
 
         return row

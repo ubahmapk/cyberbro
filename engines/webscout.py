@@ -34,15 +34,11 @@ class WebscoutEngine(BaseEngine):
         return dt
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         try:
             time.sleep(1)  # rate limit
             url = f"https://api.webscout.io/query/ip/{observable_value}?apikey={self.secrets.webscout}"
-            response = requests.get(
-                url, proxies=self.proxies, verify=self.ssl_verify, timeout=5
-            )
+            response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
             response.raise_for_status()
 
             data = response.json()

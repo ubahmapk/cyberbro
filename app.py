@@ -164,9 +164,7 @@ def get_latest_version_from_updated_cache_file(cache_file: Path) -> str:
 
     try:
         with cache_file.open("w") as f:
-            json.dump(
-                {"last_checked": time.time(), "latest_version": latest_version}, f
-            )
+            json.dump({"last_checked": time.time(), "latest_version": latest_version}, f)
             logger.info(f"Cache file updated with latest version: {latest_version}")
     except OSError as e:
         logger.error(f"Error writing to cache file: {e}")
@@ -214,9 +212,7 @@ def analyze() -> tuple[str, int]:
 
     # Generate a secure hash for form data and engines using SHA-256
     combined_data: str = f"{form_data}|{','.join(selected_engines)}"
-    cache_key: str = (
-        f"web-analyze-{hashlib.sha256(combined_data.encode('utf-8')).hexdigest()}"
-    )
+    cache_key: str = f"web-analyze-{hashlib.sha256(combined_data.encode('utf-8')).hexdigest()}"
 
     if not ignore_cache:
         # Check cache
@@ -242,9 +238,7 @@ def analyze() -> tuple[str, int]:
     gui_cache_timeout: int = secrets.gui_cache_timeout
     cache.set(cache_key, response_data, timeout=gui_cache_timeout)
 
-    return render_template(
-        "waiting.html", analysis_id=analysis_id, API_PREFIX=API_PREFIX
-    ), 200
+    return render_template("waiting.html", analysis_id=analysis_id, API_PREFIX=API_PREFIX), 200
 
 
 @app.route("/results/<analysis_id>", methods=["GET"])
@@ -274,9 +268,7 @@ def is_analysis_complete(analysis_id: str) -> Response:
 @app.route("/export/<analysis_id>")
 def export(analysis_id: str) -> Response | tuple[Response, int]:
     """Export the analysis results."""
-    analysis_results: AnalysisResult | None = db.session.get(
-        AnalysisResult, analysis_id
-    )
+    analysis_results: AnalysisResult | None = db.session.get(AnalysisResult, analysis_id)
 
     if not analysis_results:
         return jsonify({"error": "Analysis not found."}), 404
@@ -347,26 +339,17 @@ def history() -> str:
         all_results: list[AnalysisResult] = base_query.order_by(
             AnalysisResult.end_time.desc()
         ).all()
-        filtered_results: list[AnalysisResult] = filter_by_observable(
-            all_results, search_query
-        )
+        filtered_results: list[AnalysisResult] = filter_by_observable(all_results, search_query)
         total_count: int = len(filtered_results)
-        analysis_results: list[AnalysisResult] = filtered_results[
-            offset : offset + per_page
-        ]
+        analysis_results: list[AnalysisResult] = filtered_results[offset : offset + per_page]
     else:
         total_count = base_query.count()
         analysis_results = (
-            base_query.order_by(AnalysisResult.end_time.desc())
-            .limit(per_page)
-            .offset(offset)
-            .all()
+            base_query.order_by(AnalysisResult.end_time.desc()).limit(per_page).offset(offset).all()
         )
 
     # Calculate pagination metadata
-    pagination: dict[str, int] = calculate_pagination_metadata(
-        page, per_page, total_count
-    )
+    pagination: dict[str, int] = calculate_pagination_metadata(page, per_page, total_count)
 
     return render_template(
         "history.html",
@@ -440,9 +423,7 @@ def analyze_api() -> tuple[Response, int]:
 
     # Generate a secure hash for form data and engines using SHA-256
     combined_data = f"{form_data}|{','.join(selected_engines)}"
-    cache_key = (
-        f"api-analyze-{hashlib.sha256(combined_data.encode('utf-8')).hexdigest()}"
-    )
+    cache_key = f"api-analyze-{hashlib.sha256(combined_data.encode('utf-8')).hexdigest()}"
 
     if not ignore_cache:
         # Check cache
@@ -474,9 +455,7 @@ def graph(analysis_id: str) -> tuple[str, int]:
     """Render the graph visualization for the given analysis ID."""
     analysis_results = db.session.get(AnalysisResult, analysis_id)
     if analysis_results:
-        return render_template(
-            "graph.html", analysis_id=analysis_id, API_PREFIX=API_PREFIX
-        ), 200
+        return render_template("graph.html", analysis_id=analysis_id, API_PREFIX=API_PREFIX), 200
     return render_template("404.html"), 404
 
 

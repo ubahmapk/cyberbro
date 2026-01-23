@@ -148,9 +148,7 @@ def get_suspicious_info_report(
         return None
 
     try:
-        suspcious_info_report: SuspiciousInfoReport = SuspiciousInfoReport(
-            **response.json()
-        )
+        suspcious_info_report: SuspiciousInfoReport = SuspiciousInfoReport(**response.json())
     except ValidationError as e:
         logger.error(
             f"Error validating Criminal IP SuspiciousInfo report for {observable}: {e}",

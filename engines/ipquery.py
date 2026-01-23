@@ -27,14 +27,10 @@ class IPQueryEngine(BaseEngine):
         return True  # IP-only engine
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         try:
             url = f"https://api.ipquery.io/{observable_value}"
-            response = requests.get(
-                url, proxies=self.proxies, verify=self.ssl_verify, timeout=5
-            )
+            response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
             response.raise_for_status()
 
             data = response.json()

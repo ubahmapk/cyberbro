@@ -23,9 +23,7 @@ class DFIRIrisEngine(BaseEngine):
         return ["BOGON", "FQDN", "IPv4", "IPv6", "MD5", "SHA1", "SHA256", "URL"]
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         dfir_iris_api_key = self.secrets.dfir_iris_api_key
         dfir_iris_url = self.secrets.dfir_iris_url
 

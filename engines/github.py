@@ -31,9 +31,7 @@ class GitHubEngine(BaseEngine):
         }
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         url: str = f"https://grep.app/api/search?q={observable_value}"
 
         try:
@@ -75,8 +73,4 @@ class GitHubEngine(BaseEngine):
     @override
     def create_export_row(cls, analysis_result: Mapping) -> dict:
         # Since original export fields are missing, provide a count
-        return {
-            "github_results_count": analysis_result.get("total")
-            if analysis_result
-            else None
-        }
+        return {"github_results_count": analysis_result.get("total") if analysis_result else None}

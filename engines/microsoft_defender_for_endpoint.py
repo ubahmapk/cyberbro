@@ -59,9 +59,7 @@ class MDEEngine(BaseEngine):
             "grant_type": "client_credentials",
         }
         try:
-            response = requests.post(
-                url, data=body, proxies=self.proxies, verify=self.ssl_verify
-            )
+            response = requests.post(url, data=body, proxies=self.proxies, verify=self.ssl_verify)
             response.raise_for_status()
             json_response = response.json()
         except Exception as err:
@@ -74,21 +72,15 @@ class MDEEngine(BaseEngine):
             token_path.write_text(aad_token)
             return aad_token
         except KeyError:
-            logger.error(
-                "Unable to retrieve token from JSON response: %s", json_response
-            )
+            logger.error("Unable to retrieve token from JSON response: %s", json_response)
             return "invalid"
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         try:
             jwt_token = self._read_token() or self._get_token()
             if "invalid" in jwt_token:
-                logger.error(
-                    "No valid token available for Microsoft Defender for Endpoint."
-                )
+                logger.error("No valid token available for Microsoft Defender for Endpoint.")
                 return None
 
             headers = {"Authorization": f"Bearer {jwt_token}"}
@@ -100,9 +92,7 @@ class MDEEngine(BaseEngine):
 
             if observable_type in ["MD5", "SHA1", "SHA256"]:
                 url = f"https://api.securitycenter.microsoft.com/api/files/{observable}/stats"
-                file_info_url = (
-                    f"https://api.securitycenter.microsoft.com/api/files/{observable}"
-                )
+                file_info_url = f"https://api.securitycenter.microsoft.com/api/files/{observable}"
                 link = f"https://security.microsoft.com/file/{observable}"
             elif observable_type in ["IPv4", "IPv6", "BOGON"]:
                 url = f"https://api.securitycenter.microsoft.com/api/ips/{observable}/stats"
@@ -112,7 +102,9 @@ class MDEEngine(BaseEngine):
                 link = f"https://security.microsoft.com/domains?urlDomain={observable}"
             elif observable_type == "URL":
                 extracted_domain = observable.split("/")[2].split(":")[0]
-                url = f"https://api.securitycenter.microsoft.com/api/domains/{extracted_domain}/stats"
+                url = (
+                    f"https://api.securitycenter.microsoft.com/api/domains/{extracted_domain}/stats"
+                )
                 link = f"https://security.microsoft.com/url?url={observable}"
             else:
                 return None
@@ -141,17 +133,11 @@ class MDEEngine(BaseEngine):
                 file_info = file_info_response.json()
                 data["issuer"] = file_info.get("issuer", "Unknown")
                 data["signer"] = file_info.get("signer", "Unknown")
-                data["isValidCertificate"] = file_info.get(
-                    "isValidCertificate", "Unknown"
-                )
+                data["isValidCertificate"] = file_info.get("isValidCertificate", "Unknown")
                 data["filePublisher"] = file_info.get("filePublisher", "Unknown")
                 data["fileProductName"] = file_info.get("fileProductName", "Unknown")
-                data["determinationType"] = file_info.get(
-                    "determinationType", "Unknown"
-                )
-                data["determinationValue"] = file_info.get(
-                    "determinationValue", "Unknown"
-                )
+                data["determinationType"] = file_info.get("determinationType", "Unknown")
+                data["determinationValue"] = file_info.get("determinationValue", "Unknown")
 
             # Simplify dates
             if data.get("orgFirstSeen"):
@@ -174,9 +160,7 @@ class MDEEngine(BaseEngine):
     @override
     def create_export_row(cls, analysis_result: Mapping) -> dict:
         if not analysis_result:
-            return {
-                f"mde_{k}": None for k in ["first_seen", "last_seen", "org_prevalence"]
-            }
+            return {f"mde_{k}": None for k in ["first_seen", "last_seen", "org_prevalence"]}
 
         return {
             "mde_first_seen": analysis_result.get("orgFirstSeen"),

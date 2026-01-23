@@ -27,9 +27,7 @@ class IPAPIEngine(BaseEngine):
         return True  # IP-only engine
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         try:
             url = "https://api.ipapi.is"
             headers = {"Content-Type": "application/json"}
@@ -43,7 +41,7 @@ class IPAPIEngine(BaseEngine):
                 # Don't use API key if it doesn't match the format
                 if self.secrets.ipapi:
                     logger.warning(
-                        "ipapi API key format is invalid, querying without API key for '%s'",  # noqa: E501
+                        "ipapi API key format is invalid, querying without API key for '%s'",
                         observable_value,
                     )
                 else:
@@ -72,9 +70,7 @@ class IPAPIEngine(BaseEngine):
                 return data
 
         except Exception as e:
-            logger.error(
-                "Error querying ipapi for '%s': %s", observable_value, e, exc_info=True
-            )
+            logger.error("Error querying ipapi for '%s': %s", observable_value, e, exc_info=True)
 
         return None
 

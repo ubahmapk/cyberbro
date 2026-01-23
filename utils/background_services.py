@@ -19,8 +19,6 @@ def initialize_background_services() -> None:
     """
     # Start Bad ASN background updater thread
     # This maintains up-to-date lists of malicious ASNs for IP reputation checks
-    bad_asn_thread = threading.Thread(
-        target=background_updater, daemon=True, name="BadASNUpdater"
-    )
+    bad_asn_thread = threading.Thread(target=background_updater, daemon=True, name="BadASNUpdater")
     bad_asn_thread.start()
     logger.info("Bad ASN background updater thread started")

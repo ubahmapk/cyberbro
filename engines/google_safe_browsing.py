@@ -22,9 +22,7 @@ class GoogleSafeBrowsingEngine(BaseEngine):
         return ["FQDN", "IPv4", "IPv6", "URL"]
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         api_key = self.secrets.google_safe_browsing
 
         try:
@@ -75,8 +73,4 @@ class GoogleSafeBrowsingEngine(BaseEngine):
     @classmethod
     @override
     def create_export_row(cls, analysis_result: Mapping) -> dict:
-        return {
-            "gsb_threat": analysis_result.get("threat_found")
-            if analysis_result
-            else None
-        }
+        return {"gsb_threat": analysis_result.get("threat_found") if analysis_result else None}

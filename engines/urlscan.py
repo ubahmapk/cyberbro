@@ -22,9 +22,7 @@ class URLScanEngine(BaseEngine):
         return ["FQDN", "IPv4", "IPv6", "MD5", "SHA1", "SHA256", "URL"]
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         query_fields = {
             "IPv4": "ip",
             "IPv6": "ip",
@@ -45,9 +43,7 @@ class URLScanEngine(BaseEngine):
 
             url = f"https://urlscan.io/api/v1/search/?q={query_field}:{observable}"
 
-            response = requests.get(
-                url, proxies=self.proxies, verify=self.ssl_verify, timeout=5
-            )
+            response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
             response.raise_for_status()
 
             result = response.json()
@@ -60,12 +56,8 @@ class URLScanEngine(BaseEngine):
                 domain = page_info.get("domain", "Unknown")
                 domain_count[domain] = domain_count.get(domain, 0) + 1
 
-            sorted_domains = sorted(
-                domain_count.items(), key=lambda item: item[1], reverse=True
-            )
-            top_domains = [
-                {"domain": dmn, "count": cnt} for dmn, cnt in sorted_domains[:5]
-            ]
+            sorted_domains = sorted(domain_count.items(), key=lambda item: item[1], reverse=True)
+            top_domains = [{"domain": dmn, "count": cnt} for dmn, cnt in sorted_domains[:5]]
 
             return {
                 "scan_count": scan_count,

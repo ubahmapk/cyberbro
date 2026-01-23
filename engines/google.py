@@ -95,9 +95,7 @@ class GoogleCSEEngine(BaseEngine):
                 return None
 
             items = data.get("items", [])
-            total_results = int(
-                data.get("searchInformation", {}).get("totalResults", 0)
-            )
+            total_results = int(data.get("searchInformation", {}).get("totalResults", 0))
 
             search_results = [
                 {
@@ -131,8 +129,4 @@ class GoogleCSEEngine(BaseEngine):
     @override
     def create_export_row(cls, analysis_result: Mapping) -> dict:
         # Since original export fields are missing, provide a count
-        return {
-            "google_results_count": analysis_result.get("total")
-            if analysis_result
-            else None
-        }
+        return {"google_results_count": analysis_result.get("total") if analysis_result else None}

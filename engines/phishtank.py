@@ -24,9 +24,7 @@ class PhishTankEngine(BaseEngine):
         return ["FQDN", "URL"]
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         headers = {"User-Agent": "phishtank/Cyberbro"}
         observable_to_analyze = observable_value
 

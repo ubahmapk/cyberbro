@@ -23,9 +23,7 @@ class ThreatFoxEngine(BaseEngine):
         return ["FQDN", "IPv4", "IPv6", "URL"]
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         try:
             # If it's a URL, use the domain portion
             if observable_type == "URL":

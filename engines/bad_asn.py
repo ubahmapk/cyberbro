@@ -191,18 +191,14 @@ class BadASNEngine(BaseEngine):
             None otherwise
         """
         if not context:
-            logger.warning(
-                f"Bad ASN engine called without context for {observable_value}"
-            )
+            logger.warning(f"Bad ASN engine called without context for {observable_value}")
             return None
 
         # Try to extract ASN from various possible engine results
         asn = self._extract_asn_from_context(context)
 
         if not asn:
-            logger.debug(
-                f"No ASN found in context for {observable_value}, skipping Bad ASN check"  # noqa: E501
-            )
+            logger.debug(f"No ASN found in context for {observable_value}, skipping Bad ASN check")
             return None
 
         # Check ASN against bad ASN databases
@@ -210,9 +206,7 @@ class BadASNEngine(BaseEngine):
 
         if not result:
             # ASN is unlisted
-            logger.debug(
-                f"ASN {asn} for IP {observable_value} is not listed in bad ASN databases"  # noqa: E501
-            )
+            logger.debug(f"ASN {asn} for IP {observable_value} is not listed in bad ASN databases")
             return {
                 "status": "unlisted",
                 "asn": asn,
@@ -240,7 +234,7 @@ class BadASNEngine(BaseEngine):
             result["status"] = "potentially_legitimate"
             result["details"] = (
                 f"ASN {asn} is listed in bad ASN databases BUT this appears to be a legitimate cloud/hosting provider "  # noqa: E501
-                f"that can be abused by malicious actors. Risk Score: {risk_score}/100. "  # noqa: E501
+                f"that can be abused by malicious actors. Risk Score: {risk_score}/100."
                 f"Exercise caution but verify further context."
             )
             logger.info(
@@ -353,9 +347,7 @@ class BadASNEngine(BaseEngine):
             "bad_asn_asn": analysis_result.get("asn", ""),
             "bad_asn_source": analysis_result.get("source", ""),
             "bad_asn_details": analysis_result.get("details", ""),
-            "bad_asn_legitimate_but_abused": analysis_result.get(
-                "legitimate_but_abused", False
-            ),
+            "bad_asn_legitimate_but_abused": analysis_result.get("legitimate_but_abused", False),
             "bad_asn_risk_score": analysis_result.get("risk_score", 0),
             "bad_asn_org_name": analysis_result.get("asn_org_name", ""),
         }

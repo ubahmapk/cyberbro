@@ -93,14 +93,10 @@ class RostiEngine(BaseEngine):
             return {"rosti_count": 0, "rosti_values": None, "rosti_types": None}
 
         values = [
-            item.get("value")
-            for item in analysis_result.get("results", [])
-            if item.get("value")
+            item.get("value") for item in analysis_result.get("results", []) if item.get("value")
         ]
         types = [
-            item.get("type")
-            for item in analysis_result.get("results", [])
-            if item.get("type")
+            item.get("type") for item in analysis_result.get("results", []) if item.get("type")
         ]
 
         values_preview = ", ".join(values[:5]) if values else None
