@@ -63,9 +63,7 @@ class Secrets:
 
         if field_name in self.__dataclass_fields__:
             return self.__dataclass_fields__[field_name].type
-        raise KeyError(
-            f"Field '{field_name}' does not exist in {self.__class__.__name__}"
-        )
+        raise KeyError(f"Field '{field_name}' does not exist in {self.__class__.__name__}")
 
     def __setattr__(self, name: str, value: Any) -> None:
         """Set the value of a field in the dataclass.
@@ -93,9 +91,7 @@ class Secrets:
                 logger.warning(
                     f"Invalid value for {name}: {value}. Expected int. {name} not updated."
                 )
-                print(
-                    f"Invalid value for {name}: {value}. Expected int. {name} not updated."
-                )
+                print(f"Invalid value for {name}: {value}. Expected int. {name} not updated.")
                 return
 
         if field_type is bool and isinstance(value, str):
@@ -159,19 +155,13 @@ def read_secrets_from_file(secrets_file: Path) -> Secrets:
             with secrets_file.open() as f:
                 secrets.update(json.load(f))
         except OSError as e:
-            print(
-                "Unable to read secrets file. Reading environment variables anyway..."
-            )
+            print("Unable to read secrets file. Reading environment variables anyway...")
             logger.debug(f"Error reading secrets file: {e}")
-            logger.error(
-                "Unable to read secrets file. Reading environment variables anyway..."
-            )
+            logger.error("Unable to read secrets file. Reading environment variables anyway...")
         except json.JSONDecodeError as e:
             print("Error while decoding secrets:", e)
             logger.debug(f"Error while decoding secrets: {e}")
-            logger.error(
-                "Error while decoding secrets. Reading environment variables anyway..."
-            )
+            logger.error("Error while decoding secrets. Reading environment variables anyway...")
     else:
         print("Secrets file not found. Reading environment variables anyway...")
         logger.info("Secrets file not found. Reading environment variables anyway...")
@@ -195,7 +185,7 @@ def read_secrets_from_env(secrets: Secrets) -> Secrets:
             secrets.update({key: env_value})
 
     if not env_configured:
-        msg: str = "No environment variables were configured. You can configure secrets later in secrets.json."
+        msg: str = "No environment variables were configured. You can configure secrets later in secrets.json."  # noqa: E501
         print(msg)
         logger.info(msg)
 
@@ -238,9 +228,7 @@ def get_config() -> Secrets:
     # If the secrets are not the same as the defaults, save them to the file
     if secrets != DEFAULT_SECRETS:
         if not SECRETS_FILE.exists():
-            print(
-                "Secrets file was not found. Attempting to save current values to a new one."
-            )
+            print("Secrets file was not found. Attempting to save current values to a new one.")
 
         save_secrets_to_file(secrets, SECRETS_FILE)
 
