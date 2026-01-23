@@ -27,14 +27,14 @@ class RLAnalyzeEngine(BaseEngine):
             "IPv4": f"/api/network-threat-intel/ip/{observable}/report/",
             "IPv6": f"/api/network-threat-intel/ip/{observable}/report/",
             "FQDN": f"/api/network-threat-intel/domain/{observable}/",
-            "URL": f"/api/network-threat-intel/url/?url={urllib.parse.quote_plus(observable)}",  # noqa: E501
+            "URL": f"/api/network-threat-intel/url/?url={urllib.parse.quote_plus(observable)}",
             "MD5": f"/api/samples/v3/{observable}/classification/?av_scanners=1",
             "SHA1": f"/api/samples/v3/{observable}/classification/?av_scanners=1",
             "SHA256": f"/api/samples/v3/{observable}/classification/?av_scanners=1",
         }
         return endpoint_map.get(observable_type)
 
-    def _get_ui_endpoint(self, observable: str, observable_type: str) -> str | None:
+    def _get_ui_endpoint(self, observable: str, observable_type: str) -> str:
         endpoint_map = {
             "IPv4": f"/ip/{observable}/analysis/ip/",
             "IPv6": f"/ip/{observable}/analysis/ip/",
@@ -44,24 +44,18 @@ class RLAnalyzeEngine(BaseEngine):
             "SHA1": f"/{observable}/",
             "SHA256": f"/{observable}/",
         }
-        return endpoint_map.get(observable_type)
+        return endpoint_map.get(observable_type, "")
 
     def _parse_rl_response(
         self, result: dict, observable: str, observable_type: str, url: str
     ) -> dict:
         threats: list[str] = []
-        ui_link = url + self._get_ui_endpoint(observable, observable_type)
+        ui_link: str = url + self._get_ui_endpoint(observable, observable_type)
 
         if observable_type in ["IPv4", "IPv6", "FQDN"]:
-            threats.extend(
-                [i.get("threat_name") for i in result.get("top_threats", [])]
-            )
-            total_files: int = result.get("downloaded_files_statistics", {}).get(
-                "total", 0
-            )
-            malicious_files: int = result.get("downloaded_files_statistics", {}).get(
-                "malicious", 0
-            )
+            threats.extend([i.get("threat_name") for i in result.get("top_threats", [])])
+            total_files: int = result.get("downloaded_files_statistics", {}).get("total", 0)
+            malicious_files: int = result.get("downloaded_files_statistics", {}).get("malicious", 0)
             suspicious_files: int = result.get("downloaded_files_statistics", {}).get(
                 "suspicious", 0
             )
@@ -93,17 +87,14 @@ class RLAnalyzeEngine(BaseEngine):
 
         elif observable_type in ["URL"]:
             threats.extend(
-                [
-                    i.get("threat_name")
-                    for i in result.get("analysis").get("top_threats", [])
-                ]
+                [i.get("threat_name") for i in result.get("analysis").get("top_threats", [])]
             )
             threats.append(result.get("threat_name"))
             threats.extend(result.get("categories", []))
 
             reputation = result.get("third_party_reputations", {}).get("statistics", {})
-            malicious: int = reputation.get("malicious", 0)
-            suspicious: int = reputation.get("suspicious", 0)
+            malicious = reputation.get("malicious", 0)
+            suspicious = reputation.get("suspicious", 0)
             total: int = reputation.get("total", 0)
 
             report_color = "green"
@@ -139,7 +130,7 @@ class RLAnalyzeEngine(BaseEngine):
 
             av_scanners = result.get("av_scanners", {})
             if av_scanners:
-                total: int = av_scanners.get("scanner_count", 0)
+                total = av_scanners.get("scanner_count", 0)
                 scanners = av_scanners.get("scanner_match", 0)
 
                 return {
@@ -156,9 +147,7 @@ class RLAnalyzeEngine(BaseEngine):
         return {}
 
     @override
-    def analyze(
-        self, observable_value: str, observable_type: str
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         api_key = self.secrets.rl_analyze_api_key
         rl_analyze_url = self.secrets.rl_analyze_url
 
@@ -180,9 +169,7 @@ class RLAnalyzeEngine(BaseEngine):
             response.raise_for_status()
 
             data = response.json()
-            return self._parse_rl_response(
-                data, observable_value, observable_type, rl_analyze_url
-            )
+            return self._parse_rl_response(data, observable_value, observable_type, rl_analyze_url)
 
         except Exception as e:
             logger.error(
@@ -218,9 +205,7 @@ class RLAnalyzeEngine(BaseEngine):
             "rl_analyze_total_count": analysis_result.get("reports"),
             "rl_analyze_malicious": analysis_result.get("malicious"),
             "rl_analyze_suspicious": analysis_result.get("suspicious"),
-            "rl_analyze_threats": ", ".join(
-                [t for t in analysis_result.get("threats", []) if t]
-            ),
+            "rl_analyze_threats": ", ".join([t for t in analysis_result.get("threats", []) if t]),
             "rl_analyze_link": analysis_result.get("link"),
         }
 
@@ -229,12 +214,8 @@ class RLAnalyzeEngine(BaseEngine):
             common.update(
                 {
                     "rl_analyze_total_files": analysis_result.get("total_files"),
-                    "rl_analyze_malicious_files": analysis_result.get(
-                        "malicious_files"
-                    ),
-                    "rl_analyze_suspicious_files": analysis_result.get(
-                        "suspicious_files"
-                    ),
+                    "rl_analyze_malicious_files": analysis_result.get("malicious_files"),
+                    "rl_analyze_suspicious_files": analysis_result.get("suspicious_files"),
                     "rl_analyze_av_scanners": None,  # Not applicable to network
                     "rl_analyze_riskscore": None,  # Not applicable to network
                 }
