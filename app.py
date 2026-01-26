@@ -219,12 +219,12 @@ def analyze():
     """Handle the analyze request with caching and an option to ignore cache."""
     form_data = ioc_fanger.fang(request.form.get("observables", ""))
     observables = extract_observables(form_data)
-    selected_engines = request.form.getlist("engines")
-    ignore_cache = request.args.get("ignore_cache", "false").lower() == "true"
+    selected_engines: list[str] = request.form.getlist("engines")
+    ignore_cache: bool = request.args.get("ignore_cache", "false").lower() == "true"
 
     # Generate a secure hash for form data and engines using SHA-256
-    combined_data = f"{form_data}|{','.join(selected_engines)}"
-    cache_key = f"web-analyze-{hashlib.sha256(combined_data.encode('utf-8')).hexdigest()}"
+    combined_data: str = f"{form_data}|{','.join(selected_engines)}"
+    cache_key: str = f"web-analyze-{hashlib.sha256(combined_data.encode('utf-8')).hexdigest()}"
 
     if not ignore_cache:
         # Check cache
@@ -239,7 +239,7 @@ def analyze():
             ), 200
 
     # If no cache
-    analysis_id = str(uuid.uuid4())
+    analysis_id: str = str(uuid.uuid4())
     threading.Thread(target=perform_analysis, args=(app, observables, selected_engines, analysis_id)).start()
 
     # Generate response
@@ -455,24 +455,6 @@ def graph(analysis_id):
     if analysis_results:
         return render_template("graph.html", analysis_id=analysis_id, API_PREFIX=API_PREFIX), 200
     return render_template("404.html"), 404
-
-
-def initialize_background_services():
-    """
-    Initialize background services required by the application.
-
-    This function starts daemon threads for long-running background tasks:
-    - Bad ASN database updater: Periodically updates malicious ASN lists from
-      external sources (Spamhaus ASNDROP, Brianhama Bad ASN database).
-
-    These threads are marked as daemon threads, so they will automatically
-    terminate when the main application exits.
-    """
-    # Start Bad ASN background updater thread
-    # This maintains up-to-date lists of malicious ASNs for IP reputation checks
-    bad_asn_thread = threading.Thread(target=background_updater, daemon=True, name="BadASNUpdater")
-    bad_asn_thread.start()
-    logger.info("Bad ASN background updater thread started")
 
 
 if __name__ == "__main__":
