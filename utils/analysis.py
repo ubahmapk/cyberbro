@@ -65,7 +65,9 @@ def perform_analysis(app: Flask, observables, selected_engines: list[str], analy
         update_analysis_metadata(analysis_id, start_time, selected_engines, results)
 
 
-def analyze_observable(observable: dict[str, Any], index: int, selected_engines: list[str], result_queue):
+def analyze_observable(
+    observable: dict[str, Any], index: int, selected_engines: list[str], result_queue
+):
     result = {
         "observable": observable["value"],
         "type": observable["type"],
@@ -91,12 +93,19 @@ def analyze_observable(observable: dict[str, Any], index: int, selected_engines:
 
     # 2. Phase 1: Pre-Pivot Engines (Standard lookups that don't need reverse DNS result)
     for engine in active_instances:
-        if not engine.execute_after_reverse_dns and not engine.is_pivot_engine and engine.name != "chrome_extension":
+        if (
+            not engine.execute_after_reverse_dns
+            and not engine.is_pivot_engine
+            and engine.name != "chrome_extension"
+        ):
             run_engine(engine, observable, result)
 
     # 3. Phase 2: Pivot (Reverse DNS)
-    # The pivot engine runs and can modify the observable in place (observable["type"]/observable["value"])
-    pivot_engines: list[BaseEngine] = [e for e in active_instances if e.is_pivot_engine and e.name == "reverse_dns"]
+    # The pivot engine runs and can modify the observable in place
+    # (observable["type"]/observable["value"])
+    pivot_engines: list[BaseEngine] = [
+        e for e in active_instances if e.is_pivot_engine and e.name == "reverse_dns"
+    ]
     for engine in pivot_engines:
         analysis_data = run_engine(engine, observable, result)
 
@@ -165,10 +174,13 @@ def update_analysis_metadata(analysis_id, start_time, selected_engines, results)
     if analysis_result:
         end_time = time.time()
         analysis_result.end_time = end_time
-        analysis_result.end_time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
+        analysis_result.end_time_string = time.strftime(
+            "%Y-%m-%d %H:%M:%S", time.localtime(end_time)
+        )
         analysis_result.analysis_duration = end_time - start_time
         analysis_result.analysis_duration_string = (
-            f"{int((end_time - start_time) // 60)} minutes, {(end_time - start_time) % 60:.2f} seconds"
+            f"{int((end_time - start_time) // 60)} minutes, "
+            f"{(end_time - start_time) % 60:.2f} seconds"
         )
         analysis_result.results = results
         analysis_result.in_progress = False
