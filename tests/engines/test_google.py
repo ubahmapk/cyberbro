@@ -506,13 +506,9 @@ def test_analyze_observable_wrapped_in_quotes(mock_sleep, secrets_with_credentia
     assert "example.com" in call_args.url or "%22example.com%22" in call_args.url
 
 
-@patch("time.sleep")
-@responses.activate
-def test_analyze_all_observable_types(mock_sleep, secrets_with_credentials):
-    """Test that all 9 observable types are supported."""
-    engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-
-    observable_types = [
+@pytest.mark.parametrize(
+    "observable_type",
+    [
         "CHROME_EXTENSION",
         "FQDN",
         "IPv4",
@@ -522,7 +518,13 @@ def test_analyze_all_observable_types(mock_sleep, secrets_with_credentials):
         "SHA256",
         "URL",
         "Email",
-    ]
+    ],
+)
+@patch("time.sleep")
+@responses.activate
+def test_analyze_observable_types(mock_sleep, observable_type, secrets_with_credentials):
+    """Test that all 9 observable types are supported."""
+    engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
 
     mock_resp = {
         "items": [],
@@ -532,10 +534,9 @@ def test_analyze_all_observable_types(mock_sleep, secrets_with_credentials):
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    for obs_type in observable_types:
-        observable = f"test_{obs_type}"
-        result = engine.analyze(observable, obs_type)
-        assert result is not None
+    observable = f"test_{observable_type}"
+    result = engine.analyze(observable, observable_type)
+    assert result is not None
 
 
 @patch("time.sleep")

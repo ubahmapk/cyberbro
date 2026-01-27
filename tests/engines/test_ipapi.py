@@ -74,11 +74,28 @@ def test_analyze_minimal_and_asn_missing(secrets_without_key, ipv4_observable):
 
 
 @responses.activate
-def test_analyze_http_error(secrets_with_key, ipv4_observable, caplog):
+def test_analyze_missing_credentials_error(secrets_with_key, ipv4_observable):
+    """Test handling of API response indicating missing/invalid credentials."""
     engine = IPAPIEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = "https://api.ipapi.is"
 
-    responses.add(responses.POST, url, json={"error": "bad"}, status=500)
+    mock_resp = {"error": "invalid API key"}
+    responses.add(responses.POST, url, json=mock_resp, status=200)
+
+    result = engine.analyze(ipv4_observable, "IPv4")
+
+    # When 'ip' key is missing from response, analyze returns None
+    assert result is None
+
+
+@responses.activate
+@pytest.mark.parametrize("status_code", [401, 403, 500])
+def test_analyze_http_error_codes(secrets_with_key, ipv4_observable, status_code, caplog):
+    """Test handling of HTTP error responses (401, 403, 500)."""
+    engine = IPAPIEngine(secrets_with_key, proxies={}, ssl_verify=True)
+    url = "https://api.ipapi.is"
+
+    responses.add(responses.POST, url, json={"error": "error"}, status=status_code)
 
     caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable, "IPv4")
@@ -114,56 +131,6 @@ def test_create_export_row_none():
     row = engine.create_export_row(None)
 
     assert all(v is None for v in row.values())
-
-
-# ============================================================================
-# High Priority: API Credentials Tests
-# ============================================================================
-
-
-@responses.activate
-def test_analyze_missing_credentials_error(secrets_with_key, ipv4_observable):
-    """Test handling of API response indicating missing/invalid credentials."""
-    engine = IPAPIEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    url = "https://api.ipapi.is"
-
-    mock_resp = {"error": "invalid API key"}
-    responses.add(responses.POST, url, json=mock_resp, status=200)
-
-    result = engine.analyze(ipv4_observable, "IPv4")
-
-    # When 'ip' key is missing from response, analyze returns None
-    assert result is None
-
-
-@responses.activate
-def test_analyze_unauthorized_response(secrets_with_key, ipv4_observable, caplog):
-    """Test handling of 401 Unauthorized response."""
-    engine = IPAPIEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    url = "https://api.ipapi.is"
-
-    responses.add(responses.POST, url, json={"error": "unauthorized"}, status=401)
-
-    caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, "IPv4")
-
-    assert result is None
-    assert "Error querying ipapi" in caplog.text
-
-
-@responses.activate
-def test_analyze_forbidden_response(secrets_with_key, ipv4_observable, caplog):
-    """Test handling of 403 Forbidden response."""
-    engine = IPAPIEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    url = "https://api.ipapi.is"
-
-    responses.add(responses.POST, url, json={"error": "forbidden"}, status=403)
-
-    caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, "IPv4")
-
-    assert result is None
-    assert "Error querying ipapi" in caplog.text
 
 
 # ============================================================================

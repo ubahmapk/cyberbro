@@ -75,27 +75,13 @@ def test_analyze_success_complete(secrets_with_key, ipv4_observable):
 
 
 @responses.activate
-def test_analyze_unauthorized_response(secrets_with_key, ipv4_observable, caplog):
-    """Test handling of 401 Unauthorized response."""
+@pytest.mark.parametrize("status_code", [401, 403, 500])
+def test_analyze_http_error_codes(secrets_with_key, ipv4_observable, status_code, caplog):
+    """Test handling of HTTP error responses (401, 403, 500)."""
     engine = AbuseIPDBEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = "https://api.abuseipdb.com/api/v2/check"
 
-    responses.add(responses.GET, url, json={"error": "unauthorized"}, status=401)
-
-    caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, "IPv4")
-
-    assert result is None
-    assert "Error querying AbuseIPDB" in caplog.text
-
-
-@responses.activate
-def test_analyze_forbidden_response(secrets_with_key, ipv4_observable, caplog):
-    """Test handling of 403 Forbidden response."""
-    engine = AbuseIPDBEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    url = "https://api.abuseipdb.com/api/v2/check"
-
-    responses.add(responses.GET, url, json={"error": "forbidden"}, status=403)
+    responses.add(responses.GET, url, json={"error": "error"}, status=status_code)
 
     caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable, "IPv4")
@@ -145,21 +131,6 @@ def test_analyze_ipv6_success(secrets_with_key, ipv6_observable):
     assert result["reports"] == 5
     assert result["risk_score"] == 50
     assert result["link"] == f"https://www.abuseipdb.com/check/{ipv6_observable}"
-
-
-@responses.activate
-def test_analyze_http_error(secrets_with_key, ipv4_observable, caplog):
-    """Test handling of HTTP 500 error."""
-    engine = AbuseIPDBEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    url = "https://api.abuseipdb.com/api/v2/check"
-
-    responses.add(responses.GET, url, json={"error": "server error"}, status=500)
-
-    caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, "IPv4")
-
-    assert result is None
-    assert "Error querying AbuseIPDB" in caplog.text
 
 
 @responses.activate

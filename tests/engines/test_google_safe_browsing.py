@@ -231,65 +231,28 @@ def test_analyze_invalid_json_response(secrets_with_key, url_observable, caplog)
 # ============================================================================
 
 
+@pytest.mark.parametrize(
+    "observable_value,observable_type,threat_type",
+    [
+        ("http://malicious-site.com", "URL", "MALWARE"),
+        ("example.com", "FQDN", "SOCIAL_ENGINEERING"),
+        ("192.168.1.1", "IPv4", "UNWANTED_SOFTWARE"),
+        ("2001:4860:4860::8888", "IPv6", "THREAT_TYPE_UNSPECIFIED"),
+    ],
+)
 @responses.activate
-def test_analyze_url_observable_success(secrets_with_key, url_observable):
-    """Test URL observable type (primary use case)."""
+def test_analyze_observable_types_success(
+    secrets_with_key, observable_value, observable_type, threat_type
+):
+    """Test various observable types wrapped and analyzed successfully."""
     engine = GoogleSafeBrowsingEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = "https://safebrowsing.googleapis.com/v4/threatMatches:find"
 
-    mock_resp = {"matches": [{"threatType": "MALWARE", "platformType": "ALL", "threat": {}}]}
+    mock_resp = {"matches": [{"threatType": threat_type}]}
 
     responses.add(responses.POST, url, json=mock_resp, status=200)
 
-    result = engine.analyze(url_observable, "URL")
-
-    assert result is not None
-    assert result["threat_found"] == "Threat found"
-
-
-@responses.activate
-def test_analyze_fqdn_observable_success(secrets_with_key, fqdn_observable):
-    """Test FQDN observable type wrapped with http:// scheme."""
-    engine = GoogleSafeBrowsingEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    url = "https://safebrowsing.googleapis.com/v4/threatMatches:find"
-
-    mock_resp = {"matches": [{"threatType": "SOCIAL_ENGINEERING"}]}
-
-    responses.add(responses.POST, url, json=mock_resp, status=200)
-
-    result = engine.analyze(fqdn_observable, "FQDN")
-
-    assert result is not None
-    assert result["threat_found"] == "Threat found"
-
-
-@responses.activate
-def test_analyze_ipv4_observable_success(secrets_with_key, ipv4_observable):
-    """Test IPv4 observable type wrapped with http:// scheme."""
-    engine = GoogleSafeBrowsingEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    url = "https://safebrowsing.googleapis.com/v4/threatMatches:find"
-
-    mock_resp = {"matches": [{"threatType": "UNWANTED_SOFTWARE"}]}
-
-    responses.add(responses.POST, url, json=mock_resp, status=200)
-
-    result = engine.analyze(ipv4_observable, "IPv4")
-
-    assert result is not None
-    assert result["threat_found"] == "Threat found"
-
-
-@responses.activate
-def test_analyze_ipv6_observable_success(secrets_with_key, ipv6_observable):
-    """Test IPv6 observable type wrapped with http:// scheme."""
-    engine = GoogleSafeBrowsingEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    url = "https://safebrowsing.googleapis.com/v4/threatMatches:find"
-
-    mock_resp = {"matches": [{"threatType": "THREAT_TYPE_UNSPECIFIED"}]}
-
-    responses.add(responses.POST, url, json=mock_resp, status=200)
-
-    result = engine.analyze(ipv6_observable, "IPv6")
+    result = engine.analyze(observable_value, observable_type)
 
     assert result is not None
     assert result["threat_found"] == "Threat found"

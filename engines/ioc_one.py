@@ -37,6 +37,11 @@ class IOCOneHTMLEngine(BaseEngine):
 
             search_results: list[dict[str, str]] = []
             for card in cards[:5]:
+                # REFACTOR NOTE: Missing null checks on find() results.
+                # If card-header div, card-title h5, or source link are missing,
+                # calling .get_text() or ["href"] on None will raise AttributeError/TypeError.
+                # Should check if elements exist before accessing properties to allow
+                # graceful skipping of malformed cards rather than failing entire response.
                 header = card.find("div", class_="card-header").get_text(strip=True)
                 title = card.find("h5", class_="card-title").get_text(strip=True)
                 source = card.find("a", class_="btn border btn-primary m-1", target="_blank")[
@@ -83,6 +88,10 @@ class IOCOnePDFEngine(BaseEngine):
 
             search_results = []
             for card in cards[:5]:
+                # REFACTOR NOTE: Missing null checks on find() results (see IOCOneHTMLEngine).
+                # If elements are missing, calling .get_text() or ["href"] on None will crash.
+                # Should add existence checks before accessing properties to gracefully
+                # skip malformed cards rather than failing entire response.
                 header = card.find("div", class_="card-header").get_text(strip=True)
                 title = card.find("h5", class_="card-title").get_text(strip=True)
                 # Note the difference in class name for the source link from the HTML engine

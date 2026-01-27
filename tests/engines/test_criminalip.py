@@ -187,38 +187,42 @@ def mock_response_empty_lists():
 
 
 @responses.activate
-def test_analyze_success_complete(
-    secrets_with_key, ipv4_observable, base_url, mock_response_complete
+@pytest.mark.parametrize(
+    "response_fixture,has_score,has_ports,abuse_count,inbound_score,outbound_score",
+    [
+        ("mock_response_complete", True, True, 5, "Low", "Safe"),
+        ("mock_response_minimal", False, False, 0, None, None),
+    ],
+)
+def test_analyze_success_response_variations(
+    secrets_with_key,
+    ipv4_observable,
+    base_url,
+    response_fixture,
+    has_score,
+    has_ports,
+    abuse_count,
+    inbound_score,
+    outbound_score,
+    request,
 ):
-    """Test successful API response with all nested data fields."""
+    """Test successful API response with various data configurations."""
     engine = CriminalIPEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    responses.add(responses.GET, base_url, json=mock_response_complete, status=200)
+    mock_resp = request.getfixturevalue(response_fixture)
+    responses.add(responses.GET, base_url, json=mock_resp, status=200)
 
     result = engine.analyze(ipv4_observable, "IPv4")
 
     assert result is not None
     assert result["ip"] == ipv4_observable
-    assert result["abuse_record_count"] == 5
-    assert result["score"]["inbound"] == "Low"
-    assert result["score"]["outbound"] == "Safe"
-    assert result["current_opened_port"]["count"] == 2
-    assert len(result["current_opened_port"]["data"]) == 2
-    assert result["current_opened_port"]["data"][0]["port"] == 80
-
-
-@responses.activate
-def test_analyze_success_minimal(
-    secrets_with_key, ipv4_observable, base_url, mock_response_minimal
-):
-    """Test successful API response with minimal required fields."""
-    engine = CriminalIPEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    responses.add(responses.GET, base_url, json=mock_response_minimal, status=200)
-
-    result = engine.analyze(ipv4_observable, "IPv4")
-
-    assert result is not None
-    assert result["ip"] == ipv4_observable
-    assert result["abuse_record_count"] == 0
+    assert result["abuse_record_count"] == abuse_count
+    if has_score:
+        assert result["score"]["inbound"] == inbound_score
+        assert result["score"]["outbound"] == outbound_score
+    if has_ports:
+        assert result["current_opened_port"]["count"] == 2
+        assert len(result["current_opened_port"]["data"]) == 2
+        assert result["current_opened_port"]["data"][0]["port"] == 80
 
 
 @responses.activate
@@ -234,10 +238,11 @@ def test_analyze_missing_api_key(ipv4_observable, base_url, secrets_without_key,
 
 
 @responses.activate
-def test_analyze_unauthorized_401(secrets_with_key, ipv4_observable, base_url, caplog):
-    """Test handling of 401 Unauthorized response."""
+@pytest.mark.parametrize("status_code", [401, 403, 500])
+def test_analyze_http_error_codes(secrets_with_key, ipv4_observable, base_url, status_code, caplog):
+    """Test handling of HTTP error responses (401, 403, 500)."""
     engine = CriminalIPEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    responses.add(responses.GET, base_url, json={"error": "unauthorized"}, status=401)
+    responses.add(responses.GET, base_url, json={"error": "error"}, status=status_code)
     caplog.set_level(logging.ERROR)
 
     result = engine.analyze(ipv4_observable, "IPv4")
@@ -247,57 +252,32 @@ def test_analyze_unauthorized_401(secrets_with_key, ipv4_observable, base_url, c
 
 
 @responses.activate
-def test_analyze_forbidden_403(secrets_with_key, ipv4_observable, base_url, caplog):
-    """Test handling of 403 Forbidden response."""
-    engine = CriminalIPEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    responses.add(responses.GET, base_url, json={"error": "forbidden"}, status=403)
-    caplog.set_level(logging.ERROR)
-
-    result = engine.analyze(ipv4_observable, "IPv4")
-
-    assert result is None
-    assert "Error retrieving Criminal IP Suspicious Info report" in caplog.text
-
-
-@responses.activate
-def test_analyze_server_error_500(secrets_with_key, ipv4_observable, base_url, caplog):
-    """Test handling of 500 Internal Server Error."""
-    engine = CriminalIPEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    responses.add(responses.GET, base_url, json={"error": "server error"}, status=500)
-    caplog.set_level(logging.ERROR)
-
-    result = engine.analyze(ipv4_observable, "IPv4")
-
-    assert result is None
-    assert "Error retrieving Criminal IP Suspicious Info report" in caplog.text
-
-
-@responses.activate
-def test_analyze_dangerous_score(
-    secrets_with_key, ipv4_observable, base_url, mock_response_dangerous
+@pytest.mark.parametrize(
+    "response_fixture,inbound_score,outbound_score",
+    [
+        ("mock_response_dangerous", "Dangerous", "Critical"),
+        ("mock_response_safe", "Safe", "Safe"),
+    ],
+)
+def test_analyze_score_variations(
+    secrets_with_key,
+    ipv4_observable,
+    base_url,
+    response_fixture,
+    inbound_score,
+    outbound_score,
+    request,
 ):
-    """Test response with Dangerous and Critical score values."""
+    """Test response with different score value variations."""
     engine = CriminalIPEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    responses.add(responses.GET, base_url, json=mock_response_dangerous, status=200)
+    mock_resp = request.getfixturevalue(response_fixture)
+    responses.add(responses.GET, base_url, json=mock_resp, status=200)
 
     result = engine.analyze(ipv4_observable, "IPv4")
 
     assert result is not None
-    assert result["score"]["inbound"] == "Dangerous"
-    assert result["score"]["outbound"] == "Critical"
-
-
-@responses.activate
-def test_analyze_safe_score(secrets_with_key, ipv4_observable, base_url, mock_response_safe):
-    """Test response with Safe score values."""
-    engine = CriminalIPEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    responses.add(responses.GET, base_url, json=mock_response_safe, status=200)
-
-    result = engine.analyze(ipv4_observable, "IPv4")
-
-    assert result is not None
-    assert result["score"]["inbound"] == "Safe"
-    assert result["score"]["outbound"] == "Safe"
+    assert result["score"]["inbound"] == inbound_score
+    assert result["score"]["outbound"] == outbound_score
 
 
 def test_create_export_row_success(secrets_with_key):

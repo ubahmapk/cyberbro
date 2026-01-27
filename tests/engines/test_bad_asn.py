@@ -6,6 +6,7 @@ import json
 import logging
 from pathlib import Path
 
+import pytest
 from pytest_mock import MockerFixture
 
 from engines.bad_asn import (
@@ -210,30 +211,23 @@ def test_bad_asn_engine_analyze_no_asn_in_context():
     assert result is None
 
 
-def test_bad_asn_engine_extract_asn_from_ipinfo():
-    """Test ASN extraction from ipinfo."""
+@pytest.mark.parametrize(
+    "context_key,context_value,expected_asn",
+    [
+        ("ipinfo", {"asn": "AS15169 Google LLC"}, "15169"),
+        ("ipapi", {"asn": {"asn": "AS15169", "org": "Google LLC"}}, "15169"),
+    ],
+)
+def test_bad_asn_engine_extract_asn_from_context_sources(context_key, context_value, expected_asn):
+    """Test ASN extraction from different context sources."""
     secrets = Secrets()
     engine = BadASNEngine(secrets, {}, True)
 
-    # ipinfo structure: {"asn": "AS15169 Google LLC"}
-    context = {"ipinfo": {"asn": "AS15169 Google LLC"}}
+    context = {context_key: context_value}
 
     asn = engine._extract_asn_from_context(context)
 
-    assert asn == "15169"
-
-
-def test_bad_asn_engine_extract_asn_from_ipapi():
-    """Test ASN extraction from ipapi."""
-    secrets = Secrets()
-    engine = BadASNEngine(secrets, {}, True)
-
-    # ipapi structure: {"asn": {"asn": "AS15169", "org": "Google LLC"}}
-    context = {"ipapi": {"asn": {"asn": "AS15169", "org": "Google LLC"}}}
-
-    asn = engine._extract_asn_from_context(context)
-
-    assert asn == "15169"
+    assert asn == expected_asn
 
 
 def test_bad_asn_engine_create_export_row():
@@ -299,19 +293,18 @@ def test_calculate_risk_score_bounds():
         assert 0 <= score <= 100
 
 
-def test_extract_asn_org_name_ipapi():
-    context = {"ipapi": {"asn": {"asn": "AS1234", "org": "IPAPI Org"}}}
-    assert extract_asn_org_name(context) == "IPAPI Org"
-
-
-def test_extract_asn_org_name_ipinfo():
-    context = {"ipinfo": {"asn": "AS1234 InfoOrg"}}
-    assert extract_asn_org_name(context) == "InfoOrg"
-
-
-def test_extract_asn_org_name_webscout():
-    context = {"webscout": {"as_org": "WebScout Org"}}
-    assert extract_asn_org_name(context) == "WebScout Org"
+@pytest.mark.parametrize(
+    "context_key,context_value,expected_org",
+    [
+        ("ipapi", {"asn": {"asn": "AS1234", "org": "IPAPI Org"}}, "IPAPI Org"),
+        ("ipinfo", {"asn": "AS1234 InfoOrg"}, "InfoOrg"),
+        ("webscout", {"as_org": "WebScout Org"}, "WebScout Org"),
+    ],
+)
+def test_extract_asn_org_name_from_sources(context_key, context_value, expected_org):
+    """Test ASN org name extraction from different sources."""
+    context = {context_key: context_value}
+    assert extract_asn_org_name(context) == expected_org
 
 
 def test_extract_asn_priority_order():
