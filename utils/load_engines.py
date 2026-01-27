@@ -34,7 +34,9 @@ from models.base_engine import BaseEngine
 from utils.config import Secrets
 
 
-def get_engine_instances(secrets: Secrets, proxies: dict, ssl_verify: bool) -> dict[str, BaseEngine]:
+def get_engine_instances(
+    secrets: Secrets, proxies: dict, ssl_verify: bool
+) -> dict[str, BaseEngine]:
     """
     Instantiates and returns a dictionary of all available engines.
     Key is the engine name (slug), Value is the engine instance.
