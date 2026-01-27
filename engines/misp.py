@@ -97,6 +97,11 @@ class MISPEngine(BaseEngine):
                         {"title": event_title, "url": event_url, "timestamp": timestamp}
                     )
 
+                    # TODO: Future refactoring - Line 100 recalculates count inside loop.
+                    # Currently: count = len(attributes) is executed on each loop iteration.
+                    # This is inefficient and confusing. Should be set ONCE before or after
+                    # the loop since the intent is total attribute count, not per-iteration.
+                    # Move outside loop or calculate once after processing all attributes.
                     count = len(attributes)  # Total attributes count
 
                 event_data.sort(key=lambda x: x["timestamp"], reverse=True)
