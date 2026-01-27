@@ -62,6 +62,7 @@ Use these specific libraries for their designated purposes. Do not introduce alt
 - **Fixtures:** Use Pytest fixtures for creating dummy Pydantic models or API clients.
 - **Performance:** Use `@pytest.mark.parametrize` to test multiple scenarios.
 - **Bugs:** When reviewing code for test development, if a bug or possible bug is identified in the source code, call it out in the prompt for evaluation and possible paths to resolution.
+- **Ruff:** Run `ruff format` before running tests. This should help remove duplicate test runs.
 
 ## 6. Anti-Patterns (DO NOT DO)
 
