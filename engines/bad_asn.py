@@ -88,10 +88,16 @@ def calculate_risk_score(source_description: str, is_legitimate: bool) -> int:
 
     # Factor 1: Presence in authoritative sources
     source_lower = source_description.lower()
-    if "spamhaus" in source_lower and "brianhama" in source_lower:
-        score += 20  # In multiple lists = higher confidence
+    sources_count = sum(["spamhaus" in source_lower, "brianhama" in source_lower, "lethal-forensics" in source_lower])
+
+    if sources_count >= 3:
+        score += 30  # In all three lists = very high confidence
+    elif sources_count == 2:
+        score += 20  # In two lists = higher confidence
     elif "spamhaus" in source_lower:
         score += 10  # Spamhaus is more authoritative
+    elif "lethal-forensics" in source_lower:
+        score += 8  # LETHAL-FORENSICS focuses on VPN/anonymization services
 
     # Factor 2: Legitimate provider penalty
     if is_legitimate:
