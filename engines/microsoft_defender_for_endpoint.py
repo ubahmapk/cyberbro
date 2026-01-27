@@ -37,6 +37,10 @@ class MDEEngine(BaseEngine):
 
     def _read_token(self) -> str | None:
         try:
+            # TODO: Future refactoring - Line 40 uses hardcoded filename "mde_token.txt"
+            # This could cause thread-safety issues in multi-threaded environments.
+            # Consider using a thread-safe token cache (e.g., tempfile with session ID or
+            # in-memory cache with locking) instead of a shared file.
             token_path = Path("mde_token.txt")
             token = token_path.read_text().strip()
             if self._check_token_validity(token):
@@ -48,6 +52,10 @@ class MDEEngine(BaseEngine):
     def _get_token(self) -> str:
         url = f"https://login.microsoftonline.com/{self.secrets.mde_tenant_id}/oauth2/token"
         resource_app_id_uri = "https://api.securitycenter.microsoft.com"
+        # TODO: Future refactoring - Consider pre-validating that mde_tenant_id,
+        # mde_client_id, and mde_client_secret are non-empty before making the API call.
+        # Currently, missing or empty secrets will result in an API error rather than
+        # failing fast with a clear validation error.
         body = {
             "resource": resource_app_id_uri,
             "client_id": self.secrets.mde_client_id,
@@ -96,6 +104,11 @@ class MDEEngine(BaseEngine):
                 url = f"https://api.securitycenter.microsoft.com/api/domains/{observable}/stats"
                 link = f"https://security.microsoft.com/domains?urlDomain={observable}"
             elif observable_type == "URL":
+                # TODO: Future refactoring - Line 99 uses fragile string split for URL parsing:
+                # observable.split("/")[2].split(":")[0]
+                # This approach fails on malformed URLs (e.g., missing protocol, no path).
+                # Consider using urllib.parse.urlparse() for robust URL parsing instead.
+                # Test coverage includes both valid URLs and known failure cases.
                 extracted_domain = observable.split("/")[2].split(":")[0]
                 url = (
                     f"https://api.securitycenter.microsoft.com/api/domains/{extracted_domain}/stats"
@@ -128,6 +141,11 @@ class MDEEngine(BaseEngine):
                 data["determinationValue"] = file_info.get("determinationValue", "Unknown")
 
             # Simplify dates
+            # TODO: Future refactoring - Assume ISO datetime format with "T" separator.
+            # The split("T")[0] approach extracts the date portion but fails on non-ISO
+            # formats (e.g., Unix timestamp, other datetime formats). Consider using
+            # datetime.fromisoformat() or a robust date parsing library.
+            # Test coverage includes multiple ISO variants that work correctly.
             if data.get("orgFirstSeen"):
                 data["orgFirstSeen"] = data["orgFirstSeen"].split("T")[0]
             if data.get("orgLastSeen"):
