@@ -50,6 +50,11 @@ class HudsonRockEngine(BaseEngine):
                                     for entry in data[section][key]
                                     if "url" not in entry or "••" not in entry["url"]
                                 ]
+                    # REFACTOR NOTE: Line 55 accesses data[section] without checking if
+                    # section is in data. While line 45 checks `if section in data`, the
+                    # logic below (lines 53-58) executes outside that block. This can cause
+                    # KeyError if only "data" is present but not "stats" (or vice versa).
+                    # Should restructure to ensure section exists before accessing.
                     if section == "stats":
                         for key in ["clients_urls", "employees_urls"]:
                             if key in data[section]:
