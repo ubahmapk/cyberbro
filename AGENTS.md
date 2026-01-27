@@ -60,6 +60,8 @@ Use these specific libraries for their designated purposes. Do not introduce alt
 - **Focus:** Ensure tests cover critical paths and edge cases, and include coverage for valid and invalid inputs and consistent outputs.
 - **Mocking:** Use `responses` to mock API responses when testing `requests` calls.
 - **Fixtures:** Use Pytest fixtures for creating dummy Pydantic models or API clients.
+- **Performance:** Use `@pytest.mark.parametrize` to test multiple scenarios.
+- **Bugs:** When reviewing code for test development, if a bug or possible bug is identified in the source code, call it out in the prompt for evaluation and possible paths to resolution.
 
 ## 6. Anti-Patterns (DO NOT DO)
 
