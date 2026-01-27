@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Any, Optional
+from typing import Any
 
 import pycountry
 import requests
@@ -23,15 +23,16 @@ class WebscoutEngine(BaseEngine):
     def execute_after_reverse_dns(self):
         return True  # IP-only engine
 
-    def _date_only(self, dt: Optional[str]) -> Optional[str]:
+    def _date_only(self, dt: str | None) -> str | None:
         if isinstance(dt, str) and "T" in dt:
             return dt.split("T", 1)[0]
         return dt
 
-    def analyze(self, observable_value: str, observable_type: str) -> Optional[dict[str, Any]]:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
+        api_key: str = self.secrets.webscout
         try:
             time.sleep(1)  # rate limit
-            url = f"https://api.webscout.io/query/ip/{observable_value}?apikey={self.secrets.webscout}"
+            url = f"https://api.webscout.io/query/ip/{observable_value}?apikey={api_key}"
             response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
             response.raise_for_status()
 
@@ -64,9 +65,14 @@ class WebscoutEngine(BaseEngine):
                     osint_tags.extend(tags)
                 behavior = list(dict.fromkeys(osint_tags))
 
-                # Check for risk score (if available in a non-standard location or just hardcode as unknown)
-                # Since risk_score is NOT explicitly in the returned data, we assume it's calculated or pulled
-                # from somewhere else, or the 'export.py' is for an older version. Setting a placeholder for export.
+                """
+                Check for risk score
+                (if available in a non-standard location or just hardcode as unknown)
+                Since risk_score is NOT explicitly in the returned data,
+                we assume it's calculated or pulled
+                from somewhere else, or the 'export.py' is for an older version.
+                Setting a placeholder for export.
+                """
 
                 return {
                     "ip": d.get("ip", observable_value),
@@ -86,7 +92,9 @@ class WebscoutEngine(BaseEngine):
                     "network_provider_services": company.get("business", []),
                     "behavior": behavior,
                     "as_org": as_data.get("organization", "Unknown"),
-                    "asn": "AS" + str(as_data.get("as_number")) if as_data.get("as_number") else "Unknown",
+                    "asn": "AS" + str(as_data.get("as_number"))
+                    if as_data.get("as_number")
+                    else "Unknown",
                     "description": company.get("description", "Unknown"),
                 }
 
@@ -134,7 +142,9 @@ class WebscoutEngine(BaseEngine):
             "ws_network_provider": analysis_result.get("network_provider"),
             "ws_network_service": analysis_result.get("network_service"),
             "ws_network_service_region": analysis_result.get("network_service_region"),
-            "ws_network_provider_services": ", ".join(analysis_result.get("network_provider_services", [])),
+            "ws_network_provider_services": ", ".join(
+                analysis_result.get("network_provider_services", [])
+            ),
             "ws_behavior": ", ".join(analysis_result.get("behavior", [])),
             "ws_as_org": analysis_result.get("as_org"),
             "ws_asn": analysis_result.get("asn"),

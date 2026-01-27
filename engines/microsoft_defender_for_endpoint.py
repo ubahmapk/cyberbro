@@ -1,7 +1,7 @@
 import logging
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import jwt
 import requests
@@ -35,7 +35,7 @@ class MDEEngine(BaseEngine):
             logger.error("Failed to decode MDE token: %s", e, exc_info=True)
             return False
 
-    def _read_token(self) -> Optional[str]:
+    def _read_token(self) -> str | None:
         try:
             token_path = Path("mde_token.txt")
             token = token_path.read_text().strip()
@@ -71,7 +71,7 @@ class MDEEngine(BaseEngine):
             logger.error("Unable to retrieve token from JSON response: %s", json_response)
             return "invalid"
 
-    def analyze(self, observable_value: str, observable_type: str) -> Optional[dict[str, Any]]:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         try:
             jwt_token = self._read_token() or self._get_token()
             if "invalid" in jwt_token:
@@ -97,12 +97,16 @@ class MDEEngine(BaseEngine):
                 link = f"https://security.microsoft.com/domains?urlDomain={observable}"
             elif observable_type == "URL":
                 extracted_domain = observable.split("/")[2].split(":")[0]
-                url = f"https://api.securitycenter.microsoft.com/api/domains/{extracted_domain}/stats"
+                url = (
+                    f"https://api.securitycenter.microsoft.com/api/domains/{extracted_domain}/stats"
+                )
                 link = f"https://security.microsoft.com/url?url={observable}"
             else:
                 return None
 
-            response = requests.get(url, headers=headers, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
+            response = requests.get(
+                url, headers=headers, proxies=self.proxies, verify=self.ssl_verify, timeout=5
+            )
             response.raise_for_status()
 
             data = response.json()
@@ -110,7 +114,9 @@ class MDEEngine(BaseEngine):
 
             # Retrieve extended file info if applicable
             if file_info_url:
-                file_info_response = requests.get(file_info_url, headers=headers, proxies=self.proxies, verify=self.ssl_verify)
+                file_info_response = requests.get(
+                    file_info_url, headers=headers, proxies=self.proxies, verify=self.ssl_verify
+                )
                 file_info_response.raise_for_status()
                 file_info = file_info_response.json()
                 data["issuer"] = file_info.get("issuer", "Unknown")
@@ -130,7 +136,12 @@ class MDEEngine(BaseEngine):
             return data
 
         except Exception as e:
-            logger.error("Error querying Microsoft Defender for Endpoint for '%s': %s", observable_value, e, exc_info=True)
+            logger.error(
+                "Error querying Microsoft Defender for Endpoint for '%s': %s",
+                observable_value,
+                e,
+                exc_info=True,
+            )
             return None
 
     def create_export_row(self, analysis_result: Any) -> dict:

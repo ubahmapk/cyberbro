@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import requests
 
@@ -17,7 +17,7 @@ class URLScanEngine(BaseEngine):
     def supported_types(self):
         return ["FQDN", "IPv4", "IPv6", "MD5", "SHA1", "SHA256", "URL"]
 
-    def analyze(self, observable_value: str, observable_type: str) -> Optional[dict[str, Any]]:
+    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         query_fields = {
             "IPv4": "ip",
             "IPv6": "ip",
@@ -61,7 +61,9 @@ class URLScanEngine(BaseEngine):
             }
 
         except Exception as e:
-            logger.error("Error querying urlscan.io for '%s': %s", observable_value, e, exc_info=True)
+            logger.error(
+                "Error querying urlscan.io for '%s': %s", observable_value, e, exc_info=True
+            )
             return None
 
     def create_export_row(self, analysis_result: Any) -> dict:
