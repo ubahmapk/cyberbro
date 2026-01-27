@@ -91,7 +91,7 @@ class BaseEngine(ABC):
         params: dict | None = None,
         timeout: int = 10,
     ) -> requests.Response:
-        """Request data from the engine API.
+        """Request data from the engine API via GET.
 
         Up to 3 requests can be made before reraising the resulting
         API exception to the calling function.
@@ -108,6 +108,44 @@ class BaseEngine(ABC):
         response = requests.get(
             url,
             params=params,
+            headers=headers,
+            proxies=self.proxies,
+            verify=self.ssl_verify,
+            timeout=timeout,
+        )
+        response.raise_for_status()
+        return response
+
+    @retry(
+        reraise=True,
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        after=after_log(logger, logging.DEBUG),
+    )
+    def _make_post_request(
+        self,
+        url: str,
+        json: dict | None = None,
+        headers: dict | None = None,
+        timeout: int = 10,
+    ) -> requests.Response:
+        """Request data from the engine API via POST.
+
+        Up to 3 requests can be made before reraising the resulting
+        API exception to the calling function.
+
+        After each attempt, the delay between requests is exponentially increased
+        and a DEBUG level log message is emitted.
+        """
+
+        if json is None:
+            json = {}
+        if headers is None:
+            headers = {}
+
+        response = requests.post(
+            url,
+            json=json,
             headers=headers,
             proxies=self.proxies,
             verify=self.ssl_verify,

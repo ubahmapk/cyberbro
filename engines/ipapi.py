@@ -2,12 +2,26 @@ import logging
 from collections.abc import Mapping
 from typing import Any
 
-import requests
+from pydantic import Field
+from pydantic.dataclasses import dataclass
+from requests.exceptions import RequestException
 from typing_extensions import override
 
-from models.base_engine import BaseEngine
+from models.base_engine import BaseEngine, BaseReport
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(slots=True)
+class IPAPIReport(BaseReport):
+    ip: str = ""
+    is_vpn: bool = False
+    is_tor: bool = False
+    is_proxy: bool = False
+    is_abuser: bool = False
+    location: dict[str, Any] = Field(default_factory=dict)
+    asn: dict[str, Any] = Field(default_factory=dict)
+    vpn: dict[str, Any] = Field(default_factory=dict)
 
 
 class IPAPIEngine(BaseEngine):
@@ -50,26 +64,34 @@ class IPAPIEngine(BaseEngine):
                         observable_value,
                     )
 
-            response = requests.post(
+            response = self._make_post_request(
                 url,
                 json=data,
                 headers=headers,
-                proxies=self.proxies,
-                verify=self.ssl_verify,
                 timeout=5,
             )
-            response.raise_for_status()
 
-            data = response.json()
-            if "ip" in data:
+            response_data = response.json()
+            if "ip" in response_data:
                 # Reformat ASN field as per original logic
-                if "asn" not in data or not data["asn"]:
-                    data["asn"] = {"asn": "Unknown", "org": "Unknown"}
-                elif "asn" in data["asn"]:
-                    data["asn"]["asn"] = f"AS{data['asn']['asn']}"
-                return data
+                if "asn" not in response_data or not response_data["asn"]:
+                    response_data["asn"] = {"asn": "Unknown", "org": "Unknown"}
+                elif "asn" in response_data["asn"]:
+                    response_data["asn"]["asn"] = f"AS{response_data['asn']['asn']}"
 
-        except Exception as e:
+                return IPAPIReport(
+                    success=True,
+                    ip=response_data.get("ip", ""),
+                    is_vpn=response_data.get("is_vpn", False),
+                    is_tor=response_data.get("is_tor", False),
+                    is_proxy=response_data.get("is_proxy", False),
+                    is_abuser=response_data.get("is_abuser", False),
+                    location=response_data.get("location", {}),
+                    asn=response_data.get("asn", {}),
+                    vpn=response_data.get("vpn", {}),
+                ).__json__()
+
+        except RequestException as e:
             logger.error("Error querying ipapi for '%s': %s", observable_value, e, exc_info=True)
 
         return None

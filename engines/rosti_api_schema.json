@@ -1,0 +1,216 @@
+{
+  "allOf": [
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "title": "IOC (Indicator of Compromise)",
+            "description": "An IOC is a piece of information that can be used to identify malicious activity",
+            "additionalProperties": false,
+            "properties": {
+              "category": {
+                "title": "IOC Category",
+                "description": "Name indicating the IOC category, e.g., `network_activity` or `artifacts_dropped`",
+                "type": "string",
+                "examples": [
+                  "network_activity",
+                  "artifacts_dropped"
+                ]
+              },
+              "comment": {
+                "description": "Comment about the IOC",
+                "examples": [
+                  "Malicious IP used for C2"
+                ],
+                "type": "string"
+              },
+              "date": {
+                "title": "Date",
+                "description": "Date in ISO 8601 format YYYY-MM-DD",
+                "type": "string",
+                "format": "date",
+                "examples": [
+                  "2024-12-27"
+                ]
+              },
+              "id": {
+                "description": "IOC identifier",
+                "examples": [
+                  "buej849x"
+                ],
+                "type": "string"
+              },
+              "ids": {
+                "description": "Whether the IOC is suitable for intrusion detection systems",
+                "examples": [
+                  false
+                ],
+                "type": "boolean"
+              },
+              "report": {
+                "description": "ID of the report this IOC belongs to",
+                "examples": [
+                  "dq13KaQv"
+                ],
+                "type": "string"
+              },
+              "risk": {
+                "title": "False Positive Risk",
+                "description": "False positive risk score for an IOC, indicating its potential false positives",
+                "additionalProperties": false,
+                "properties": {
+                  "level": {
+                    "description": "False positive risk level of the IOC",
+                    "examples": [
+                      3
+                    ],
+                    "format": "int64",
+                    "maximum": 5,
+                    "minimum": -1,
+                    "type": "integer"
+                  },
+                  "meaning": {
+                    "description": "Meaning of the false positive risk level",
+                    "examples": [
+                      "moderate"
+                    ],
+                    "enum": [
+                      "informational",
+                      "small",
+                      "moderate",
+                      "medium",
+                      "high",
+                      "very high"
+                    ],
+                    "type": "string"
+                  },
+                  "msg": {
+                    "description": "Message describing the false positive risk",
+                    "examples": [
+                      "Rank 4738 on Alexa"
+                    ],
+                    "type": "string"
+                  },
+                  "disclaimer": {
+                    "description": "Disclaimer for the false positive risk",
+                    "examples": [
+                      "The higher the risk, the more likely it is that this IOC might produce false positive."
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "meaning",
+                  "level",
+                  "msg"
+                ],
+                "type": "object"
+              },
+              "type": {
+                "title": "IOC Type",
+                "description": "Type of the IOC, e.g., `ip`, `domain`, `md5`",
+                "type": "string",
+                "examples": [
+                  "md5",
+                  "url",
+                  "email",
+                  "sha1"
+                ]
+              },
+              "value": {
+                "description": "IOC value",
+                "examples": [
+                  "192.168.1.1"
+                ],
+                "type": "string"
+              },
+              "timestamp": {
+                "title": "Timestamp",
+                "description": "Timestamp in ISO 8601 format YYYY-MM-DDTHH:MM:SSZ",
+                "type": "string",
+                "format": "date-time",
+                "examples": [
+                  "2025-04-29T15:34:56Z"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "category",
+              "value",
+              "date",
+              "type",
+              "ids",
+              "report"
+            ],
+            "type": "object"
+          }
+        },
+        "meta": {
+          "title": "Paginated List Metadata",
+          "description": "Metadata for a paginated list response.",
+          "type": "object",
+          "properties": {
+            "count": {
+              "description": "Number of items returned in this response, which might be less than the total number of items in the list, see `paginated` if there are more and use the `cursor` if so to access the next page.",
+              "examples": [
+                50
+              ],
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "paginated": {
+              "description": "Indicates that the response is paginated, i.e., always set to `true`.",
+              "type": "boolean",
+              "const": true,
+              "example": true
+            },
+            "has_more": {
+              "description": "Whether there are more results available",
+              "examples": [
+                true
+              ],
+              "type": "boolean"
+            },
+            "limit": {
+              "default": 100,
+              "description": "Number of results you asked for",
+              "examples": [
+                50
+              ],
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "next_cursor": {
+              "description": "Pagination cursor for the next page of results, if available.",
+              "examples": [
+                "dXNlcjpVMEc5V0ZYTlo"
+              ],
+              "type": "string"
+            },
+            "total": {
+              "description": "Total number or results available in the database, not just the ones returned in this response.",
+              "examples": [
+                2838
+              ],
+              "format": "int64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "paginated",
+            "count",
+            "has_more",
+            "limit",
+            "total"
+          ]
+        }
+      }
+    }
+  ]
+}

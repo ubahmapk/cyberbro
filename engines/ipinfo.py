@@ -3,12 +3,24 @@ from collections.abc import Mapping
 from typing import Any
 
 import pycountry
-import requests
+from pydantic.dataclasses import dataclass
+from requests.exceptions import RequestException
 from typing_extensions import override
 
-from models.base_engine import BaseEngine
+from models.base_engine import BaseEngine, BaseReport
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(slots=True)
+class IPInfoReport(BaseReport):
+    ip: str = ""
+    geolocation: str = ""
+    country_code: str = ""
+    country_name: str = ""
+    hostname: str = ""
+    asn: str = ""
+    link: str = ""
 
 
 class IPInfoEngine(BaseEngine):
@@ -31,22 +43,22 @@ class IPInfoEngine(BaseEngine):
     def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         try:
             url = f"https://ipinfo.io/{observable_value}/json?token={self.secrets.ipinfo}"
-            response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
-            response.raise_for_status()
+            response = self._make_request(url, timeout=5)
 
             data = response.json()
 
             # Handle bogon/private IPs explicitly
             if "bogon" in data:
-                return {
-                    "ip": observable_value,
-                    "geolocation": "",
-                    "country_code": "",
-                    "country_name": "Bogon",
-                    "hostname": "Private IP",
-                    "asn": "BOGON",
-                    "link": f"https://ipinfo.io/{observable_value}",
-                }
+                return IPInfoReport(
+                    success=True,
+                    ip=observable_value,
+                    geolocation="",
+                    country_code="",
+                    country_name="Bogon",
+                    hostname="Private IP",
+                    asn="BOGON",
+                    link=f"https://ipinfo.io/{observable_value}",
+                ).__json__()
 
             if "ip" in data:
                 ip_resp = data.get("ip", "Unknown")
@@ -62,17 +74,18 @@ class IPInfoEngine(BaseEngine):
                 except Exception:
                     country_name = "Unknown"
 
-                return {
-                    "ip": ip_resp,
-                    "geolocation": f"{city}, {region}",
-                    "country_code": country_code,
-                    "country_name": country_name,
-                    "hostname": data.get("hostname", "Unknown"),
-                    "asn": asn_raw,  # Keep raw string for parsing in export logic
-                    "link": f"https://ipinfo.io/{ip_resp}",
-                }
+                return IPInfoReport(
+                    success=True,
+                    ip=ip_resp,
+                    geolocation=f"{city}, {region}",
+                    country_code=country_code,
+                    country_name=country_name,
+                    hostname=data.get("hostname", "Unknown"),
+                    asn=asn_raw,
+                    link=f"https://ipinfo.io/{ip_resp}",
+                ).__json__()
 
-        except Exception as e:
+        except RequestException as e:
             logger.error(
                 "Error querying ipinfo for '%s': %s",
                 observable_value,
@@ -88,7 +101,8 @@ class IPInfoEngine(BaseEngine):
         if not analysis_result:
             return {f"ipinfo_{k}": None for k in ["cn", "country", "geo", "asn", "org"]}
 
-        asn_data = analysis_result.get("asn").split(" ", 1) if analysis_result.get("asn") else []
+        asn_str = analysis_result.get("asn")
+        asn_data = asn_str.split(" ", 1) if asn_str else []
 
         return {
             "ipinfo_cn": analysis_result.get("country_code"),
