@@ -35,7 +35,7 @@ from utils.stats import get_analysis_stats
 from utils.utils import extract_observables
 
 # Canonical version string displayed in the about page and used for update checks
-VERSION: str = "v0.10.3"
+VERSION: str = "v0.10.4"
 
 
 class InvalidCachefileError(Exception):
@@ -463,7 +463,7 @@ def initialize_background_services():
 
     This function starts daemon threads for long-running background tasks:
     - Bad ASN database updater: Periodically updates malicious ASN lists from
-      external sources (Spamhaus ASNDROP, Brianhama Bad ASN database).
+      external sources (Spamhaus ASNDROP, Brianhama Bad ASN database, LETHAL-FORENSICS ASN Blacklist).
 
     These threads are marked as daemon threads, so they will automatically
     terminate when the main application exits.
