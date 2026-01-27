@@ -42,6 +42,13 @@ class RDAPEngine(BaseEngine):
                 return None
 
             ext = tldextract.extract(domain_part)
+            """
+            Note from testing:
+            rdap.py:45: DeprecationWarning: The 'registered_domain' property is deprecated and
+            will be removed in the next major version. Use 'top_domain_under_public_suffix'
+            instead, which has the same behavior but a more accurate name.
+            domain = ext.registered_domain
+            """
             domain = ext.registered_domain
             if not domain:
                 return None
