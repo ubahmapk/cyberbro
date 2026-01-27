@@ -142,7 +142,7 @@ def get_suspicious_info_report(
         response.raise_for_status()
     except HTTPError as e:
         logger.error(
-            f"Error retrieving Criminal IP Suspicious Inforeport for {observable}: {e}",
+            f"Error retrieving Criminal IP Suspicious Info report for {observable}: {e}",
         )
         return None
 
