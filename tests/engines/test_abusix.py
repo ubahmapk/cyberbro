@@ -56,30 +56,26 @@ def test_analyze_exception_generic(mock_contact_finder, secrets_with_config, ipv
 # Medium Priority Tests: Critical Paths
 
 
+@pytest.mark.parametrize(
+    "observable_value,observable_type,expected_email",
+    [
+        ("1.1.1.1", "IPv4", "abuse@example.com"),
+        ("2001:4860:4860::8888", "IPv6", "abuse-ipv6@example.com"),
+    ],
+)
 @patch("querycontacts.ContactFinder")
-def test_analyze_success_ipv4(mock_contact_finder, secrets_with_config, ipv4_observable):
-    """Test successful analysis of IPv4 address."""
+def test_analyze_success(
+    mock_contact_finder, secrets_with_config, observable_value, observable_type, expected_email
+):
+    """Test successful analysis of IPv4 and IPv6 addresses."""
     engine = AbusixEngine(secrets_with_config, proxies={}, ssl_verify=True)
     mock_instance = mock_contact_finder.return_value
-    mock_instance.find.return_value = ["abuse@example.com"]
+    mock_instance.find.return_value = [expected_email]
 
-    result = engine.analyze(ipv4_observable, "IPv4")
+    result = engine.analyze(observable_value, observable_type)
 
-    assert result == {"abuse": "abuse@example.com"}
-    mock_instance.find.assert_called_once_with(ipv4_observable)
-
-
-@patch("querycontacts.ContactFinder")
-def test_analyze_success_ipv6(mock_contact_finder, secrets_with_config, ipv6_observable):
-    """Test successful analysis of IPv6 address."""
-    engine = AbusixEngine(secrets_with_config, proxies={}, ssl_verify=True)
-    mock_instance = mock_contact_finder.return_value
-    mock_instance.find.return_value = ["abuse-ipv6@example.com"]
-
-    result = engine.analyze(ipv6_observable, "IPv6")
-
-    assert result == {"abuse": "abuse-ipv6@example.com"}
-    mock_instance.find.assert_called_once_with(ipv6_observable)
+    assert result == {"abuse": expected_email}
+    mock_instance.find.assert_called_once_with(observable_value)
 
 
 @patch("querycontacts.ContactFinder")

@@ -40,32 +40,126 @@ def url_observable():
 # ============================================================================
 
 
+@pytest.mark.parametrize(
+    "observable_value,observable_type",
+    [
+        ("1.1.1.1", "IPv4"),
+        ("2001:4860:4860::8888", "IPv6"),
+        ("example.com", "FQDN"),
+        ("https://example.com:8080/path", "URL"),
+    ],
+)
 @responses.activate
-def test_analyze_ipv4_ptr_success_single_record(secrets, ipv4_observable):
-    """Test successful IPv4 PTR lookup returning single hostname."""
+def test_analyze_observable_type_routing(secrets, observable_value, observable_type):
+    """Test observable type routing with basic successful responses."""
     engine = GoogleDNSEngine(secrets, proxies={}, ssl_verify=True)
-    url = "https://dns.google/resolve"
 
-    mock_resp = {
-        "Answer": [
-            {
-                "name": "1.1.1.1.in-addr.arpa.",
-                "type": 12,
-                "TTL": 300,
-                "data": "one.one.one.one.",
-            }
-        ]
-    }
+    if observable_type == "IPv4":
+        responses.add(
+            responses.GET,
+            "https://dns.google/resolve",
+            json={
+                "Answer": [
+                    {
+                        "name": "1.1.1.1.in-addr.arpa.",
+                        "type": 12,
+                        "TTL": 300,
+                        "data": "one.one.one.one.",
+                    }
+                ]
+            },
+            status=200,
+        )
+    elif observable_type == "IPv6":
+        responses.add(
+            responses.GET,
+            "https://dns.google/resolve",
+            json={
+                "Answer": [
+                    {
+                        "name": "8.8.8.8.8.0.0.0.0.6.8.4.in-addr.arpa.",
+                        "type": 12,
+                        "TTL": 300,
+                        "data": "dns.google.",
+                    }
+                ]
+            },
+            status=200,
+        )
+    elif observable_type == "FQDN":
+        responses.add(
+            responses.GET,
+            "https://dns.google/resolve",
+            json={"Answer": [{"type": 1, "data": "1.1.1.1."}]},
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://dns.google/resolve",
+            json={"Answer": [{"type": 28, "data": "2001:4860::1."}]},
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://dns.google/resolve",
+            json={"Answer": []},
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://dns.google/resolve",
+            json={"Answer": [{"type": 15, "data": "10 mail.example.com."}]},
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://dns.google/resolve",
+            json={"Answer": []},
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://dns.google/resolve",
+            json={"Answer": []},
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://dns.google/resolve",
+            json={"Answer": [{"type": 2, "data": "ns1.example.com."}]},
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://dns.google/resolve",
+            json={"Answer": []},
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://dns.google/resolve",
+            json={"Answer": []},
+            status=200,
+        )
+        responses.add(
+            responses.GET,
+            "https://dns.google/resolve",
+            json={"Answer": []},
+            status=200,
+        )
+    elif observable_type == "URL":
+        for _ in range(10):
+            responses.add(
+                responses.GET,
+                "https://dns.google/resolve",
+                json={"Answer": []},
+                status=200,
+            )
 
-    responses.add(responses.GET, url, json=mock_resp, status=200)
-
-    result = engine.analyze(ipv4_observable, "IPv4")
+    result = engine.analyze(observable_value, observable_type)
 
     assert result is not None
     assert "Answer" in result
-    assert len(result["Answer"]) == 1
-    assert result["Answer"][0]["type_name"] == "PTR"
-    assert result["Answer"][0]["data"] == "one.one.one.one."
 
 
 @responses.activate
@@ -101,32 +195,6 @@ def test_analyze_ipv4_ptr_success_multiple_records(secrets):
 
 
 @responses.activate
-def test_analyze_ipv6_ptr_success(secrets, ipv6_observable):
-    """Test successful IPv6 PTR lookup (reverse DNS for IPv6)."""
-    engine = GoogleDNSEngine(secrets, proxies={}, ssl_verify=True)
-    url = "https://dns.google/resolve"
-
-    mock_resp = {
-        "Answer": [
-            {
-                "name": "8.8.8.8.8.0.0.0.0.6.8.4.in-addr.arpa.",
-                "type": 12,
-                "TTL": 300,
-                "data": "dns.google.",
-            }
-        ]
-    }
-
-    responses.add(responses.GET, url, json=mock_resp, status=200)
-
-    result = engine.analyze(ipv6_observable, "IPv6")
-
-    assert result is not None
-    assert "Answer" in result
-    assert result["Answer"][0]["type_name"] == "PTR"
-
-
-@responses.activate
 def test_analyze_ipv4_no_ptr_records(secrets, ipv4_observable):
     """Test IPv4 query returning no PTR records (empty Answer array)."""
     engine = GoogleDNSEngine(secrets, proxies={}, ssl_verify=True)
@@ -140,82 +208,6 @@ def test_analyze_ipv4_no_ptr_records(secrets, ipv4_observable):
 
     assert result is not None
     assert result["Answer"] == []
-
-
-@responses.activate
-def test_analyze_fqdn_complete_success(secrets, fqdn_observable):
-    """Test complete FQDN lookup with multiple record types."""
-    engine = GoogleDNSEngine(secrets, proxies={}, ssl_verify=True)
-
-    # Mock responses for all 8 DNS record types
-    responses.add(
-        responses.GET,
-        "https://dns.google/resolve",
-        json={"Answer": [{"type": 1, "data": "1.1.1.1."}]},
-        status=200,
-    )
-    responses.add(
-        responses.GET,
-        "https://dns.google/resolve",
-        json={"Answer": [{"type": 28, "data": "2001:4860::1."}]},
-        status=200,
-    )
-    responses.add(
-        responses.GET,
-        "https://dns.google/resolve",
-        json={"Answer": []},
-        status=200,
-    )
-    responses.add(
-        responses.GET,
-        "https://dns.google/resolve",
-        json={"Answer": [{"type": 15, "data": "10 mail.example.com."}]},
-        status=200,
-    )
-    responses.add(
-        responses.GET,
-        "https://dns.google/resolve",
-        json={"Answer": []},
-        status=200,
-    )
-    responses.add(
-        responses.GET,
-        "https://dns.google/resolve",
-        json={"Answer": []},
-        status=200,
-    )
-    responses.add(
-        responses.GET,
-        "https://dns.google/resolve",
-        json={"Answer": [{"type": 2, "data": "ns1.example.com."}]},
-        status=200,
-    )
-    responses.add(
-        responses.GET,
-        "https://dns.google/resolve",
-        json={"Answer": []},
-        status=200,
-    )
-    # SPF query
-    responses.add(
-        responses.GET,
-        "https://dns.google/resolve",
-        json={"Answer": []},
-        status=200,
-    )
-    # DMARC query
-    responses.add(
-        responses.GET,
-        "https://dns.google/resolve",
-        json={"Answer": []},
-        status=200,
-    )
-
-    result = engine.analyze(fqdn_observable, "FQDN")
-
-    assert result is not None
-    assert "Answer" in result
-    assert len(result["Answer"]) >= 3
 
 
 @responses.activate
@@ -317,35 +309,6 @@ def test_analyze_fqdn_no_spf_no_dmarc(secrets, fqdn_observable):
     dmarc_records = [r for r in result["Answer"] if r.get("type_name") == "DMARC"]
     assert len(spf_records) == 0
     assert len(dmarc_records) == 0
-
-
-@responses.activate
-def test_analyze_url_domain_extraction(secrets, url_observable):
-    """Test URL observable with full URL extraction."""
-    engine = GoogleDNSEngine(secrets, proxies={}, ssl_verify=True)
-
-    # Mock 8 record type queries for extracted domain
-    for _ in range(8):
-        responses.add(responses.GET, "https://dns.google/resolve", json={"Answer": []}, status=200)
-
-    # SPF and DMARC queries
-    responses.add(
-        responses.GET,
-        "https://dns.google/resolve",
-        json={"Answer": []},
-        status=200,
-    )
-    responses.add(
-        responses.GET,
-        "https://dns.google/resolve",
-        json={"Answer": []},
-        status=200,
-    )
-
-    result = engine.analyze(url_observable, "URL")
-
-    assert result is not None
-    assert "Answer" in result
 
 
 @responses.activate

@@ -490,9 +490,23 @@ def test_analyze_empty_array_fields(mock_get_client, secrets_with_credentials, i
     assert result["vulnerabilities"] == []
 
 
+@pytest.mark.parametrize(
+    "observable_value,observable_type",
+    [
+        ("1.1.1.1", "IPv4"),
+        ("2001:4860:4860::8888", "IPv6"),
+        ("example.com", "FQDN"),
+        ("5d41402abc4b2a76b9719d911017c592", "MD5"),
+        ("da39a3ee5e6b4b0d3255bfef95601890afd80709", "SHA1"),
+        ("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "SHA256"),
+        ("https://example.com:8443/path?query=1", "URL"),
+    ],
+)
 @patch("engines.crowdstrike.CrowdstrikeEngine._get_falcon_client")
-def test_analyze_ipv4_observable(mock_get_client, secrets_with_credentials, ipv4_observable):
-    """IPv4 type mapping and processing."""
+def test_analyze_observable_types(
+    mock_get_client, secrets_with_credentials, observable_value, observable_type
+):
+    """Test observable type routing and processing for various types."""
     mock_falcon = MagicMock()
     mock_get_client.return_value = mock_falcon
 
@@ -505,43 +519,8 @@ def test_analyze_ipv4_observable(mock_get_client, secrets_with_credentials, ipv4
                     {
                         "published_date": 1672531200,
                         "last_updated": 1672617600,
-                        "actors": ["APT1"],
-                        "malicious_confidence": "medium",
-                        "threat_types": ["trojan"],
-                        "kill_chains": [],
-                        "malware_families": [],
-                        "vulnerabilities": [],
-                    }
-                ]
-            },
-        },
-    ]
-
-    engine = CrowdstrikeEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    result = engine.analyze(ipv4_observable, "IPv4")
-
-    assert result is not None
-    assert result["indicator_found"] is True
-    assert result["device_count"] == 1
-
-
-@patch("engines.crowdstrike.CrowdstrikeEngine._get_falcon_client")
-def test_analyze_ipv6_observable(mock_get_client, secrets_with_credentials, ipv6_observable):
-    """IPv6 type mapping and processing."""
-    mock_falcon = MagicMock()
-    mock_get_client.return_value = mock_falcon
-
-    mock_falcon.command.side_effect = [
-        {"status_code": 200, "body": {"resources": [{"device_count": 2}]}},
-        {
-            "status_code": 200,
-            "body": {
-                "resources": [
-                    {
-                        "published_date": 1672531200,
-                        "last_updated": 1672617600,
                         "actors": [],
-                        "malicious_confidence": "low",
+                        "malicious_confidence": "medium",
                         "threat_types": [],
                         "kill_chains": [],
                         "malware_families": [],
@@ -553,81 +532,11 @@ def test_analyze_ipv6_observable(mock_get_client, secrets_with_credentials, ipv6
     ]
 
     engine = CrowdstrikeEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    result = engine.analyze(ipv6_observable, "IPv6")
+    result = engine.analyze(observable_value, observable_type)
 
     assert result is not None
     assert result["indicator_found"] is True
-    assert result["device_count"] == 2
-
-
-@patch("engines.crowdstrike.CrowdstrikeEngine._get_falcon_client")
-def test_analyze_fqdn_observable(mock_get_client, secrets_with_credentials, domain_observable):
-    """FQDN type mapping and processing."""
-    mock_falcon = MagicMock()
-    mock_get_client.return_value = mock_falcon
-
-    mock_falcon.command.side_effect = [
-        {"status_code": 200, "body": {"resources": [{"device_count": 8}]}},
-        {
-            "status_code": 200,
-            "body": {
-                "resources": [
-                    {
-                        "published_date": 1672531200,
-                        "last_updated": 1672617600,
-                        "actors": ["APT28"],
-                        "malicious_confidence": "high",
-                        "threat_types": ["backdoor"],
-                        "kill_chains": ["C2"],
-                        "malware_families": [],
-                        "vulnerabilities": [],
-                    }
-                ]
-            },
-        },
-    ]
-
-    engine = CrowdstrikeEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    result = engine.analyze(domain_observable, "FQDN")
-
-    assert result is not None
-    assert result["indicator_found"] is True
-    assert result["device_count"] == 8
-
-
-@patch("engines.crowdstrike.CrowdstrikeEngine._get_falcon_client")
-def test_analyze_hash_observables(mock_get_client, secrets_with_credentials, hash_md5_observable):
-    """MD5, SHA1, SHA256 type mapping and processing."""
-    mock_falcon = MagicMock()
-    mock_get_client.return_value = mock_falcon
-
-    mock_falcon.command.side_effect = [
-        {"status_code": 200, "body": {"resources": [{"device_count": 4}]}},
-        {
-            "status_code": 200,
-            "body": {
-                "resources": [
-                    {
-                        "published_date": 1672531200,
-                        "last_updated": 1672617600,
-                        "actors": [],
-                        "malicious_confidence": "high",
-                        "threat_types": ["malware"],
-                        "kill_chains": [],
-                        "malware_families": ["Emotet"],
-                        "vulnerabilities": [],
-                    }
-                ]
-            },
-        },
-    ]
-
-    engine = CrowdstrikeEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    result = engine.analyze(hash_md5_observable, "MD5")
-
-    assert result is not None
-    assert result["indicator_found"] is True
-    assert result["device_count"] == 4
+    assert result["device_count"] == 1
 
 
 @patch("engines.crowdstrike.CrowdstrikeEngine._get_falcon_client")
@@ -704,76 +613,6 @@ def test_analyze_observable_case_normalization(mock_get_client, secrets_with_cre
 # ============================================================================
 # LOW Priority: Edge Case Tests
 # ============================================================================
-
-
-@patch("engines.crowdstrike.CrowdstrikeEngine._get_falcon_client")
-def test_analyze_url_with_port(mock_get_client, secrets_with_credentials, url_observable_with_port):
-    """URL includes port."""
-    mock_falcon = MagicMock()
-    mock_get_client.return_value = mock_falcon
-
-    mock_falcon.command.side_effect = [
-        {"status_code": 200, "body": {"resources": [{"device_count": 0}]}},
-        {
-            "status_code": 200,
-            "body": {
-                "resources": [
-                    {
-                        "published_date": 1672531200,
-                        "last_updated": 1672617600,
-                        "actors": [],
-                        "malicious_confidence": "medium",
-                        "threat_types": [],
-                        "kill_chains": [],
-                        "malware_families": [],
-                        "vulnerabilities": [],
-                    }
-                ]
-            },
-        },
-    ]
-
-    engine = CrowdstrikeEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    result = engine.analyze(url_observable_with_port, "URL")
-
-    assert result is not None
-    assert result["indicator_found"] is True
-
-
-@patch("engines.crowdstrike.CrowdstrikeEngine._get_falcon_client")
-def test_analyze_url_with_path_and_query(mock_get_client, secrets_with_credentials):
-    """URL includes path and query string."""
-    mock_falcon = MagicMock()
-    mock_get_client.return_value = mock_falcon
-
-    url_with_path_query = "https://example.com/some/path?key=value&other=123"
-
-    mock_falcon.command.side_effect = [
-        {"status_code": 200, "body": {"resources": [{"device_count": 0}]}},
-        {
-            "status_code": 200,
-            "body": {
-                "resources": [
-                    {
-                        "published_date": 1672531200,
-                        "last_updated": 1672617600,
-                        "actors": [],
-                        "malicious_confidence": "low",
-                        "threat_types": [],
-                        "kill_chains": [],
-                        "malware_families": [],
-                        "vulnerabilities": [],
-                    }
-                ]
-            },
-        },
-    ]
-
-    engine = CrowdstrikeEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    result = engine.analyze(url_with_path_query, "URL")
-
-    assert result is not None
-    assert result["indicator_found"] is True
 
 
 @patch("engines.crowdstrike.CrowdstrikeEngine._get_falcon_client")

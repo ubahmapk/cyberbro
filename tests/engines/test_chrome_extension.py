@@ -99,29 +99,29 @@ def html_empty_body():
 
 
 @responses.activate
-def test_analyze_success_chrome(secrets, extension_id, chrome_url, chrome_html_success):
-    """Test successful extension name extraction from Chrome Web Store."""
+@pytest.mark.parametrize(
+    "browser_url,browser_html,browser_name",
+    [
+        ("chrome_url", "chrome_html_success", "Chrome"),
+        ("edge_url", "edge_html_success", "Edge"),
+    ],
+)
+def test_analyze_success_browser_variants(
+    request, secrets, extension_id, browser_url, browser_html, browser_name
+):
+    """Test successful extension name extraction from Chrome and Edge stores."""
+    # Resolve fixture names to actual fixtures
+    url = request.getfixturevalue(browser_url)
+    html = request.getfixturevalue(browser_html)
+
     engine = ChromeExtensionEngine(secrets, proxies={}, ssl_verify=True)
-    responses.add(responses.GET, chrome_url, body=chrome_html_success, status=200)
+    responses.add(responses.GET, url, body=html, status=200)
 
     result = engine.analyze(extension_id, "CHROME_EXTENSION")
 
     assert result is not None
     assert result["name"] == "Test Extension Name"
-    assert result["url"] == chrome_url
-
-
-@responses.activate
-def test_analyze_success_edge(secrets, extension_id, edge_url, edge_html_success):
-    """Test successful extension name extraction from Edge Add-ons."""
-    engine = ChromeExtensionEngine(secrets, proxies={}, ssl_verify=True)
-    responses.add(responses.GET, edge_url, body=edge_html_success, status=200)
-
-    result = engine.analyze(extension_id, "CHROME_EXTENSION")
-
-    assert result is not None
-    assert result["name"] == "Test Extension Name"
-    assert result["url"] == edge_url
+    assert result["url"] == url
 
 
 @responses.activate

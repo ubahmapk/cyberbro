@@ -166,12 +166,13 @@ def test_analyze_empty_certificate_list(fqdn_observable):
 
 
 @responses.activate
-def test_analyze_http_error_500(fqdn_observable, caplog):
-    """Test handling of HTTP 500 error."""
+@pytest.mark.parametrize("status_code", [401, 403, 404, 500])
+def test_analyze_http_error_codes(fqdn_observable, status_code, caplog):
+    """Test handling of HTTP error responses (401, 403, 404, 500)."""
     engine = CrtShEngine(Secrets(), proxies={}, ssl_verify=True)
     url = f"https://crt.sh/json?q={fqdn_observable}"
 
-    responses.add(responses.GET, url, json={"error": "server error"}, status=500)
+    responses.add(responses.GET, url, json={"error": "error"}, status=status_code)
 
     caplog.set_level(logging.ERROR)
     result = engine.analyze(fqdn_observable, "FQDN")
@@ -302,21 +303,6 @@ def test_analyze_name_value_with_empty_lines(fqdn_observable):
     assert len(result["top_domains"]) == 3
     domain_names = {d["domain"] for d in result["top_domains"]}
     assert domain_names == {"example.com", "www.example.com", "api.example.com"}
-
-
-@responses.activate
-def test_analyze_http_error_404(fqdn_observable, caplog):
-    """Test handling of HTTP 404 Not Found."""
-    engine = CrtShEngine(Secrets(), proxies={}, ssl_verify=True)
-    url = f"https://crt.sh/json?q={fqdn_observable}"
-
-    responses.add(responses.GET, url, json={"error": "not found"}, status=404)
-
-    caplog.set_level(logging.ERROR)
-    result = engine.analyze(fqdn_observable, "FQDN")
-
-    assert result is None
-    assert "Error querying crt.sh" in caplog.text
 
 
 @responses.activate
