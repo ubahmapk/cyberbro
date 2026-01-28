@@ -25,8 +25,10 @@ class SpurUSEngine(BaseEngine):
         spur_url = f"https://spur.us/context/{observable_value}"
         api_key = self.secrets.spur_us
 
+        """TODO: test for api_key and return specific error if invalid"""
+
         try:
-            if api_key:
+            if api_key and api_key.strip():
                 api_url = f"https://api.spur.us/v2/context/{observable_value}"
                 headers = {"Token": api_key}
 
