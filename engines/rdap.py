@@ -49,7 +49,7 @@ class RDAPEngine(BaseEngine):
             instead, which has the same behavior but a more accurate name.
             domain = ext.registered_domain
             """
-            domain = ext.registered_domain
+            domain = ext.top_domain_under_public_suffix
             if not domain:
                 return None
 
