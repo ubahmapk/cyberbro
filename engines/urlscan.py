@@ -36,6 +36,9 @@ class URLScanEngine(BaseEngine):
             else:
                 observable = observable_value
 
+            # TODO: Bug #4 - Observable values are not URL-encoded
+            # Special characters in domain/hash could break the query string
+            # Consider using: urllib.parse.quote(observable) or requests params parameter
             url = f"https://urlscan.io/api/v1/search/?q={query_field}:{observable}"
 
             response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
