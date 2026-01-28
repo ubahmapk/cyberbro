@@ -31,7 +31,11 @@ class WebscoutEngine(BaseEngine):
     def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
         api_key: str = self.secrets.webscout
         try:
+            # TODO: Hardcoded 1-second rate limiting makes tests slow
+            # and cannot be disabled
+            # Is this something we could use tenacity for?
             time.sleep(1)  # rate limit
+            # TODO: No credential validation - empty keys still make API requests
             url = f"https://api.webscout.io/query/ip/{observable_value}?apikey={api_key}"
             response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
             response.raise_for_status()
@@ -57,6 +61,7 @@ class WebscoutEngine(BaseEngine):
                 as_data = d.get("as", {}) or {}
                 anonymization = d.get("anonymization", {}) or {}
                 osint = d.get("osint", {}) or {}
+                # TODO: Inconsistent dict access patterns - some use `or {}` redundantly
 
                 # Aggregate OSINT tags for 'behavior'
                 osint_tags = []
@@ -82,6 +87,7 @@ class WebscoutEngine(BaseEngine):
                     "is_vpn": bool(anonymization.get("vpn", False)),
                     "country_code": country_code,
                     "country_name": country_name,
+                    # TODO: Location string could have trailing comma if city is empty
                     "location": f"{country_name}, {city}",
                     "hostnames": d.get("hostnames", []),
                     "domains_on_ip": None,  # Placeholder for backward compatibility
