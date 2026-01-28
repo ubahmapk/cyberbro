@@ -82,6 +82,9 @@ class RLAnalyzeEngine(BaseEngine):
                 }
 
         elif observable_type in ["URL"]:
+            # NOTE: Potential issue - if "analysis" key is missing from result, this will fail
+            # with AttributeError. Should defensively handle with .get("analysis", {})
+            # Candidate for future remediation to match safer pattern used elsewhere.
             threats.extend(
                 [i.get("threat_name") for i in result.get("analysis").get("top_threats", [])]
             )
