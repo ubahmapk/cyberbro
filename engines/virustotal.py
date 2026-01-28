@@ -20,6 +20,7 @@ class VirusTotalEngine(BaseEngine):
 
     def analyze(self, observable_value: str, observable_type: str) -> dict | None:
         headers = {"x-apikey": self.secrets.virustotal}
+        # TODO: validate api_key before API call
 
         try:
             if observable_type in ["IPv4", "IPv6"]:
