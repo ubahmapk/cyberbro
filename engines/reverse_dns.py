@@ -36,6 +36,15 @@ class ReverseDNSEngine(BaseEngine):
                 return {"reverse_dns": [str(ip) for ip in answer]}
 
             if observable_type == "URL":
+                # POTENTIAL FUTURE REMEDIATION: URL parsing uses fragile string split logic.
+                # Current approach: split("/")[2] for domain extraction,
+                # then split(":")[0] for port removal.
+                #
+                # Limitations: IPv6 in brackets without port ([ipv6]/path) becomes
+                # malformed ([ipv6:...]).
+                #
+                # Solution: Refactor to use urllib.parse.urlparse() for robust URL handling.
+                # See: https://docs.python.org/3/library/urllib.parse.html#urllib.parse.urlparse
                 extracted = observable_value.split("/")[2]
                 if ":" in extracted:
                     if is_really_ipv6(extracted):
