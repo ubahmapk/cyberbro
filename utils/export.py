@@ -6,8 +6,8 @@ from pathlib import Path
 import pandas as pd
 from flask import send_file
 
-from engines import get_engine_instances
 from utils.config import get_config
+from utils.load_engines import get_engine_instances
 
 logger = logging.getLogger(__name__)
 
