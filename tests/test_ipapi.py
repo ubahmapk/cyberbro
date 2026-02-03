@@ -1,11 +1,10 @@
-import json
 import logging
+from engines.ipapi import IPAPIEngine
 
 import responses
 import pytest
 
-from models.base_engine import BaseEngine
-from engines.ipapi import IPAPIEngine
+
 from utils.config import Secrets
 
 logger = logging.getLogger(__name__)
@@ -37,7 +36,7 @@ def ipv6_observable():
 
 @responses.activate
 def test_analyze_success_complete(secrets_with_key, ipv4_observable):
-    engine = IPAPIEngine(secrets_with_key, proxies=None, ssl_verify=True)
+    engine = IPAPIEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = "https://api.ipapi.is"
 
     mock_resp = {
@@ -62,7 +61,7 @@ def test_analyze_success_complete(secrets_with_key, ipv4_observable):
 
 @responses.activate
 def test_analyze_minimal_and_asn_missing(secrets_without_key, ipv4_observable):
-    engine = IPAPIEngine(secrets_without_key, proxies=None, ssl_verify=True)
+    engine = IPAPIEngine(secrets_without_key, proxies={}, ssl_verify=True)
     url = "https://api.ipapi.is"
 
     mock_resp = {"ip": ipv4_observable}
@@ -76,7 +75,7 @@ def test_analyze_minimal_and_asn_missing(secrets_without_key, ipv4_observable):
 
 @responses.activate
 def test_analyze_http_error(secrets_with_key, ipv4_observable, caplog):
-    engine = IPAPIEngine(secrets_with_key, proxies=None, ssl_verify=True)
+    engine = IPAPIEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = "https://api.ipapi.is"
 
     responses.add(responses.POST, url, json={"error": "bad"}, status=500)
@@ -90,7 +89,7 @@ def test_analyze_http_error(secrets_with_key, ipv4_observable, caplog):
 
 @responses.activate
 def test_create_export_row_full():
-    engine = IPAPIEngine(Secrets(), proxies=None, ssl_verify=True)
+    engine = IPAPIEngine(Secrets(), proxies={}, ssl_verify=True)
 
     analysis_result = {
         "ip": "1.1.1.1",
@@ -111,7 +110,7 @@ def test_create_export_row_full():
 
 
 def test_create_export_row_none():
-    engine = IPAPIEngine(Secrets(), proxies=None, ssl_verify=True)
+    engine = IPAPIEngine(Secrets(), proxies={}, ssl_verify=True)
     row = engine.create_export_row(None)
 
     assert all(v is None for v in row.values())

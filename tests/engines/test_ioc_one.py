@@ -5,6 +5,7 @@ import responses
 
 from engines.ioc_one import IOCOneHTMLEngine, IOCOnePDFEngine
 from utils.config import Secrets
+from models.observable import ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -201,7 +202,7 @@ class TestIOCOneHTMLEngineSuccess:
         url = f"https://ioc.one/auth/deep_search?search={observable_value}"
         responses.add(responses.GET, url, body=html_success_5_cards, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         assert "results" in result
@@ -217,7 +218,7 @@ class TestIOCOneHTMLEngineSuccess:
         url = f"https://ioc.one/auth/deep_search?search={observable_value}"
         responses.add(responses.GET, url, body=html_success_1_card, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         assert len(result["results"]) == 1
@@ -230,7 +231,7 @@ class TestIOCOneHTMLEngineSuccess:
         url = f"https://ioc.one/auth/deep_search?search={observable_value}"
         responses.add(responses.GET, url, body=html_empty_results, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         assert result["results"] == []
@@ -243,7 +244,7 @@ class TestIOCOneHTMLEngineSuccess:
         url = f"https://ioc.one/auth/deep_search?search={observable_value}"
         responses.add(responses.GET, url, body=html_9_cards, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         assert len(result["results"]) == 5
@@ -256,7 +257,7 @@ class TestIOCOneHTMLEngineSuccess:
         url = f"https://ioc.one/auth/deep_search?search={observable_value}"
         responses.add(responses.GET, url, body=html_success_1_card, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         card = result["results"][0]
@@ -276,7 +277,7 @@ class TestIOCOneHTMLEngineSuccess:
         expected_url = f"https://ioc.one/auth/deep_search?search={observable_value}"
         responses.add(responses.GET, expected_url, body=html_success_1_card, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result["link"] == expected_url
 
@@ -293,7 +294,7 @@ class TestIOCOnePDFEngineSuccess:
         url = f"https://ioc.one/auth/deep_search/pdf?search={observable_value}"
         responses.add(responses.GET, url, body=html, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         assert len(result["results"]) == 5
@@ -307,7 +308,7 @@ class TestIOCOnePDFEngineSuccess:
         url = f"https://ioc.one/auth/deep_search/pdf?search={observable_value}"
         responses.add(responses.GET, url, body=html, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         assert len(result["results"]) == 1
@@ -320,7 +321,7 @@ class TestIOCOnePDFEngineSuccess:
         url = f"https://ioc.one/auth/deep_search/pdf?search={observable_value}"
         responses.add(responses.GET, url, body=html_empty_results, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         assert result["results"] == []
@@ -334,7 +335,7 @@ class TestIOCOnePDFEngineSuccess:
         url = f"https://ioc.one/auth/deep_search/pdf?search={observable_value}"
         responses.add(responses.GET, url, body=html, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         assert len(result["results"]) == 5
@@ -347,16 +348,16 @@ class TestObservableTypeRouting:
     @pytest.mark.parametrize(
         "engine_class,endpoint,observable_type",
         [
-            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", "CHROME_EXTENSION"),
-            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", "FQDN"),
-            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", "IPv4"),
-            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", "IPv6"),
-            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", "MD5"),
-            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", "SHA1"),
-            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", "SHA256"),
-            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", "URL"),
-            (IOCOnePDFEngine, "https://ioc.one/auth/deep_search/pdf", "IPv4"),
-            (IOCOnePDFEngine, "https://ioc.one/auth/deep_search/pdf", "SHA256"),
+            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", ObservableType.CHROME_EXTENSION),
+            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", ObservableType.FQDN),
+            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", ObservableType.IPV4),
+            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", ObservableType.IPV6),
+            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", ObservableType.MD5),
+            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", ObservableType.SHA1),
+            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", ObservableType.SHA256),
+            (IOCOneHTMLEngine, "https://ioc.one/auth/deep_search", ObservableType.URL),
+            (IOCOnePDFEngine, "https://ioc.one/auth/deep_search/pdf", ObservableType.IPV4),
+            (IOCOnePDFEngine, "https://ioc.one/auth/deep_search/pdf", ObservableType.SHA256),
         ],
     )
     @responses.activate
@@ -448,7 +449,7 @@ class TestErrorHandling:
         url = f"{endpoint}?search={observable_value}"
         responses.add(responses.GET, url, status=status_code)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is None
 
@@ -459,7 +460,7 @@ class TestErrorHandling:
         url = f"https://ioc.one/auth/deep_search?search={observable_value}"
         responses.add(responses.GET, url, body=TimeoutError("Connection timeout"))
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is None
 
@@ -470,7 +471,7 @@ class TestErrorHandling:
         url = f"https://ioc.one/auth/deep_search/pdf?search={observable_value}"
         responses.add(responses.GET, url, body=ConnectionError("Failed to connect"))
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is None
 
@@ -487,7 +488,7 @@ class TestMalformedHTML:
         url = f"https://ioc.one/auth/deep_search?search={observable_value}"
         responses.add(responses.GET, url, body=html_missing_card_header, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is None
 
@@ -500,7 +501,7 @@ class TestMalformedHTML:
         url = f"https://ioc.one/auth/deep_search?search={observable_value}"
         responses.add(responses.GET, url, body=html_missing_card_title, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is None
 
@@ -514,7 +515,7 @@ class TestMalformedHTML:
         url = f"https://ioc.one/auth/deep_search/pdf?search={observable_value}"
         responses.add(responses.GET, url, body=html, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is None
 
@@ -525,7 +526,7 @@ class TestMalformedHTML:
         url = f"https://ioc.one/auth/deep_search?search={observable_value}"
         responses.add(responses.GET, url, body=html_no_cards, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         assert result["results"] == []
@@ -540,7 +541,7 @@ class TestMalformedHTML:
         url = f"https://ioc.one/auth/deep_search?search={observable_value}"
         responses.add(responses.GET, url, body=html_empty_body, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         assert result["results"] == []
@@ -567,7 +568,7 @@ class TestCSSClassDifference:
         """
         responses.add(responses.GET, url, body=html, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         assert len(result["results"]) == 1
@@ -589,7 +590,7 @@ class TestCSSClassDifference:
         """
         responses.add(responses.GET, url, body=html, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         assert len(result["results"]) == 1
@@ -610,7 +611,7 @@ class TestEdgeCases:
         url = f"https://ioc.one/auth/deep_search?search={special_observable}"
         responses.add(responses.GET, url, body="<html><body></body></html>", status=200)
 
-        result = engine.analyze(special_observable, "CHROME_EXTENSION")
+        result = engine.analyze(special_observable, ObservableType.CHROME_EXTENSION)
 
         assert result is not None
         assert result["link"] == url
@@ -631,7 +632,7 @@ class TestEdgeCases:
         """
         responses.add(responses.GET, url, body=html, status=200)
 
-        result = engine.analyze(observable_value, "IPv4")
+        result = engine.analyze(observable_value, ObservableType.IPV4)
 
         assert result is not None
         assert len(result["results"]) == 1
@@ -644,7 +645,7 @@ class TestEdgeCases:
         url = f"https://ioc.one/auth/deep_search?search={long_value}"
         responses.add(responses.GET, url, body="<html><body></body></html>", status=200)
 
-        result = engine.analyze(long_value, "URL")
+        result = engine.analyze(long_value, ObservableType.URL)
 
         assert result is not None
 
@@ -686,14 +687,14 @@ class TestEngineProperties:
         """Test IOCOneHTMLEngine supported_types property."""
         engine = IOCOneHTMLEngine(secrets, proxies={}, ssl_verify=True)
         expected_types = [
-            "CHROME_EXTENSION",
-            "FQDN",
-            "IPv4",
-            "IPv6",
-            "MD5",
-            "SHA1",
-            "SHA256",
-            "URL",
+            ObservableType.CHROME_EXTENSION,
+            ObservableType.FQDN,
+            ObservableType.IPV4,
+            ObservableType.IPV6,
+            ObservableType.MD5,
+            ObservableType.SHA1,
+            ObservableType.SHA256,
+            ObservableType.URL,
         ]
 
         assert engine.supported_types == expected_types
@@ -702,14 +703,14 @@ class TestEngineProperties:
         """Test IOCOnePDFEngine supported_types property."""
         engine = IOCOnePDFEngine(secrets, proxies={}, ssl_verify=True)
         expected_types = [
-            "CHROME_EXTENSION",
-            "FQDN",
-            "IPv4",
-            "IPv6",
-            "MD5",
-            "SHA1",
-            "SHA256",
-            "URL",
+            ObservableType.CHROME_EXTENSION,
+            ObservableType.FQDN,
+            ObservableType.IPV4,
+            ObservableType.IPV6,
+            ObservableType.MD5,
+            ObservableType.SHA1,
+            ObservableType.SHA256,
+            ObservableType.URL,
         ]
 
         assert engine.supported_types == expected_types

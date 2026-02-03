@@ -1,13 +1,67 @@
 import logging
 from abc import ABC, abstractmethod
+from dataclasses import asdict
+from enum import Flag, auto
 from typing import Any
 
 import requests
+from pydantic.dataclasses import dataclass
 from tenacity import after_log, retry, stop_after_attempt, wait_exponential
 
 from utils.config import Secrets
 
 logger = logging.getLogger(__name__)
+
+
+class ObservableType(Flag):
+    CHROME_EXTENSION = auto()
+    EMAIL = auto()
+    FQDN = auto()
+    IPv4 = auto()
+    IPv6 = auto()
+    MD5 = auto()
+    SHA1 = auto()
+    SHA256 = auto()
+    URL = auto()
+    BOGON = auto()
+
+
+@dataclass(slots=True)
+class Observable:
+    type: ObservableType
+    value: str
+
+    def __hash__(self) -> int:
+        """Set membership requires the object to be hashable"""
+        return hash(self.value)
+
+
+@dataclass(slots=True)
+class BaseReport:
+    success: bool
+    error_msg: str | None = None
+
+    def __iter__(self):
+        yield from asdict(self)
+
+    def __getitem__(self, key):
+        return asdict(self)[key]
+
+    def __json__(self):
+        return asdict(self)
+
+    def get(self, name, default: Any | None = None):
+        return getattr(self, name, default)
+
+
+class ExecutionPhase(Flag):
+    """Defines the analysis phase(s) the engine should run duing."""
+
+    EXTENSION = auto()  # Browser extension checks always run
+    PRE_PIVOT = auto()
+    PIVOT = auto()  # Can modify the observable in place (e.g. reverse DNS)
+    POST_PIVOT = auto()
+    DEPENDENT = auto()  # Engins that need results from other engines
 
 
 class BaseEngine(ABC):
@@ -28,8 +82,10 @@ class BaseEngine(ABC):
 
     @property
     @abstractmethod
-    def supported_types(self) -> list[str]:
-        """List of observable types this engine supports (e.g., ['IPv4', 'URL'])."""
+    def supported_types(self) -> ObservableType:
+        """List of observable types this engine supports.
+        e.g., SupportedTypes.IPv4 | SupportedTypes.URL
+        """
         pass
 
     @property
@@ -50,9 +106,10 @@ class BaseEngine(ABC):
         return False
 
     @abstractmethod
-    def analyze(self, observable_value: str, observable_type: str) -> Any:
+    def analyze(self, observable: Observable) -> BaseReport:
         """
-        Perform the analysis. Returns the raw result dictionary or None.
+        Perform the analysis.
+        Returns the report object, including success or the error message, present.
         """
         pass
 
