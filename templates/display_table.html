@@ -144,8 +144,8 @@
                     <th>Abusix</th>
                     {% endif %}
 
-                    {% if "rdap" in analysis_results.selected_engines %}
-                    <th>RDAP</th>
+                    {% if "rdap_whois" in analysis_results.selected_engines %}
+                    <th>RDAP / Whois</th>
                     {% endif %}
 
                     {% if "threatfox" in analysis_results.selected_engines %}
@@ -320,8 +320,8 @@
                     {% include "engine_layouts/abusix_table.html" %}
                     {% endif %}
 
-                    {% if "rdap" in analysis_results.selected_engines %}
-                    {% include "engine_layouts/rdap_table.html" %}
+                    {% if "rdap_whois" in analysis_results.selected_engines %}
+                    {% include "engine_layouts/rdap_whois_table.html" %}
                     {% endif %}
 
                     {% if "threatfox" in analysis_results.selected_engines %}
