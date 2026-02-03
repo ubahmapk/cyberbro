@@ -29,6 +29,10 @@ LOADED_ENGINES: dict[str, BaseEngine] = get_engine_instances(secrets, PROXIES, S
 
 
 def perform_analysis(app: Flask, observables, selected_engines: list[str], analysis_id: str):
+    # Normalize legacy engine names for backward compatibility
+    engine_aliases = {"rdap": "rdap_whois"}
+    selected_engines = [engine_aliases.get(name, name) for name in selected_engines]
+
     with app.app_context():
         start_time = time.time()
 
