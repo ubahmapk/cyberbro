@@ -60,8 +60,8 @@ without having to deploy a **complex** solution. Read the docs at https://docs.c
 * **Multi-Service Checks**: Reputation lookup for IPs, hashes, domains, URLs, and Chrome extension IDs across many threat intel services.
 * **Comprehensive Reports**: Advanced search, filtering, and export to CSV/Excel.
 * **Fast Processing**: Multithreaded for speed.
-* **Automated Pivoting**: Discover related domains, URLs, and IPs via reverse DNS and RDAP.
-* **Accurate Domain & Abuse Info**: ICANN RDAP and abuse contact lookups.
+* **Automated Pivoting**: Discover related domains, URLs, and IPs via reverse DNS and RDAP / Whois.
+* **Accurate Domain & Abuse Info**: RDAP / Whois and abuse contact lookups.
 * **Integrations**: Microsoft Defender for Endpoint, CrowdStrike, OpenCTI, Grep.App, Hudson Rock, and more.
 * **Proxy & Storage**: Proxy support and results stored in SQLite.
 * **History & Graphs**: Analysis history and experimental graph view.
@@ -226,7 +226,7 @@ python3 app.py
 * `/api/results/<analysis_id>` - Retrieve the results of a previous analysis (JSON).
 
 ```bash
-curl -X POST "http://localhost:5000/api/analyze" -H "Content-Type: application/json" -d '{"text": "20minutes.fr", "engines": ["reverse_dns", "rdap"]}'
+curl -X POST "http://localhost:5000/api/analyze" -H "Content-Type: application/json" -d '{"text": "20minutes.fr", "engines": ["reverse_dns", "rdap_whois"]}'
 ```
 
 ```json
@@ -254,9 +254,14 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 [
   {
     "observable": "20minutes.fr",
-    "rdap": {
+    "rdap_whois": {
       "abuse_contact": "",
       "creation_date": "2001-07-11",
+      "data_source": "rdap",
+      "emails": [
+        "9d882bff1f92c7932581ac41a3323275-52062398@contact.gandi.net",
+        "noc@gandi.net"
+      ],
       "expiration_date": "2028-01-08",
       "link": "https://rdap.nic.fr/domain/20minutes.fr",
       "name_servers": [
@@ -267,9 +272,10 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
       ],
       "organization": "",
       "registrant": "20 MINUTES FRANCE SAS",
-      "registrant_email": "0d6621ed24c26f0d32e2c4f76b507da9-679847@contact.gandi.net",
+      "registrant_country": "FR",
+      "registrant_email": "9d882bff1f92c7932581ac41a3323275-52062398@contact.gandi.net",
       "registrar": "GANDI",
-      "update_date": "2024-11-18"
+      "update_date": "2025-11-12"
     },
     "reverse_dns": {
       "reverse_dns": [
@@ -311,7 +317,7 @@ curl "http://localhost:5000/api/results/e88de647-b153-4904-91e5-8f5c79174854"
 * [Microsoft Defender for Endpoint](https://docs.microsoft.com/en-us/windows/security/threat-protection/microsoft-defender-atp/microsoft-defender-for-endpoint-api)
 * [MISP](https://www.misp-project.org/)
 * [OpenCTI](https://www.opencti.io/)
-* [OpenRDAP](https://openrdap.org/api)
+* [Cyberbro Whois API](https://whois.cyberbro.net) - RDAP / Whois lookup service
 * [Phishtank](https://www.phishtank.com/)
 * [ReversingLabs Spectra Analyze](https://www.reversinglabs.com/products/spectra-analyze)
 * [Rösti](https://rosti.bin.re/) - Repackaged Open Source Threat Intelligence

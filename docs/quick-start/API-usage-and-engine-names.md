@@ -21,7 +21,7 @@ Submit an observable (e.g., domain, IP, URL, hash) for analysis using one or mor
       -H "Content-Type: application/json" \
       -d '{
       "text": "20minutes.fr",
-      "engines": ["reverse_dns", "rdap"]
+      "engines": ["reverse_dns", "rdap_whois"]
       }'
     ```
 
@@ -35,7 +35,7 @@ Submit an observable (e.g., domain, IP, URL, hash) for analysis using one or mor
     headers = {"Content-Type": "application/json"}
     data = {
       "text": "20minutes.fr",
-      "engines": ["reverse_dns", "rdap"]
+      "engines": ["reverse_dns", "rdap_whois"]
     }
     response = requests.post(url, headers=headers, data=json.dumps(data))
     print(response.json())
@@ -51,7 +51,7 @@ Submit an observable (e.g., domain, IP, URL, hash) for analysis using one or mor
       },
       body: JSON.stringify({
         text: "20minutes.fr",
-        engines: ["reverse_dns", "rdap"]
+        engines: ["reverse_dns", "rdap_whois"]
       })
     })
     .then(response => response.json())
@@ -67,7 +67,7 @@ Submit an observable (e.g., domain, IP, URL, hash) for analysis using one or mor
 
     {
       "text": "20minutes.fr",
-      "engines": ["reverse_dns", "rdap"]
+      "engines": ["reverse_dns", "rdap_whois"]
     }
     ```
 
@@ -162,22 +162,28 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
 [
   {
   "observable": "20minutes.fr",
-  "rdap": {
+  "rdap_whois": {
     "abuse_contact": "",
     "creation_date": "2001-07-11",
+    "data_source": "rdap",
+    "emails": [
+      "9d882bff1f92c7932581ac41a3323275-52062398@contact.gandi.net",
+      "noc@gandi.net"
+    ],
     "expiration_date": "2028-01-08",
     "link": "https://rdap.nic.fr/domain/20minutes.fr",
     "name_servers": [
-    "ns-1271.awsdns-30.org",
-    "ns-748.awsdns-29.net",
-    "ns-16.awsdns-02.com",
-    "ns-1958.awsdns-52.co.uk"
+      "ns-1271.awsdns-30.org",
+      "ns-748.awsdns-29.net",
+      "ns-16.awsdns-02.com",
+      "ns-1958.awsdns-52.co.uk"
     ],
     "organization": "",
     "registrant": "20 MINUTES FRANCE SAS",
-    "registrant_email": "0d6621ed24c26f0d32e2c4f76b507da9-679847@contact.gandi.net",
+    "registrant_country": "FR",
+    "registrant_email": "9d882bff1f92c7932581ac41a3323275-52062398@contact.gandi.net",
     "registrar": "GANDI",
-    "update_date": "2024-11-18"
+    "update_date": "2025-11-12"
   },
   "reverse_dns": {
     "reverse_dns": [
@@ -213,7 +219,7 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
       -H "Content-Type: application/json" \
       -d '{
         "text": "20minutes.fr",
-        "engines": ["reverse_dns", "rdap"],
+        "engines": ["reverse_dns", "rdap_whois"],
         "ignore_cache": true
       }'
     ```
@@ -227,7 +233,7 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
     headers = {"Content-Type": "application/json"}
     data = {
         "text": "20minutes.fr",
-        "engines": ["reverse_dns", "rdap"],
+        "engines": ["reverse_dns", "rdap_whois"],
         "ignore_cache": True
     }
     response = requests.post(url, headers=headers, data=json.dumps(data))
@@ -244,7 +250,7 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
         },
         body: JSON.stringify({
             text: "20minutes.fr",
-            engines: ["reverse_dns", "rdap"],
+            engines: ["reverse_dns", "rdap_whois"],
             ignore_cache: true
         })
     })
@@ -261,7 +267,7 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
 
     {
         "text": "20minutes.fr",
-        "engines": ["reverse_dns", "rdap"],
+        "engines": ["reverse_dns", "rdap_whois"],
         "ignore_cache": true
     }
     ```
@@ -381,10 +387,10 @@ Once the analysis is complete, retrieve the results using the `analysis_id`.
 **Supports**: risk, domain, URL, free_no_key  
 **Explaination**: Checks Phishtank for domains, URL, free, no API key
 
-### RDAP (ex Whois)
-**Name**: `rdap`  
-**Supports**: default, abuse, domain, free_no_key  
-**Explaination**: Checks RDAP (ex Whois) record for domain, URL, no API key required
+### RDAP / Whois
+**Name**: `rdap_whois`
+**Supports**: default, abuse, domain, free_no_key
+**Explaination**: Checks RDAP / Whois record for domain, URL, no API key required (uses RDAP with WHOIS fallback)
 
 ### Reverse DNS
 **Name**: `reverse_dns`  
