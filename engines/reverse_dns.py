@@ -4,7 +4,7 @@ from typing import Any
 import dns.resolver
 import dns.reversename
 
-from models.base_engine import BaseEngine
+from models.base_engine import BaseEngine, ObservableType
 from utils.utils import identify_observable_type, is_really_ipv6
 
 logger = logging.getLogger(__name__)
@@ -53,14 +53,18 @@ class ReverseDNSEngine(BaseEngine):
                         return {"reverse_dns": [str(answer[0])]}
                     extracted = extracted.split(":")[0]
 
-                extracted_type = identify_observable_type(extracted)
-                if extracted_type == "FQDN":
-                    answer = dns.resolver.resolve(extracted, "A")
-                    return {"reverse_dns": [str(ip) for ip in answer]}
-                if extracted_type == "IPv4":
-                    reverse_name = dns.reversename.from_address(extracted)
-                    answer = dns.resolver.resolve(reverse_name, "PTR")
-                    return {"reverse_dns": [str(answer[0])]}
+                extracted_type: ObservableType = identify_observable_type(extracted)
+                assert isinstance(extracted_type, ObservableType)
+                match extracted_type:
+                    case ObservableType.FQDN:
+                        answer = dns.resolver.resolve(extracted, "A")
+                        return {"reverse_dns": [str(ip) for ip in answer]}
+                    case ObservableType.IPv4:
+                        reverse_name = dns.reversename.from_address(extracted)
+                        answer = dns.resolver.resolve(reverse_name, "PTR")
+                        return {"reverse_dns": [str(answer[0])]}
+                    case _:
+                        return None
 
             return None
         except Exception as e:
