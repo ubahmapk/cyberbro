@@ -16,6 +16,15 @@ class ObservableType(Flag):
     URL = auto()
     BOGON = auto()
 
+    def __add__(self, other):
+        """Combine two ObservableTypes into a new ObservableType."""
+        if not isinstance(other, ObservableType):
+            raise TypeError(f"Cannot combine ObservableType with {type(other)}")
+        return ObservableType(self.value | other.value)
+
+    def __radd__(self, other):
+        return self + other
+
 
 @dataclass(slots=True)
 class Observable:
