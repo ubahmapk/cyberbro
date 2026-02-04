@@ -91,7 +91,7 @@ def analyze_observable(
         engine = LOADED_ENGINES.get("chrome_extension")
         if engine:
             # Note: The original logic uses "extension" as the key, overriding the engine's name
-            result["extension"] = engine.analyze(observable)
+            result["extension"] = engine.analyze(observable["value"], observable["type"])
 
     # 2. Phase 1: Pre-Pivot Engines (Standard lookups that don't need reverse DNS result)
     for engine in active_instances:
