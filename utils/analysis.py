@@ -7,7 +7,7 @@ from typing import Any
 from flask import Flask
 
 from models.analysis_result import AnalysisResult
-from models.base_engine import BaseEngine
+from models.base_engine import BaseEngine, ObservableType
 from utils.config import Secrets, get_config
 from utils.database import get_analysis_result, save_analysis_result
 
@@ -75,8 +75,10 @@ def analyze_observable(
     }
 
     # 1. Global check: Bogon
-    if observable["type"] in ["IPv4", "IPv6"] and is_bogon(observable["value"]):
-        observable["type"] = "BOGON"
+    if (observable["type"] in ObservableType.IPV4 | ObservableType.IPV6) and is_bogon(
+        observable["value"]
+    ):
+        observable["type"] += ObservableType.BOGON
 
     # Identify and filter requested engine instances
     active_instances: list[BaseEngine] = []
@@ -85,11 +87,11 @@ def analyze_observable(
             active_instances.append(LOADED_ENGINES[name])
 
     # 1.5. Special handler: Chrome Extension (always runs if type matches)
-    if observable["type"] == "CHROME_EXTENSION":
+    if observable["type"] is ObservableType.CHROME_EXTENSION:
         engine = LOADED_ENGINES.get("chrome_extension")
         if engine:
             # Note: The original logic uses "extension" as the key, overriding the engine's name
-            result["extension"] = engine.analyze(observable["value"], observable["type"])
+            result["extension"] = engine.analyze(observable)
 
     # 2. Phase 1: Pre-Pivot Engines (Standard lookups that don't need reverse DNS result)
     for engine in active_instances:
@@ -147,9 +149,9 @@ def run_engine(engine: BaseEngine, observable: dict[str, Any], result_dict):
         # (e.g., bad_asn engine needs access to results from other engines)
         sig = inspect.signature(engine.analyze)
         data = (
-            engine.analyze(observable["value"], observable["type"], context=result_dict)
+            engine.analyze(observable, context=result_dict)
             if "context" in sig.parameters
-            else engine.analyze(observable["value"], observable["type"])
+            else engine.analyze(observable)
         )
         result_dict[engine.name] = data
         return data
