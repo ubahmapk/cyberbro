@@ -1,19 +1,20 @@
 import pytest
+from models.observable import ObservableType
 
 
 @pytest.fixture()
 def ip_observable_dict():
-    return {"value": "1.1.1.1", "type": "IPv4"}
+    return {"value": "1.1.1.1", "type": ObservableType.IPV4}
 
 
 @pytest.fixture()
 def fqdn_observable_dict():
-    return {"value": "example.net", "type": "FQDN"}
+    return {"value": "example.net", "type": ObservableType.FQDN}
 
 
 @pytest.fixture()
 def url_observable_dict():
-    return {"value": "https://www.example.com", "type": "URL"}
+    return {"value": "https://www.example.com", "type": ObservableType.URL}
 
 
 @pytest.fixture()
