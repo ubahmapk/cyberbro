@@ -1,61 +1,22 @@
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import asdict
 from enum import Flag, auto
 from typing import Any
 
 import requests
-from pydantic.dataclasses import dataclass
 from tenacity import after_log, retry, stop_after_attempt, wait_exponential
 
+from models.observable import ObservableType
 from utils.config import Secrets
 
 logger = logging.getLogger(__name__)
 
 
-class ObservableType(Flag):
-    CHROME_EXTENSION = auto()
-    EMAIL = auto()
-    FQDN = auto()
-    IPv4 = auto()
-    IPv6 = auto()
-    MD5 = auto()
-    SHA1 = auto()
-    SHA256 = auto()
-    URL = auto()
-    BOGON = auto()
-
-
-@dataclass(slots=True)
-class Observable:
-    type: ObservableType
-    value: str
-
-    def __hash__(self) -> int:
-        """Set membership requires the object to be hashable"""
-        return hash(self.value)
-
-
-@dataclass(slots=True)
-class BaseReport:
-    success: bool
-    error_msg: str | None = None
-
-    def __iter__(self):
-        yield from asdict(self)
-
-    def __getitem__(self, key):
-        return asdict(self)[key]
-
-    def __json__(self):
-        return asdict(self)
-
-    def get(self, name, default: Any | None = None):
-        return getattr(self, name, default)
-
-
 class ExecutionPhase(Flag):
-    """Defines the analysis phase(s) the engine should run duing."""
+    """Defines the analysis phase(s) the engine should run duing.
+
+    Not yet used.
+    """
 
     EXTENSION = auto()  # Browser extension checks always run
     PRE_PIVOT = auto()
@@ -106,7 +67,7 @@ class BaseEngine(ABC):
         return False
 
     @abstractmethod
-    def analyze(self, observable: Observable) -> BaseReport:
+    def analyze(self, observable_value: str, observable_type: ObservableType) -> dict | None:
         """
         Perform the analysis.
         Returns the report object, including success or the error message, present.
