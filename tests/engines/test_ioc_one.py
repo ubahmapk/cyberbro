@@ -2,10 +2,11 @@ import logging
 
 import pytest
 import responses
+from responses import matchers
 
 from engines.ioc_one import IOCOneHTMLEngine, IOCOnePDFEngine
-from utils.config import Secrets
 from models.observable import ObservableType
+from utils.config import Secrets
 
 logger = logging.getLogger(__name__)
 
@@ -523,8 +524,15 @@ class TestMalformedHTML:
     def test_analyze_html_no_cards_returns_empty(self, secrets, observable_value, html_no_cards):
         """Test HTML with no card elements returns empty results."""
         engine = IOCOneHTMLEngine(secrets, proxies={}, ssl_verify=True)
-        url = f"https://ioc.one/auth/deep_search?search={observable_value}"
-        responses.add(responses.GET, url, body=html_no_cards, status=200)
+        url = "https://ioc.one/auth/deep_search"
+        params: dict = {"search": observable_value}
+        responses.add(
+            responses.GET,
+            url=url,
+            match=[matchers.query_param_matcher(params)],
+            body=html_no_cards,
+            status=200,
+        )
 
         result = engine.analyze(observable_value, ObservableType.IPV4)
 
@@ -686,31 +694,31 @@ class TestEngineProperties:
     def test_html_engine_supported_types(self, secrets):
         """Test IOCOneHTMLEngine supported_types property."""
         engine = IOCOneHTMLEngine(secrets, proxies={}, ssl_verify=True)
-        expected_types = [
-            ObservableType.CHROME_EXTENSION,
-            ObservableType.FQDN,
-            ObservableType.IPV4,
-            ObservableType.IPV6,
-            ObservableType.MD5,
-            ObservableType.SHA1,
-            ObservableType.SHA256,
-            ObservableType.URL,
-        ]
+        expected_types = ObservableType(
+            ObservableType.CHROME_EXTENSION
+            | ObservableType.FQDN
+            | ObservableType.IPV4
+            | ObservableType.IPV6
+            | ObservableType.MD5
+            | ObservableType.SHA1
+            | ObservableType.SHA256
+            | ObservableType.URL
+        )
 
-        assert engine.supported_types == expected_types
+        assert engine.supported_types is expected_types
 
     def test_pdf_engine_supported_types(self, secrets):
         """Test IOCOnePDFEngine supported_types property."""
         engine = IOCOnePDFEngine(secrets, proxies={}, ssl_verify=True)
-        expected_types = [
-            ObservableType.CHROME_EXTENSION,
-            ObservableType.FQDN,
-            ObservableType.IPV4,
-            ObservableType.IPV6,
-            ObservableType.MD5,
-            ObservableType.SHA1,
-            ObservableType.SHA256,
-            ObservableType.URL,
-        ]
+        expected_types = ObservableType(
+            ObservableType.CHROME_EXTENSION
+            | ObservableType.FQDN
+            | ObservableType.IPV4
+            | ObservableType.IPV6
+            | ObservableType.MD5
+            | ObservableType.SHA1
+            | ObservableType.SHA256
+            | ObservableType.URL
+        )
 
         assert engine.supported_types == expected_types
