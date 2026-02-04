@@ -4,7 +4,7 @@ import socket
 
 import tldextract
 
-from models.base_engine import Observable, ObservableType
+from models.observable import Observable, ObservableType
 
 # List of valid TLDs that can lead to false positives
 # Edit this list to add more invalid TLDs or in case of false positives
@@ -101,8 +101,8 @@ INVALID_TLD: set[str] = {
 def identify_observable_type(observable_input: str) -> ObservableType | str:
     """testing the observable against a set of patterns to identify its type"""
     patterns: dict[ObservableType, str] = {
-        ObservableType.IPv4: r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$",
-        ObservableType.IPv6: r"^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$",
+        ObservableType.IPV4: r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$",
+        ObservableType.IPV6: r"^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$",
         ObservableType.MD5: r"^[a-fA-F0-9]{32}$",
         ObservableType.SHA1: r"^[a-fA-F0-9]{40}$",
         ObservableType.SHA256: r"^[a-fA-F0-9]{64}$",
@@ -122,7 +122,7 @@ def identify_observable_type(observable_input: str) -> ObservableType | str:
 def extract_observables(text: str) -> set[Observable]:
     """Extract observables from text, focusing on full URLs with http or https."""
     patterns: dict[ObservableType, str] = {
-        ObservableType.IPv4: r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b",
+        ObservableType.IPV4: r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b",
         ObservableType.MD5: r"\b[a-fA-F0-9]{32}\b",
         ObservableType.SHA1: r"\b[a-fA-F0-9]{40}\b",
         ObservableType.SHA256: r"\b[a-fA-F0-9]{64}\b",
@@ -183,7 +183,7 @@ def extract_observables(text: str) -> set[Observable]:
     for ipv6 in ipv6_addresses:
         if ipv6 not in seen:
             seen.add(ipv6)
-            results.add(Observable(value=ipv6, type=ObservableType.IPv6))
+            results.add(Observable(value=ipv6, type=ObservableType.IPV6))
 
     # filter invalid TLDs using tldextract and the list of invalid TLDs
     filtered_results: set[Observable] = set()
