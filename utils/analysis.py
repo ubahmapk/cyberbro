@@ -149,9 +149,9 @@ def run_engine(engine: BaseEngine, observable: dict[str, Any], result_dict):
         # (e.g., bad_asn engine needs access to results from other engines)
         sig = inspect.signature(engine.analyze)
         data = (
-            engine.analyze(observable, context=result_dict)
+            engine.analyze(observable["value"], observable["type"], context=result_dict)
             if "context" in sig.parameters
-            else engine.analyze(observable)
+            else engine.analyze(observable["value"], observable["type"])
         )
         result_dict[engine.name] = data
         return data
