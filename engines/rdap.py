@@ -5,6 +5,7 @@ import requests
 import tldextract
 
 from models.base_engine import BaseEngine
+from models.observable import ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +16,8 @@ class RDAPEngine(BaseEngine):
         return "rdap"
 
     @property
-    def supported_types(self):
-        return ["FQDN", "URL"]
+    def supported_types(self) -> ObservableType:
+        return ObservableType.FQDN | ObservableType.URL
 
     def _extract_vcard_field(self, entity: dict[str, Any], field: str) -> str:
         """
@@ -32,11 +33,13 @@ class RDAPEngine(BaseEngine):
                 return item[3]
         return ""
 
-    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
+    def analyze(
+        self, observable_value: str, observable_type: ObservableType
+    ) -> dict[str, Any] | None:
         try:
-            if observable_type == "URL":
+            if observable_type is ObservableType.URL:
                 domain_part = observable_value.split("/")[2].split(":")[0]
-            elif observable_type == "FQDN":
+            elif observable_type is ObservableType.FQDN:
                 domain_part = observable_value
             else:
                 return None
