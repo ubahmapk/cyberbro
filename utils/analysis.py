@@ -13,7 +13,7 @@ from utils.database import get_analysis_result, save_analysis_result
 
 # --- NEW DYNAMIC ENGINE IMPORTS ---
 from utils.load_engines import get_engine_instances
-from utils.utils import is_bogon
+from utils.utils import is_bogon, is_really_ipv6
 
 # ----------------------------------
 
@@ -69,9 +69,7 @@ def perform_analysis(app: Flask, observables, selected_engines: list[str], analy
         update_analysis_metadata(analysis_id, start_time, selected_engines, results)
 
 
-def analyze_observable(
-    observable: dict[str, Any], index: int, selected_engines: list[str], result_queue
-):
+def analyze_observable(observable: dict[str, Any], index: int, selected_engines: list[str], result_queue):
     result = {
         "observable": observable["value"],
         "type": observable["type"],
@@ -97,19 +95,13 @@ def analyze_observable(
 
     # 2. Phase 1: Pre-Pivot Engines (Standard lookups that don't need reverse DNS result)
     for engine in active_instances:
-        if (
-            not engine.execute_after_reverse_dns
-            and not engine.is_pivot_engine
-            and engine.name != "chrome_extension"
-        ):
+        if not engine.execute_after_reverse_dns and not engine.is_pivot_engine and engine.name != "chrome_extension":
             run_engine(engine, observable, result)
 
     # 3. Phase 2: Pivot (Reverse DNS)
     # The pivot engine runs and can modify the observable in place
     # (observable["type"]/observable["value"])
-    pivot_engines: list[BaseEngine] = [
-        e for e in active_instances if e.is_pivot_engine and e.name == "reverse_dns"
-    ]
+    pivot_engines: list[BaseEngine] = [e for e in active_instances if e.is_pivot_engine and e.name == "reverse_dns"]
     for engine in pivot_engines:
         analysis_data = run_engine(engine, observable, result)
 
@@ -120,9 +112,22 @@ def analyze_observable(
 
             # Check if auto-pivoting should occur
             if reverse_dns_results and observable["type"] in ["FQDN", "URL"]:
-                # Pivot: change observable type to IPv4 and use the first IP found.
-                observable["type"] = "IPv4"
-                observable["value"] = reverse_dns_results[0]
+                first_ip = reverse_dns_results[0]
+                observable["value"] = first_ip
+
+                # Edge case: PTR record returning a private/reserved IP address
+                # This is a very specific scenario where reverse DNS resolves to a bogon IP
+                # Determine observable type based on IP characteristics
+                try:
+                    if is_bogon(first_ip):
+                        observable["type"] = "BOGON"
+                    elif is_really_ipv6(first_ip):
+                        observable["type"] = "IPv6"
+                    else:
+                        observable["type"] = "IPv4"
+                except (ValueError, AttributeError):
+                    # Invalid IP format, fallback to BOGON
+                    observable["type"] = "BOGON"
 
     # 4. Phase 3: Post-Pivot Engines (IP-only engines that benefit from pivot)
     # Run all engines except those that depend on other engine results
@@ -178,13 +183,10 @@ def update_analysis_metadata(analysis_id, start_time, selected_engines, results)
     if analysis_result:
         end_time = time.time()
         analysis_result.end_time = end_time
-        analysis_result.end_time_string = time.strftime(
-            "%Y-%m-%d %H:%M:%S", time.localtime(end_time)
-        )
+        analysis_result.end_time_string = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
         analysis_result.analysis_duration = end_time - start_time
         analysis_result.analysis_duration_string = (
-            f"{int((end_time - start_time) // 60)} minutes, "
-            f"{(end_time - start_time) % 60:.2f} seconds"
+            f"{int((end_time - start_time) // 60)} minutes, {(end_time - start_time) % 60:.2f} seconds"
         )
         analysis_result.results = results
         analysis_result.in_progress = False
