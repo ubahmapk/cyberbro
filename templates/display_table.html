@@ -35,7 +35,8 @@
             {% for result in analysis_results.results %}
             {% if (result.ipinfo and result.ipinfo.country_name not in countries) or (result.ipquery and
             result.ipquery.country_name not in countries) or (result.webscout and result.webscout.country_name not in
-            countries) or (result.ipapi and result.ipapi.location.country not in countries) %}
+            countries) or (result.ipapi and result.ipapi.location is defined and result.ipapi.location and
+            result.ipapi.location.country and result.ipapi.location.country not in countries) %}
             {% if result.ipinfo and result.ipinfo.country_name not in countries %}
             {% set _ = countries.append(result.ipinfo.country_name) %}
             <option value="{{ result.ipinfo.country_name | lower }}">{{ result.ipinfo.country_name }}</option>
@@ -51,7 +52,8 @@
             <option value="{{ result.webscout.country_name | lower }}">{{ result.webscout.country_name }}</option>
             {% endif %}
 
-            {% if result.ipapi and result.ipapi.location.country not in countries %}
+            {% if result.ipapi and result.ipapi.location is defined and result.ipapi.location and
+            result.ipapi.location.country and result.ipapi.location.country not in countries %}
             {% set _ = countries.append(result.ipapi.location.country) %}
             <option value="{{ result.ipapi.location.country | lower }}">{{ result.ipapi.location.country }}</option>
             {% endif %}
