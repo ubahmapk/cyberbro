@@ -6,7 +6,7 @@ from typing import Any
 import requests
 from tenacity import after_log, retry, stop_after_attempt, wait_exponential
 
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ class BaseEngine(ABC):
         return False
 
     @abstractmethod
-    def analyze(self, observable_value: str, observable_type: ObservableType) -> dict | None:
+    def analyze(self, observable: Observable) -> dict | None:
         """
         Perform the analysis.
         Returns the report object, including success or the error message, present.
