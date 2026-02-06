@@ -4,7 +4,7 @@ from typing import Any
 import querycontacts
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -23,14 +23,12 @@ class AbusixEngine(BaseEngine):
         # IP-only engine, runs after potential IP pivot
         return True
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, str] | None:
+    def analyze(self, observable: Observable) -> dict[str, str] | None:
         try:
-            results = querycontacts.ContactFinder().find(observable_value)
+            results = querycontacts.ContactFinder().find(observable.value)
             if not results:
                 logger.warning(
-                    "No contact information returned for observable: %s", observable_value
+                    "No contact information returned for observable: %s", observable.value
                 )
                 return None
 
@@ -38,7 +36,7 @@ class AbusixEngine(BaseEngine):
         except Exception as e:
             logger.error(
                 "Error querying Abusix for observable '%s': %s",
-                observable_value,
+                observable.value,
                 e,
                 exc_info=True,
             )
