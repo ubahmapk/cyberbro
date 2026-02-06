@@ -5,7 +5,7 @@ import pycountry
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +24,10 @@ class AbuseIPDBEngine(BaseEngine):
         # AbuseIPDB only supports IPs, so we want it to run AFTER any potential DNS resolution
         return True
 
-    def analyze(self, observable_value: str, observable_type: ObservableType) -> dict | None:
+    def analyze(self, observable: Observable) -> dict | None:
         url = "https://api.abuseipdb.com/api/v2/check"
         headers = {"Key": self.secrets.abuseipdb, "Accept": "application/json"}
-        params = {"ipAddress": observable_value}
+        params = {"ipAddress": observable.value}
 
         try:
             response = requests.get(
@@ -68,7 +68,7 @@ class AbuseIPDBEngine(BaseEngine):
                 "hostnames": data.get("hostnames", []),
                 "is_tor": data.get("isTor", False),
                 "last_reported_at": data.get("lastReportedAt", ""),
-                "link": f"https://www.abuseipdb.com/check/{observable_value}",
+                "link": f"https://www.abuseipdb.com/check/{observable.value}",
             }
         except Exception as e:
             logger.error(f"Error querying AbuseIPDB: {e}")
