@@ -3,20 +3,23 @@ function formatResults(data) {
     data.forEach(result => {
         plainText += `Observable: ${result.observable}\nType: ${result.type}\n`;
 
-        if (result.rdap) {
-            if (result.rdap) {
-                plainText += `RDAP:\n`;
-                if (result.rdap.registrar) plainText += `- Registrar: ${result.rdap.registrar}\n`;
-                if (result.rdap.abuse_contact) plainText += `- Abuse Contact: ${result.rdap.abuse_contact}\n`;
-                if (result.rdap.registrant) plainText += `- Registrant: ${result.rdap.registrant}\n`;
-                if (result.rdap.organization) plainText += `- Organization: ${result.rdap.organization}\n`;
-                if (result.rdap.registrant_email) plainText += `- Registrant Email: ${result.rdap.registrant_email}\n`;
-                if (result.rdap.creation_date) plainText += `- Creation Date: ${result.rdap.creation_date}\n`;
-                if (result.rdap.expiration_date) plainText += `- Expiration Date: ${result.rdap.expiration_date}\n`;
-                if (result.rdap.update_date) plainText += `- Updated Date: ${result.rdap.update_date}\n`;
-                if (result.rdap.name_servers && result.rdap.name_servers.length > 0) {
-                    plainText += `- Name Servers: ${result.rdap.name_servers.join(', ')}\n`;
-                }
+        if (result.rdap_whois) {
+            plainText += `RDAP / Whois:\n`;
+            if (result.rdap_whois.data_source) plainText += `- Data Source: ${result.rdap_whois.data_source}\n`;
+            if (result.rdap_whois.registrar) plainText += `- Registrar: ${result.rdap_whois.registrar}\n`;
+            if (result.rdap_whois.abuse_contact) plainText += `- Abuse Contact: ${result.rdap_whois.abuse_contact}\n`;
+            if (result.rdap_whois.registrant) plainText += `- Registrant: ${result.rdap_whois.registrant}\n`;
+            if (result.rdap_whois.organization) plainText += `- Organization: ${result.rdap_whois.organization}\n`;
+            if (result.rdap_whois.registrant_email) plainText += `- Registrant Email: ${result.rdap_whois.registrant_email}\n`;
+            if (result.rdap_whois.registrant_country) plainText += `- Registrant Country: ${result.rdap_whois.registrant_country}\n`;
+            if (result.rdap_whois.emails && result.rdap_whois.emails.length > 0) {
+                plainText += `- Emails: ${result.rdap_whois.emails.join(', ')}\n`;
+            }
+            if (result.rdap_whois.creation_date) plainText += `- Creation Date: ${result.rdap_whois.creation_date}\n`;
+            if (result.rdap_whois.expiration_date) plainText += `- Expiration Date: ${result.rdap_whois.expiration_date}\n`;
+            if (result.rdap_whois.update_date) plainText += `- Updated Date: ${result.rdap_whois.update_date}\n`;
+            if (result.rdap_whois.name_servers && result.rdap_whois.name_servers.length > 0) {
+                plainText += `- Name Servers: ${result.rdap_whois.name_servers.join(', ')}\n`;
             }
         }
 
@@ -65,7 +68,16 @@ function formatResults(data) {
             if (result.bad_asn.details) plainText += `- Details: ${result.bad_asn.details}\n`;
         }
         if (result.abuseipdb) {
-            plainText += `AbuseIPDB: Reports: ${result.abuseipdb.reports}, Risk Score: ${result.abuseipdb.risk_score}\n`;
+            plainText += `AbuseIPDB: Reports: ${result.abuseipdb.reports}, Risk Score: ${result.abuseipdb.risk_score}%`;
+            if (result.abuseipdb.country_name) plainText += `, Country: ${result.abuseipdb.country_name}`;
+            if (result.abuseipdb.isp) plainText += `, ISP: ${result.abuseipdb.isp}`;
+            if (result.abuseipdb.domain) plainText += `, Domain: ${result.abuseipdb.domain}`;
+            plainText += `\n`;
+            if (result.abuseipdb.usage_type) plainText += `  - Usage Type: ${result.abuseipdb.usage_type}\n`;
+            if (result.abuseipdb.hostnames && result.abuseipdb.hostnames.length > 0) plainText += `  - Hostnames: ${result.abuseipdb.hostnames.join(', ')}\n`;
+            if (result.abuseipdb.is_tor) plainText += `  - Tor Exit Node: Yes\n`;
+            if (result.abuseipdb.is_whitelisted) plainText += `  - Whitelisted: Yes\n`;
+            if (result.abuseipdb.last_reported_at) plainText += `  - Last Reported: ${result.abuseipdb.last_reported_at}\n`;
         }
         if (result.spur) {
             plainText += `Spur: Tunnels: ${result.spur.tunnels}\n`;

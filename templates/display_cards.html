@@ -17,8 +17,8 @@
     {% if analysis_results.results[0].extension %}
     {% include "engine_layouts/extension_card.html" %}
     {% endif %}
-    {% if analysis_results.results[0].rdap %}
-    {% include "engine_layouts/rdap_card.html" %}
+    {% if analysis_results.results[0].rdap_whois %}
+    {% include "engine_layouts/rdap_whois_card.html" %}
     {% endif %}
     {% if analysis_results.results[0].ipquery %}
     {% include "engine_layouts/ipquery_card.html" %}
