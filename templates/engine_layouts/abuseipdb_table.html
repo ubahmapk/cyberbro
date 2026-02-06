@@ -39,24 +39,16 @@
         </div>
         {% endif %}
 
-        <strong>Reports: </strong>
-        <a href="{{ result.abuseipdb.link }}" target="_blank">{{ result.abuseipdb.reports }}</a><br/>
-        <strong>Risk: </strong>{{ result.abuseipdb.risk_score }}%<br/>
+        <strong>Reports: </strong><a href="{{ result.abuseipdb.link }}" target="_blank">{{ result.abuseipdb.reports }}</a> / <strong>Risk: </strong>{{ result.abuseipdb.risk_score }}%<br/>
+        {% if result.abuseipdb.hostnames and result.abuseipdb.hostnames | length > 0 %}
+        <strong>Hostnames: </strong>{{ result.abuseipdb.hostnames | join(', ') }}<br/>
+        {% endif %}
         {% if result.abuseipdb.country_code %}
         <strong>Country: </strong><span class="country country-{{result.abuseipdb.country_name | lower}}">{{result.abuseipdb.country_name}}</span>
         <span class="fi fi-{{ result.abuseipdb.country_code | lower }}"></span><br/>
         {% endif %}
         {% if result.abuseipdb.isp %}
         <strong>ISP: </strong>{{ result.abuseipdb.isp }}<br/>
-        {% endif %}
-        {% if result.abuseipdb.domain %}
-        <strong>Domain: </strong>{{ result.abuseipdb.domain }}<br/>
-        {% endif %}
-        {% if result.abuseipdb.hostnames and result.abuseipdb.hostnames | length > 0 %}
-        <strong>Hostnames: </strong>{{ result.abuseipdb.hostnames | join(', ') }}<br/>
-        {% endif %}
-        {% if result.abuseipdb.last_reported_at %}
-        <strong>Last Reported: </strong>{{ result.abuseipdb.last_reported_at }}<br/>
         {% endif %}
     {% else %}
         Not applicable

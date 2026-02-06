@@ -6,8 +6,7 @@
 
     <h3>AbuseIPDB</h3>
     <p><strong>Reports: </strong><a href="{{ analysis_results.results[0].abuseipdb.link }}"
-            target="_blank">{{ analysis_results.results[0].abuseipdb.reports }}</a></p>
-    <p><strong>Risk: </strong>{{ analysis_results.results[0].abuseipdb.risk_score }}%</p>
+            target="_blank">{{ analysis_results.results[0].abuseipdb.reports }}</a> / <strong>Risk: </strong>{{ analysis_results.results[0].abuseipdb.risk_score }}%</p>
 
     {% if analysis_results.results[0].abuseipdb.is_whitelisted or analysis_results.results[0].abuseipdb.usage_type or analysis_results.results[0].abuseipdb.is_tor %}
     <div class="abuseipdb-badges">
@@ -47,20 +46,14 @@
         }
     </style>
 
+    {% if analysis_results.results[0].abuseipdb.hostnames and analysis_results.results[0].abuseipdb.hostnames | length > 0 %}
+    <p><strong>Hostnames: </strong>{{ analysis_results.results[0].abuseipdb.hostnames | join(', ') }}</p>
+    {% endif %}
     {% if analysis_results.results[0].abuseipdb.country_code %}
     <p><strong>Country: </strong>{{ analysis_results.results[0].abuseipdb.country_name }} <span
             class="fi fi-{{ analysis_results.results[0].abuseipdb.country_code | lower }}"></span></p>
     {% endif %}
     {% if analysis_results.results[0].abuseipdb.isp %}
     <p><strong>ISP: </strong>{{ analysis_results.results[0].abuseipdb.isp }}</p>
-    {% endif %}
-    {% if analysis_results.results[0].abuseipdb.domain %}
-    <p><strong>Domain: </strong>{{ analysis_results.results[0].abuseipdb.domain }}</p>
-    {% endif %}
-    {% if analysis_results.results[0].abuseipdb.hostnames and analysis_results.results[0].abuseipdb.hostnames | length > 0 %}
-    <p><strong>Hostnames: </strong>{{ analysis_results.results[0].abuseipdb.hostnames | join(', ') }}</p>
-    {% endif %}
-    {% if analysis_results.results[0].abuseipdb.last_reported_at %}
-    <p><strong>Last Reported: </strong>{{ analysis_results.results[0].abuseipdb.last_reported_at }}</p>
     {% endif %}
 </div>
