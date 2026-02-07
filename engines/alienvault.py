@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, TypedDict
 from urllib.parse import quote
 
 import requests
@@ -7,10 +7,15 @@ from pydantic import ValidationError
 
 from models.alienvault_datamodel import OTXReport, Pulse
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 from utils.config import QueryError
 
 logger = logging.getLogger(__name__)
+
+
+class PulseData(TypedDict):
+    title: str
+    url: str
 
 
 class AlienVaultEngine(BaseEngine):
@@ -30,9 +35,7 @@ class AlienVaultEngine(BaseEngine):
             | ObservableType.URL
         )
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         """
         Queries the OTX AlienVault API for information about a given observable.
         Reuses the original maintainer's logic for querying and parsing.
@@ -42,12 +45,9 @@ class AlienVaultEngine(BaseEngine):
             logger.error("OTX AlienVault API key is required")
             return None
 
-        # Prepare the dictionary expected by the original helper functions
-        observable_dict = {"value": observable_value, "type": observable_type}
-
         try:
             # Reuse the existing query logic
-            result: dict = query_alienvault(observable_dict, api_key, self.proxies, self.ssl_verify)
+            result: dict = query_alienvault(observable, api_key)
 
             # Reuse the existing parsing logic
             report: dict = parse_alienvault_response(result)
@@ -81,8 +81,16 @@ class AlienVaultEngine(BaseEngine):
 # --- Original Maintainer's Code / Helper Functions (Preserved) ---
 
 
-def get_endpoint(artifact: str, observable_type: ObservableType) -> str | None:
+def get_endpoint(observable: Observable) -> str | None:
     # Map observable type to OTX endpoint
+
+    # If it's a URL, extract the domain portion for searching
+    if observable.type is ObservableType.URL:
+        artifact: str = observable._return_fqdn_from_url()
+        observable.type = ObservableType.FQDN
+    else:
+        artifact = observable.value
+
     endpoint_map: dict[ObservableType, str] = {
         ObservableType.IPV4: f"/indicators/IPv4/{quote(artifact)}/general",
         ObservableType.IPV6: f"/indicators/IPv6/{quote(artifact)}/general",
@@ -92,26 +100,19 @@ def get_endpoint(artifact: str, observable_type: ObservableType) -> str | None:
         ObservableType.SHA256: f"/indicators/file/{quote(artifact)}/general",
     }
 
-    return endpoint_map.get(observable_type)
+    return endpoint_map.get(observable.type)
 
 
 def query_alienvault(
-    observable_dict: dict,
+    observable: Observable,
     api_key: str,
     proxies: dict[str, str] | None = None,
     ssl_verify: bool = True,
 ) -> dict:
-    artifact: str = observable_dict["value"]
-
-    # If it's a URL, extract the domain portion for searching
-    if (observable_type := observable_dict["type"]) == ObservableType.URL:
-        artifact = observable_dict["value"].split("/")[2].split(":")[0]
-        observable_type = ObservableType.FQDN
-
-    endpoint = get_endpoint(artifact, observable_type)
+    endpoint = get_endpoint(observable)
 
     if not endpoint:
-        raise QueryError(f"Invalid observable type: {observable_type}") from None
+        raise QueryError(f"Invalid observable type: {observable.type}") from None
 
     url = f"https://otx.alienvault.com/api/v1{endpoint}"
     headers = {"X-OTX-API-KEY": api_key}
@@ -165,7 +166,7 @@ def parse_alienvault_response(result: dict) -> dict:
     adversary: set[str] = set(otx_report.pulse_info.related.alienvault.adversary)
 
     pulses: list[Pulse] = otx_report.pulse_info.pulses
-    pulse_data: list[dict[str, str | None]] = []
+    pulse_data: list[PulseData] = []
     seen_urls: set[str | None] = set()  # Track unique pulse URLs
 
     # Sort pulses by 'created' timestamp in descending order

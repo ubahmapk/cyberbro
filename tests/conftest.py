@@ -1,20 +1,20 @@
 import pytest
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 
 @pytest.fixture()
-def ip_observable_dict():
-    return {"value": "1.1.1.1", "type": ObservableType.IPV4}
+def ip_observable():
+    return Observable(value="1.1.1.1", type=ObservableType.IPV4)
 
 
 @pytest.fixture()
-def fqdn_observable_dict():
-    return {"value": "example.net", "type": ObservableType.FQDN}
+def fqdn_observable():
+    return Observable(value="example.net", type=ObservableType.FQDN)
 
 
 @pytest.fixture()
-def url_observable_dict():
-    return {"value": "https://www.example.com", "type": ObservableType.URL}
+def url_observable():
+    return Observable(value="https://www.example.com", type=ObservableType.URL)
 
 
 @pytest.fixture()
@@ -43,9 +43,9 @@ def secrets_without_key():
 
 @pytest.fixture()
 def ipv4_observable():
-    return "1.1.1.1"
+    return Observable(value="1.1.1.1", type=ObservableType.IPV4)
 
 
 @pytest.fixture()
 def ipv6_observable():
-    return "2001:4860:4860::8888"
+    return Observable(value="2001:4860:4860::8888", type=ObservableType.IPV6)

@@ -1,13 +1,15 @@
-from models.observable import ObservableType
+import json
+from pathlib import Path
+from urllib.parse import quote
+
 import pytest
 import responses
-from engines.alienvault import parse_alienvault_response, query_alienvault, get_endpoint
-from utils.config import QueryError
-from pathlib import Path
-import json
-from urllib.parse import quote
-from requests.exceptions import HTTPError, Timeout
 from pytest_mock import MockerFixture
+from requests.exceptions import HTTPError, Timeout
+
+from engines.alienvault import get_endpoint, parse_alienvault_response, query_alienvault
+from models.observable import Observable, ObservableType
+from utils.config import QueryError
 
 
 @pytest.fixture(scope="session")
@@ -221,69 +223,78 @@ def test_parse_alienvault_response_missing_pulse_id(
 
 
 @responses.activate
-def test_query_alienvault(fqdn_observable_dict, api_key, fqdn_response_from_file):
+def test_query_alienvault(fqdn_observable, api_key, fqdn_response_from_file):
     responses.add(
         responses.GET,
-        f"https://otx.alienvault.com/api/v1/indicators/domain/{fqdn_observable_dict['value']}/general",
+        f"https://otx.alienvault.com/api/v1/indicators/domain/{fqdn_observable.value}/general",
         json=fqdn_response_from_file,
     )
 
-    result: dict = query_alienvault(fqdn_observable_dict, api_key)
+    result: dict = query_alienvault(fqdn_observable, api_key)
 
     assert result == fqdn_response_from_file
 
 
 @responses.activate
-def test_query_alienvault_http_error(api_key, ip_observable_dict):
+def test_query_alienvault_http_error(api_key, ip_observable):
     responses.add(
         responses.GET,
-        "https://otx.alienvault.com/api/v1/indicators/IPv4/1.1.1.1/general",
+        f"https://otx.alienvault.com/api/v1/indicators/IPv4/{ip_observable.value}/general",
         body=HTTPError(),
     )
 
     with pytest.raises(QueryError):
-        _ = query_alienvault(ip_observable_dict, api_key)
+        _ = query_alienvault(ip_observable, api_key)
 
 
-def test_query_alienvault_request_timeout(ip_observable_dict, api_key, mocker: MockerFixture):
+def test_query_alienvault_request_timeout(ip_observable, api_key, mocker: MockerFixture):
     mocker.patch("requests.get", side_effect=Timeout)
 
     with pytest.raises(QueryError):
-        _ = query_alienvault(ip_observable_dict, api_key)
+        _ = query_alienvault(ip_observable, api_key)
 
 
 def test_query_alienvault_missing_endpoint(api_key):
-    observable_dict: dict = {"value": "1.1.1.1", "type": "NaN"}
-
+    """Using a ObservableType the engine does not support to generate the error"""
     with pytest.raises(QueryError):
-        _ = query_alienvault(observable_dict, api_key)
+        _ = query_alienvault(Observable(value="1.1.1.1", type=ObservableType.BOGON), api_key)
 
 
 @pytest.mark.parametrize(
-    "type,artifact,endpoint",
+    "observable,endpoint",
     [
-        (ObservableType.IPV4, "1.1.1.1", "/indicators/IPv4/1.1.1.1/general"),
-        (ObservableType.IPV6, "fe00::0", f"/indicators/IPv6/{quote('fe00::0')}/general"),
-        (ObservableType.FQDN, "example.net", "/indicators/domain/example.net/general"),
+        (Observable(value="1.1.1.1", type=ObservableType.IPV4), "/indicators/IPv4/1.1.1.1/general"),
         (
-            ObservableType.SHA1,
-            "3a30948f8cd5655fede389d73b5fecd91251df4a",
+            Observable(value="fe00::0", type=ObservableType.IPV6),
+            f"/indicators/IPv6/{quote('fe00::0')}/general",
+        ),
+        (
+            Observable(value="example.net", type=ObservableType.FQDN),
+            "/indicators/domain/example.net/general",
+        ),
+        (
+            Observable(value="https://www.example.com", type=ObservableType.URL),
+            "/indicators/domain/www.example.com/general",
+        ),
+        (
+            Observable(value="3a30948f8cd5655fede389d73b5fecd91251df4a", type=ObservableType.SHA1),
             "/indicators/file/3a30948f8cd5655fede389d73b5fecd91251df4a/general",
         ),
         (
-            ObservableType.MD5,
-            "781e5e245d69b566979b86e28d23f2c7",
+            Observable(value="781e5e245d69b566979b86e28d23f2c7", type=ObservableType.MD5),
             "/indicators/file/781e5e245d69b566979b86e28d23f2c7/general",
         ),
         (
-            ObservableType.SHA256,
-            "84d89877f0d4041efb6bf91a16f0248f2fd573e6af05c19f96bedb9f882f7882",
+            Observable(
+                value="84d89877f0d4041efb6bf91a16f0248f2fd573e6af05c19f96bedb9f882f7882",
+                type=ObservableType.SHA256,
+            ),
             "/indicators/file/84d89877f0d4041efb6bf91a16f0248f2fd573e6af05c19f96bedb9f882f7882/general",
         ),
         # ("NaN", "1.1.1.1", None),
     ],
 )
-def test_get_endpoint(type: ObservableType, artifact: str, endpoint: str | None):
-    result: str | None = get_endpoint(artifact, type)
+def test_get_endpoint(observable: Observable, endpoint: str | None):
+    result: str | None = get_endpoint(observable)
 
     assert endpoint == result
