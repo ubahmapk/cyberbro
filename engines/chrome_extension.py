@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +26,16 @@ class ChromeExtensionEngine(BaseEngine):
 
     def _fetch_extension_name(self, url: str) -> dict[str, str] | None:
         try:
-            response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify, timeout=5)
+            response = self._make_request(url, timeout=5)
             response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(
+                f"Error while fetching extension name from URL '{url}': {e}",
+                exc_info=True,
+            )
+            return None
 
+        try:
             soup = BeautifulSoup(response.content, "html.parser")
             if "microsoftedge.microsoft.com" in url:
                 title_tag = soup.find("title")
@@ -51,11 +58,9 @@ class ChromeExtensionEngine(BaseEngine):
             )
             return None
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
-        chrome_url = f"https://chromewebstore.google.com/detail/{observable_value}"
-        edge_url = f"https://microsoftedge.microsoft.com/addons/detail/{observable_value}"
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
+        chrome_url = f"https://chromewebstore.google.com/detail/{observable.value}"
+        edge_url = f"https://microsoftedge.microsoft.com/addons/detail/{observable.value}"
 
         result = self._fetch_extension_name(chrome_url)
         if result and result["name"]:
