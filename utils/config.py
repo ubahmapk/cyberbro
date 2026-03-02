@@ -48,6 +48,7 @@ class Secrets:
     shodan: str = ""
     spur_us: str = ""
     threatfox: str = ""
+    disable_version_check: bool = False
     ssl_verify: bool = True
     virustotal: str = ""
     webscout: str = ""
