@@ -179,4 +179,3 @@ def test_disable_version_check_false_performs_check():
         with patch("app.get_latest_version_from_cache_file", return_value="v1.1.0"):
             result = check_for_new_version("v1.0.0")
             assert result is True
-
