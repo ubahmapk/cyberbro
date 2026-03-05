@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Flag, auto
 from functools import reduce
 from operator import or_
-from typing import Annotated, ClassVar
+from typing import Annotated
 
 from pydantic import (
     AnyUrl,
@@ -26,20 +26,6 @@ class ObservableFlag(Flag):
     SHA256 = auto()
     URL = auto()
     BOGON = auto()
-
-    # Legacy casing from old database records (e.g., "IPv4" -> "IPV4")
-    _LEGACY_NAMES: ClassVar[dict[str, str]] = {
-        "ipv4": "IPV4",
-        "ipv6": "IPV6",
-        "email": "EMAIL",
-        "fqdn": "FQDN",
-        "url": "URL",
-        "md5": "MD5",
-        "sha1": "SHA1",
-        "sha256": "SHA256",
-        "bogon": "BOGON",
-        "chrome_extension": "CHROME_EXTENSION",
-    }
 
     def __str__(self) -> str:
         return self.name or "|".join(f.name for f in ObservableFlag if f in self)
@@ -66,10 +52,8 @@ class ObservableFlag(Flag):
         if isinstance(v, ObservableFlag):
             return v
         if isinstance(v, str):
-            # Normalize legacy casing
-            normalized = cls._LEGACY_NAMES.get(v.lower().strip(), v.strip())
             try:
-                return reduce(or_, (cls[n.strip()] for n in normalized.split("|")))
+                return reduce(or_, (cls[n.strip().upper()] for n in v.split("|")))
             except KeyError as e:
                 raise ValueError(f"Invalid flag member in '{v}'") from e
         raise ValueError(f"Expected str or ObservableFlag, got {type(v)}")
