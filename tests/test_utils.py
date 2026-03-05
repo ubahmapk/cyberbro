@@ -75,5 +75,5 @@ def test_extract_observables():
         Observable(value="192.168.1.0", type=ObservableType.IPV4),
     }
 
-    results_set: set[Observable] = {Observable(**item) for item in extract_observables(text)}
+    results_set: set[Observable] = set(extract_observables(text))
     assert results_set == expected_set
