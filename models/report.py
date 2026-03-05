@@ -1,23 +1,19 @@
-from dataclasses import asdict
-from typing import Any
-
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel, model_serializer
 
 
-@dataclass(slots=True)
-class BaseReport:
+class BaseReport(BaseModel):
     success: bool
     error: str | None = None
 
     def __iter__(self):
-        yield from asdict(self)
+        yield from self.model_dump()
 
-    def __getitem__(self, key):
-        return asdict(self)[key]
+    def __getitem__(self, key: str) -> object:
+        return self.model_dump()[key]
 
-    def __json__(self):
-        """Used for JSON serialization."""
-        return asdict(self)
+    @model_serializer
+    def __json__(self) -> dict[str, bool | str | None]:
+        return self.model_dump()
 
-    def get(self, name, default: Any | None = None):
+    def get(self, name: str, default: object = None) -> object:
         return getattr(self, name, default)
