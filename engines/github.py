@@ -4,7 +4,7 @@ from typing import Any
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +28,9 @@ class GitHubEngine(BaseEngine):
             | ObservableType.EMAIL
         )
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         try:
-            params: dict[str, str] = {"q": observable_value}
+            params: dict[str, str] = {"q": observable.value}
             response = requests.get(
                 url="https://grep.app/api/search",
                 params=params,
@@ -66,7 +64,7 @@ class GitHubEngine(BaseEngine):
 
         except Exception as e:
             logger.error(
-                "Error while querying GitHub for '%s': %s", observable_value, e, exc_info=True
+                "Error while querying GitHub for '%s': %s", observable.value, e, exc_info=True
             )
             return None
 

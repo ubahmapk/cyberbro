@@ -7,7 +7,7 @@ import jwt
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -89,9 +89,7 @@ class MDEEngine(BaseEngine):
             logger.error("Unable to retrieve token from JSON response: %s", json_response)
             return "invalid"
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         try:
             jwt_token = self._read_token() or self._get_token()
             if "invalid" in jwt_token:
@@ -102,31 +100,32 @@ class MDEEngine(BaseEngine):
             file_info_url = None
             link = None
 
-            observable = observable_value
             extracted_domain = None
 
-            match observable_type:
+            match observable.type:
                 case ObservableType.MD5 | ObservableType.SHA1 | ObservableType.SHA256:
-                    url = f"https://api.securitycenter.microsoft.com/api/files/{observable}/stats"
+                    url = f"https://api.securitycenter.microsoft.com/api/files/{observable.value}/stats"
                     file_info_url = (
-                        f"https://api.securitycenter.microsoft.com/api/files/{observable}"
+                        f"https://api.securitycenter.microsoft.com/api/files/{observable.value}"
                     )
-                    link = f"https://security.microsoft.com/file/{observable}"
+                    link = f"https://security.microsoft.com/file/{observable.value}"
                 case ObservableType.IPV4 | ObservableType.IPV6 | ObservableType.BOGON:
-                    url = f"https://api.securitycenter.microsoft.com/api/ips/{observable}/stats"
-                    link = f"https://security.microsoft.com/ip/{observable}/overview"
+                    url = (
+                        f"https://api.securitycenter.microsoft.com/api/ips/{observable.value}/stats"
+                    )
+                    link = f"https://security.microsoft.com/ip/{observable.value}/overview"
                 case ObservableType.FQDN:
-                    url = f"https://api.securitycenter.microsoft.com/api/domains/{observable}/stats"
-                    link = f"https://security.microsoft.com/domains?urlDomain={observable}"
+                    url = f"https://api.securitycenter.microsoft.com/api/domains/{observable.value}/stats"
+                    link = f"https://security.microsoft.com/domains?urlDomain={observable.value}"
                 case ObservableType.URL:
                     # TODO: Future refactoring - Line 124 uses fragile string split for URL parsing:
-                    # observable.split("/")[2].split(":")[0]
+                    # observable.value.split("/")[2].split(":")[0]
                     # This approach fails on malformed URLs (e.g., missing protocol, no path).
                     # Consider using urllib.parse.urlparse() for robust URL parsing instead.
                     # Test coverage includes both valid URLs and known failure cases.
-                    extracted_domain = observable.split("/")[2].split(":")[0]
+                    extracted_domain = observable.value.split("/")[2].split(":")[0]
                     url = f"https://api.securitycenter.microsoft.com/api/domains/{extracted_domain}/stats"
-                    link = f"https://security.microsoft.com/url?url={observable}"
+                    link = f"https://security.microsoft.com/url?url={observable.value}"
                 case _:
                     return None
 
@@ -169,7 +168,7 @@ class MDEEngine(BaseEngine):
         except Exception as e:
             logger.error(
                 "Error querying Microsoft Defender for Endpoint for '%s': %s",
-                observable_value,
+                observable.value,
                 e,
                 exc_info=True,
             )

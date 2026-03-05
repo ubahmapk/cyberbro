@@ -4,7 +4,7 @@ import pytest
 import responses
 
 from engines.rdap import RDAPEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
 logger = logging.getLogger(__name__)
@@ -12,12 +12,12 @@ logger = logging.getLogger(__name__)
 
 @pytest.fixture
 def fqdn_observable():
-    return "example.com"
+    return Observable(value="example.com", type=ObservableType.FQDN)
 
 
 @pytest.fixture
 def url_observable():
-    return "https://example.com/path"
+    return Observable(value="https://example.com/path", type=ObservableType.URL)
 
 
 @pytest.fixture
@@ -95,7 +95,7 @@ def test_analyze_success_complete_fqdn(fqdn_observable, complete_rdap_response):
 
     responses.add(responses.GET, url, json=complete_rdap_response, status=200)
 
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
 
     assert result is not None
     assert result["abuse_contact"] == "abuse-sub@example.com"
@@ -118,7 +118,7 @@ def test_analyze_success_complete_url(url_observable, complete_rdap_response):
 
     responses.add(responses.GET, url, json=complete_rdap_response, status=200)
 
-    result = engine.analyze(url_observable, ObservableType.URL)
+    result = engine.analyze(url_observable)
 
     assert result is not None
     assert result["registrar"] == "Example Registrar Inc"
@@ -145,7 +145,7 @@ def test_analyze_observable_type_routing(observable_type, observable_value, comp
 
     responses.add(responses.GET, url, json=complete_rdap_response, status=200)
 
-    result = engine.analyze(observable_value, observable_type)
+    result = engine.analyze(Observable(value=observable_value, type=observable_type))
 
     assert result is not None
     assert isinstance(result, dict)
@@ -166,7 +166,7 @@ def test_analyze_valid_domain_extraction(fqdn_observable, complete_rdap_response
 
     responses.add(responses.GET, url, json=complete_rdap_response, status=200)
 
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
 
     assert result is not None
     # Verify the API was called with the correct domain
@@ -188,7 +188,7 @@ def test_analyze_subdomain_extraction():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("sub.example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="sub.example.com", type=ObservableType.FQDN))
 
     assert result is not None
     # Verify the API was called with registered_domain (sub.example.com -> example.com)
@@ -201,7 +201,7 @@ def test_analyze_invalid_domain_no_registered_domain():
     engine = RDAPEngine(Secrets(), proxies={}, ssl_verify=True)
 
     # Invalid domain with no registered_domain
-    result = engine.analyze("invalid_local_host", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="invalid_local_host", type=ObservableType.FQDN))
 
     assert result is None
     # No API call should be made
@@ -239,7 +239,7 @@ def test_vcard_extraction_complete_fields():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["registrar"] == "Full Name"
@@ -264,7 +264,7 @@ def test_vcard_extraction_empty_vcard_array():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["registrar"] == ""
@@ -289,7 +289,7 @@ def test_vcard_extraction_missing_vcardarray():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["registrar"] == ""
@@ -319,7 +319,7 @@ def test_vcard_extraction_missing_field_value():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["registrar"] == ""
@@ -350,7 +350,7 @@ def test_vcard_extraction_malformed_item_not_four_elements():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["registrar"] == "Real Name"
@@ -383,7 +383,7 @@ def test_entity_role_abuse_contact():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["abuse_contact"] == "abuse@example.com"
@@ -411,7 +411,7 @@ def test_entity_role_registrar():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["registrar"] == "Registrar Corp"
@@ -443,7 +443,7 @@ def test_entity_role_registrant():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["registrant"] == "Jane Registrant"
@@ -476,7 +476,7 @@ def test_entity_multi_role_entity():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     # Both roles should be processed
@@ -520,7 +520,7 @@ def test_subentity_abuse_contact_extraction():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["abuse_contact"] == "abuse-sub@example.com"
@@ -564,7 +564,7 @@ def test_subentity_parent_abuse_priority():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     # Sub-entity abuse contact is processed after parent and overwrites it (or logic)
@@ -609,7 +609,7 @@ def test_subentity_multiple_subentities():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     # Last abuse contact wins (or logic)
@@ -639,7 +639,7 @@ def test_nameserver_extraction_multiple():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["name_servers"] == [
@@ -666,7 +666,7 @@ def test_nameserver_lowercase_conversion():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert all(ns.islower() for ns in result["name_servers"])
@@ -690,7 +690,7 @@ def test_nameserver_missing_ldhname():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     # Only nameservers with ldhName are included
@@ -720,7 +720,7 @@ def test_event_date_extraction_all_types():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["creation_date"] == "2020-01-15"
@@ -742,7 +742,7 @@ def test_event_date_missing_events():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["creation_date"] == ""
@@ -766,7 +766,7 @@ def test_event_date_without_t_separator():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["creation_date"] == "2020-01-15"
@@ -788,7 +788,7 @@ def test_event_date_missing_eventdate():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["creation_date"] == ""
@@ -815,7 +815,7 @@ def test_link_extraction_self_link_present():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["link"] == "https://rdap.net/domain/example.com"
@@ -837,7 +837,7 @@ def test_link_extraction_missing_self_link():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["link"] == ""
@@ -857,7 +857,7 @@ def test_link_extraction_empty_links_array():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["link"] == ""
@@ -882,7 +882,7 @@ def test_analyze_minimal_response():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert all(v == "" or v == [] for v in result.values())
@@ -908,7 +908,7 @@ def test_analyze_partial_response_missing_section():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     assert result["registrar"] == "Registrar"
@@ -931,7 +931,7 @@ def test_analyze_response_with_extra_unknown_fields():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is not None
     # Verify standard fields are present
@@ -953,7 +953,7 @@ def test_analyze_http_error_codes(status_code):
 
     responses.add(responses.GET, url, status=status_code)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is None
 
@@ -971,7 +971,7 @@ def test_analyze_network_exception(caplog):
     )
 
     with caplog.at_level(logging.ERROR):
-        result = engine.analyze("example.com", ObservableType.FQDN)
+        result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
 
     assert result is None
     assert "Error querying RDAP" in caplog.text
@@ -990,7 +990,7 @@ def test_create_export_row_complete_data(complete_rdap_response):
 
     responses.add(responses.GET, url, json=complete_rdap_response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
     export_row = engine.create_export_row(result)
 
     assert export_row["rdap_abuse"] == "abuse-sub@example.com"
@@ -1027,7 +1027,7 @@ def test_create_export_row_partial_data():
 
     responses.add(responses.GET, url, json=response, status=200)
 
-    result = engine.analyze("example.com", ObservableType.FQDN)
+    result = engine.analyze(Observable(value="example.com", type=ObservableType.FQDN))
     export_row = engine.create_export_row(result)
 
     assert export_row["rdap_registrar"] == "Registrar"

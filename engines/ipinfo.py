@@ -5,7 +5,7 @@ import pycountry
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +23,9 @@ class IPInfoEngine(BaseEngine):
     def execute_after_reverse_dns(self):
         return True  # IP-only engine
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         try:
-            url = f"https://ipinfo.io/{observable_value}/json"
+            url = f"https://ipinfo.io/{observable.value}/json"
             params = {"token": self.secrets.ipinfo}
             response = requests.get(
                 url, params=params, proxies=self.proxies, verify=self.ssl_verify, timeout=5
@@ -39,13 +37,13 @@ class IPInfoEngine(BaseEngine):
             # Handle bogon/private IPs explicitly
             if "bogon" in data:
                 return {
-                    "ip": observable_value,
+                    "ip": observable.value,
                     "geolocation": "",
                     "country_code": "",
                     "country_name": "Bogon",
                     "hostname": "Private IP",
                     "asn": "BOGON",
-                    "link": f"https://ipinfo.io/{observable_value}",
+                    "link": f"https://ipinfo.io/{observable.value}",
                 }
 
             if "ip" in data:
@@ -73,7 +71,7 @@ class IPInfoEngine(BaseEngine):
                 }
 
         except Exception as e:
-            logger.error("Error querying ipinfo for '%s': %s", observable_value, e, exc_info=True)
+            logger.error("Error querying ipinfo for '%s': %s", observable.value, e, exc_info=True)
 
         return None
 

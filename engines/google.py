@@ -5,7 +5,7 @@ from typing import Any
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -29,9 +29,7 @@ class GoogleCSEEngine(BaseEngine):
             | ObservableType.EMAIL
         )
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType, dorks: str = ""
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable, dorks: str = "") -> dict[str, Any] | None:
         # This engine requires specific secrets (CSE_CX, CSE_KEY)
         google_cse_cx: str = self.secrets.google_cse_cx
         google_cse_key: str = self.secrets.google_cse_key
@@ -39,7 +37,7 @@ class GoogleCSEEngine(BaseEngine):
         if not all([google_cse_cx, google_cse_key]):
             logger.error(
                 "Missing secrets for Google Custom Search Engine for %s observable",
-                observable_value,
+                observable.value,
             )
             return None
 
@@ -49,7 +47,7 @@ class GoogleCSEEngine(BaseEngine):
         if dorks_prefix:
             dorks_prefix += " "
 
-        q = f'{dorks_prefix}"{observable_value}"'
+        q = f'{dorks_prefix}"{observable.value}"'
 
         url: str = "https://www.googleapis.com/customsearch/v1"
         params: dict[str, str] = {"key": google_cse_key, "cx": google_cse_cx, "q": q}
@@ -74,7 +72,7 @@ class GoogleCSEEngine(BaseEngine):
                         or (err.get("errors", [{}])[0].get("message"))
                         or str(err)
                     )
-                logger.warning("Google CSE error for '%s': %s", observable_value, msg)
+                logger.warning("Google CSE error for '%s': %s", observable.value, msg)
                 return {
                     "results": [
                         {
@@ -88,7 +86,7 @@ class GoogleCSEEngine(BaseEngine):
 
             if data is None:
                 logger.error(
-                    "Expected JSON from Google CSE for '%s' but got none.", observable_value
+                    "Expected JSON from Google CSE for '%s' but got none.", observable.value
                 )
                 return None
 
@@ -108,12 +106,12 @@ class GoogleCSEEngine(BaseEngine):
 
         except requests.RequestException as e:
             logger.error(
-                "Network error querying Google CSE for '%s': %s", observable_value, e, exc_info=True
+                "Network error querying Google CSE for '%s': %s", observable.value, e, exc_info=True
             )
         except Exception as e:
             logger.error(
                 "Unexpected error querying Google CSE for '%s': %s",
-                observable_value,
+                observable.value,
                 e,
                 exc_info=True,
             )

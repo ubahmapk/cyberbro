@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +30,10 @@ class IOCOneHTMLEngine(BaseEngine):
     def supported_types(self):
         return BASE_SUPPORTED_TYPES
 
-    def analyze(self, observable_value: str, observable_type: ObservableType) -> dict | None:
+    def analyze(self, observable: Observable) -> dict | None:
         try:
             base_url = "https://ioc.one/auth/deep_search"
-            params: dict = {"search": observable_value}
+            params: dict = {"search": observable.value}
             response = requests.get(
                 url=base_url,
                 params=params,
@@ -61,12 +61,12 @@ class IOCOneHTMLEngine(BaseEngine):
                 ]
                 search_results.append({"header": header, "title": title, "source": source})
 
-            link_url: str = base_url + f"?search={observable_value}"
+            link_url: str = base_url + f"?search={observable.value}"
             return {"results": search_results, "link": link_url, "count": len(search_results)}
 
         except Exception as e:
             logger.error(
-                "Error querying ioc.one (HTML) for '%s': %s", observable_value, e, exc_info=True
+                "Error querying ioc.one (HTML) for '%s': %s", observable.value, e, exc_info=True
             )
             return None
 
@@ -84,12 +84,10 @@ class IOCOnePDFEngine(BaseEngine):
     def supported_types(self):
         return BASE_SUPPORTED_TYPES
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         try:
             base_url = "https://ioc.one/auth/deep_search/pdf"
-            params: dict = {"search": observable_value}
+            params: dict = {"search": observable.value}
             response = requests.get(
                 url=base_url,
                 params=params,
@@ -117,12 +115,12 @@ class IOCOnePDFEngine(BaseEngine):
                 ]
                 search_results.append({"header": header, "title": title, "source": source})
 
-            link_url: str = base_url + f"?search={observable_value}"
+            link_url: str = base_url + f"?search={observable.value}"
             return {"results": search_results, "link": link_url, "count": len(search_results)}
 
         except Exception as e:
             logger.error(
-                "Error querying ioc.one (PDF) for '%s': %s", observable_value, e, exc_info=True
+                "Error querying ioc.one (PDF) for '%s': %s", observable.value, e, exc_info=True
             )
             return None
 

@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 from falconpy import APIHarnessV2  # Assuming falconpy is installed
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -72,25 +72,23 @@ class CrowdstrikeEngine(BaseEngine):
             timeout=5,
         )
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         try:
             falcon = self._get_falcon_client()
             falcon_url = urljoin(self.secrets.crowdstrike_falcon_base_url, "/").rstrip("/")
 
-            observable: str = (
-                observable_value.split("/")[2].split(":")[0]
-                if observable_type is ObservableType.URL
-                else observable_value
+            value: str = (
+                observable.value.split("/")[2].split(":")[0]
+                if observable.type is ObservableType.URL
+                else observable.value
             )
 
-            observable = observable.lower()
-            mapped_type: str = self._map_observable_type(observable_type)
+            value = value.lower()
+            mapped_type: str = self._map_observable_type(observable.type)
 
             # 1. Get device count
             response = falcon.command(
-                "indicator_get_device_count_v1", type=mapped_type, value=observable
+                "indicator_get_device_count_v1", type=mapped_type, value=value
             )
             device_count_result = {"device_count": 0}
             if response["status_code"] == 200:
@@ -98,12 +96,12 @@ class CrowdstrikeEngine(BaseEngine):
                 device_count_result["device_count"] = data.get("device_count", 0)
 
             # 2. Get Intel Indicators
-            id_to_search = self._generate_ioc_id(observable, mapped_type)
+            id_to_search = self._generate_ioc_id(value, mapped_type)
             request_body = {"ids": [id_to_search]}
             response = falcon.command("GetIntelIndicatorEntities", body=request_body)
 
             result = device_count_result
-            result["link"] = f"{falcon_url}/search/?term=_all%3A~%27{observable}%27"
+            result["link"] = f"{falcon_url}/search/?term=_all%3A~%27{value}%27"
 
             if response["status_code"] != 200 or not response["body"]["resources"]:
                 result.update({"indicator_found": False})
@@ -132,7 +130,7 @@ class CrowdstrikeEngine(BaseEngine):
         except Exception as e:
             logger.error(
                 "Error querying CrowdStrike Falcon for '%s': %s",
-                observable_value,
+                observable.value,
                 e,
                 exc_info=True,
             )

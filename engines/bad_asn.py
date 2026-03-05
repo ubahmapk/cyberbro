@@ -7,7 +7,7 @@ Requires ASN data from other engines (ipapi, ipinfo, ipquery).
 import logging
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 from utils.bad_asn_manager import check_asn
 
 logger = logging.getLogger(__name__)
@@ -180,29 +180,26 @@ class BadASNEngine(BaseEngine):
         """
         return True
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType, context: dict | None = None
-    ) -> dict | None:
+    def analyze(self, observable: Observable, context: dict | None = None) -> dict | None:
         """
         Check if the IP's ASN is listed in bad ASN databases.
 
         Args:
-            observable_value: IP address to check
-            observable_type: Should be IPv4 or IPv6
+            observable: Observable with an IP address value to check (IPv4 or IPv6)
             context: Dictionary containing results from other engines (optional)
 
         Returns:
             Dictionary with status, source, and details if ASN is malicious, None otherwise
         """
         if not context:
-            logger.warning(f"Bad ASN engine called without context for {observable_value}")
+            logger.warning(f"Bad ASN engine called without context for {observable.value}")
             return None
 
         # Try to extract ASN from various possible engine results
         asn = self._extract_asn_from_context(context)
 
         if not asn:
-            logger.debug(f"No ASN found in context for {observable_value}, skipping Bad ASN check")
+            logger.debug(f"No ASN found in context for {observable.value}, skipping Bad ASN check")
             return None
 
         # Check ASN against bad ASN databases
@@ -236,7 +233,7 @@ class BadASNEngine(BaseEngine):
                 )
                 msg = (
                     f"Legitimate provider potentially abused: {asn} (score: {risk_score}) "
-                    f"for IP {observable_value} - {result.get('source', '')}"
+                    f"for IP {observable.value} - {result.get('source', '')}"
                 )
                 logger.info(msg)
             else:
@@ -247,14 +244,14 @@ class BadASNEngine(BaseEngine):
                 )
                 msg = (
                     f"Bad ASN detected: {asn} (score: {risk_score}) for IP "
-                    f"{observable_value} - {result.get('source', '')}"
+                    f"{observable.value} - {result.get('source', '')}"
                 )
                 logger.info(msg)
 
             return result
 
         # ASN is unlisted
-        logger.debug(f"ASN {asn} for IP {observable_value} is not listed in bad ASN databases")
+        logger.debug(f"ASN {asn} for IP {observable.value} is not listed in bad ASN databases")
         return {
             "status": "unlisted",
             "asn": asn,

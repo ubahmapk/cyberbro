@@ -5,7 +5,7 @@ from typing import Any
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -164,13 +164,11 @@ class RLAnalyzeEngine(BaseEngine):
 
         return {}
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         api_key = self.secrets.rl_analyze_api_key
         rl_analyze_url = self.secrets.rl_analyze_url
 
-        endpoint = self._get_api_endpoint(observable_value, observable_type)
+        endpoint = self._get_api_endpoint(observable.value, observable.type)
         if not endpoint:
             return None
 
@@ -188,11 +186,11 @@ class RLAnalyzeEngine(BaseEngine):
             response.raise_for_status()
 
             data = response.json()
-            return self._parse_rl_response(data, observable_value, observable_type, rl_analyze_url)
+            return self._parse_rl_response(data, observable.value, observable.type, rl_analyze_url)
 
         except Exception as e:
             logger.error(
-                "Error querying Reversing Labs for '%s': %s", observable_value, e, exc_info=True
+                "Error querying Reversing Labs for '%s': %s", observable.value, e, exc_info=True
             )
             return None
 

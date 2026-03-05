@@ -5,30 +5,30 @@ import requests
 import responses
 
 from engines.crtsh import CrtShEngine
+from models.observable import Observable, ObservableType
 from utils.config import Secrets
-from models.observable import ObservableType
 
 logger = logging.getLogger(__name__)
 
 
 @pytest.fixture
 def fqdn_observable():
-    return "example.com"
+    return Observable(value="example.com", type=ObservableType.FQDN)
 
 
 @pytest.fixture
 def url_observable_with_port():
-    return "https://example.com:8443/api/path"
+    return Observable(value="https://example.com:8443/api/path", type=ObservableType.URL)
 
 
 @pytest.fixture
 def url_observable_without_port():
-    return "https://subdomain.example.com/some/path"
+    return Observable(value="https://subdomain.example.com/some/path", type=ObservableType.URL)
 
 
 @pytest.fixture
 def subdomain_observable():
-    return "www.example.com"
+    return Observable(value="www.example.com", type=ObservableType.FQDN)
 
 
 # ============================================================================
@@ -40,7 +40,7 @@ def subdomain_observable():
 def test_analyze_fqdn_success_single_domain(fqdn_observable):
     """Test successful analysis of FQDN with single domain."""
     engine = CrtShEngine(Secrets(), proxies={}, ssl_verify=True)
-    url = f"https://crt.sh/json?q={fqdn_observable}"
+    url = f"https://crt.sh/json?q={fqdn_observable.value}"
 
     mock_resp = [
         {
@@ -51,21 +51,21 @@ def test_analyze_fqdn_success_single_domain(fqdn_observable):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
 
     assert result is not None
     assert "top_domains" in result
     assert len(result["top_domains"]) == 1
     assert result["top_domains"][0]["domain"] == "example.com"
     assert result["top_domains"][0]["count"] == 1
-    assert result["link"] == f"https://crt.sh/?q={fqdn_observable}"
+    assert result["link"] == f"https://crt.sh/?q={fqdn_observable.value}"
 
 
 @responses.activate
 def test_analyze_fqdn_success_multiple_domains(fqdn_observable):
     """Test successful analysis with multiple certificate records and domains."""
     engine = CrtShEngine(Secrets(), proxies={}, ssl_verify=True)
-    url = f"https://crt.sh/json?q={fqdn_observable}"
+    url = f"https://crt.sh/json?q={fqdn_observable.value}"
 
     mock_resp = [
         {
@@ -84,7 +84,7 @@ def test_analyze_fqdn_success_multiple_domains(fqdn_observable):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
 
     assert result is not None
     assert "top_domains" in result
@@ -117,7 +117,7 @@ def test_analyze_url_success_with_port(url_observable_with_port):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(url_observable_with_port, ObservableType.URL)
+    result = engine.analyze(url_observable_with_port)
 
     assert result is not None
     assert len(result["top_domains"]) == 2
@@ -142,7 +142,7 @@ def test_analyze_url_success_without_port(url_observable_without_port):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(url_observable_without_port, ObservableType.URL)
+    result = engine.analyze(url_observable_without_port)
 
     assert result is not None
     assert len(result["top_domains"]) == 2
@@ -153,17 +153,17 @@ def test_analyze_url_success_without_port(url_observable_without_port):
 def test_analyze_empty_certificate_list(fqdn_observable):
     """Test analysis when domain has no certificates."""
     engine = CrtShEngine(Secrets(), proxies={}, ssl_verify=True)
-    url = f"https://crt.sh/json?q={fqdn_observable}"
+    url = f"https://crt.sh/json?q={fqdn_observable.value}"
 
     mock_resp = []
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
 
     assert result is not None
     assert result["top_domains"] == []
-    assert result["link"] == f"https://crt.sh/?q={fqdn_observable}"
+    assert result["link"] == f"https://crt.sh/?q={fqdn_observable.value}"
 
 
 @responses.activate
@@ -171,12 +171,12 @@ def test_analyze_empty_certificate_list(fqdn_observable):
 def test_analyze_http_error_codes(fqdn_observable, status_code, caplog):
     """Test handling of HTTP error responses (401, 403, 404, 500)."""
     engine = CrtShEngine(Secrets(), proxies={}, ssl_verify=True)
-    url = f"https://crt.sh/json?q={fqdn_observable}"
+    url = f"https://crt.sh/json?q={fqdn_observable.value}"
 
     responses.add(responses.GET, url, json={"error": "error"}, status=status_code)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
 
     assert result is None
     assert "Error querying crt.sh" in caplog.text
@@ -186,13 +186,13 @@ def test_analyze_http_error_codes(fqdn_observable, status_code, caplog):
 def test_analyze_connection_error(fqdn_observable, caplog):
     """Test handling of connection timeout."""
     engine = CrtShEngine(Secrets(), proxies={}, ssl_verify=True)
-    url = f"https://crt.sh/json?q={fqdn_observable}"
+    url = f"https://crt.sh/json?q={fqdn_observable.value}"
 
     timeout_error = requests.exceptions.ConnectTimeout("Connection timed out")
     responses.add(responses.GET, url, body=timeout_error)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
 
     assert result is None
     assert "Error querying crt.sh" in caplog.text
@@ -207,7 +207,7 @@ def test_analyze_connection_error(fqdn_observable, caplog):
 def test_analyze_name_value_with_multiple_names(fqdn_observable):
     """Test parsing of name_value with multiple newline-separated domains."""
     engine = CrtShEngine(Secrets(), proxies={}, ssl_verify=True)
-    url = f"https://crt.sh/json?q={fqdn_observable}"
+    url = f"https://crt.sh/json?q={fqdn_observable.value}"
 
     name_value = "example.com\nwww.example.com\napi.example.com\nmail.example.com\ncdn.example.com"
     mock_resp = [
@@ -219,7 +219,7 @@ def test_analyze_name_value_with_multiple_names(fqdn_observable):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
 
     assert result is not None
     assert len(result["top_domains"]) == 5
@@ -232,7 +232,7 @@ def test_analyze_name_value_with_multiple_names(fqdn_observable):
 def test_analyze_common_name_only(fqdn_observable):
     """Test handling of records with only common_name (no name_value)."""
     engine = CrtShEngine(Secrets(), proxies={}, ssl_verify=True)
-    url = f"https://crt.sh/json?q={fqdn_observable}"
+    url = f"https://crt.sh/json?q={fqdn_observable.value}"
 
     mock_resp = [
         {
@@ -247,7 +247,7 @@ def test_analyze_common_name_only(fqdn_observable):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
 
     assert result is not None
     assert len(result["top_domains"]) == 1
@@ -259,7 +259,7 @@ def test_analyze_common_name_only(fqdn_observable):
 def test_analyze_name_value_only(fqdn_observable):
     """Test handling of records with only name_value (no common_name)."""
     engine = CrtShEngine(Secrets(), proxies={}, ssl_verify=True)
-    url = f"https://crt.sh/json?q={fqdn_observable}"
+    url = f"https://crt.sh/json?q={fqdn_observable.value}"
 
     mock_resp = [
         {
@@ -274,7 +274,7 @@ def test_analyze_name_value_only(fqdn_observable):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
 
     assert result is not None
     assert len(result["top_domains"]) == 3
@@ -286,7 +286,7 @@ def test_analyze_name_value_only(fqdn_observable):
 def test_analyze_name_value_with_empty_lines(fqdn_observable):
     """Test handling of name_value with empty lines and whitespace."""
     engine = CrtShEngine(Secrets(), proxies={}, ssl_verify=True)
-    url = f"https://crt.sh/json?q={fqdn_observable}"
+    url = f"https://crt.sh/json?q={fqdn_observable.value}"
 
     mock_resp = [
         {
@@ -297,7 +297,7 @@ def test_analyze_name_value_with_empty_lines(fqdn_observable):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
 
     assert result is not None
     # Should have 3 domains (empty lines are skipped by "if el" check)
@@ -310,12 +310,12 @@ def test_analyze_name_value_with_empty_lines(fqdn_observable):
 def test_analyze_invalid_json_response(fqdn_observable, caplog):
     """Test handling of 200 status but invalid JSON response."""
     engine = CrtShEngine(Secrets(), proxies={}, ssl_verify=True)
-    url = f"https://crt.sh/json?q={fqdn_observable}"
+    url = f"https://crt.sh/json?q={fqdn_observable.value}"
 
     responses.add(responses.GET, url, body="invalid json{", status=200)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
 
     assert result is None
     assert "Error querying crt.sh" in caplog.text
@@ -358,8 +358,8 @@ def test_create_export_row_with_none():
 def test_analyze_domain_count_sorting():
     """Test that domains are correctly sorted by count."""
     engine = CrtShEngine(Secrets(), proxies={}, ssl_verify=True)
-    fqdn = "example.com"
-    url = f"https://crt.sh/json?q={fqdn}"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
+    url = f"https://crt.sh/json?q={observable.value}"
 
     mock_resp = [
         {"common_name": "a.example.com", "name_value": None},
@@ -376,7 +376,7 @@ def test_analyze_domain_count_sorting():
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(fqdn, ObservableType.FQDN)
+    result = engine.analyze(observable)
 
     assert result is not None
     top_domains = result["top_domains"]

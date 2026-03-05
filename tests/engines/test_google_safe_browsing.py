@@ -5,7 +5,7 @@ import requests
 import responses
 
 from engines.google_safe_browsing import GoogleSafeBrowsingEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
 logger = logging.getLogger(__name__)
@@ -27,22 +27,22 @@ def secrets_without_key():
 
 @pytest.fixture
 def url_observable():
-    return "http://malicious-site.com"
+    return Observable(value="http://malicious-site.com", type=ObservableType.URL)
 
 
 @pytest.fixture
 def fqdn_observable():
-    return "example.com"
+    return Observable(value="example.com", type=ObservableType.FQDN)
 
 
 @pytest.fixture
 def ipv4_observable():
-    return "192.168.1.1"
+    return Observable(value="192.168.1.1", type=ObservableType.IPV4)
 
 
 @pytest.fixture
 def ipv6_observable():
-    return "2001:4860:4860::8888"
+    return Observable(value="2001:4860:4860::8888", type=ObservableType.IPV6)
 
 
 # ============================================================================
@@ -61,7 +61,7 @@ def test_analyze_threat_found_complete(secrets_with_key, url_observable):
             {
                 "threatType": "MALWARE",
                 "platformType": "ALL",
-                "threat": {"url": url_observable},
+                "threat": {"url": url_observable.value},
                 "cacheDuration": "300s",
             }
         ]
@@ -69,7 +69,7 @@ def test_analyze_threat_found_complete(secrets_with_key, url_observable):
 
     responses.add(responses.POST, url, json=mock_resp, status=200)
 
-    result = engine.analyze(url_observable, ObservableType.URL)
+    result = engine.analyze(url_observable)
 
     assert result is not None
     assert result["threat_found"] == "Threat found"
@@ -88,7 +88,7 @@ def test_analyze_no_threat_found(secrets_with_key, url_observable):
 
     responses.add(responses.POST, url, json=mock_resp, status=200)
 
-    result = engine.analyze(url_observable, ObservableType.URL)
+    result = engine.analyze(url_observable)
 
     assert result is not None
     assert result["threat_found"] == "No threat found"
@@ -106,14 +106,14 @@ def test_analyze_minimal_threat_match(secrets_with_key, url_observable):
             {
                 "threatType": "SOCIAL_ENGINEERING",
                 "platformType": "ALL",
-                "threat": {"url": url_observable},
+                "threat": {"url": url_observable.value},
             }
         ]
     }
 
     responses.add(responses.POST, url, json=mock_resp, status=200)
 
-    result = engine.analyze(url_observable, ObservableType.URL)
+    result = engine.analyze(url_observable)
 
     assert result is not None
     assert result["threat_found"] == "Threat found"
@@ -129,7 +129,7 @@ def test_analyze_unauthorized_response(secrets_with_key, url_observable, caplog)
     responses.add(responses.POST, url, json={"error": "unauthorized"}, status=401)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(url_observable, ObservableType.URL)
+    result = engine.analyze(url_observable)
 
     assert result is None
     assert "Error while querying Google Safe Browsing" in caplog.text
@@ -144,7 +144,7 @@ def test_analyze_forbidden_response(secrets_with_key, url_observable, caplog):
     responses.add(responses.POST, url, json={"error": "forbidden"}, status=403)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(url_observable, ObservableType.URL)
+    result = engine.analyze(url_observable)
 
     assert result is None
     assert "Error while querying Google Safe Browsing" in caplog.text
@@ -159,7 +159,7 @@ def test_analyze_server_error_500(secrets_with_key, url_observable, caplog):
     responses.add(responses.POST, url, json={"error": "server error"}, status=500)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(url_observable, ObservableType.URL)
+    result = engine.analyze(url_observable)
 
     assert result is None
     assert "Error while querying Google Safe Browsing" in caplog.text
@@ -174,7 +174,7 @@ def test_analyze_bad_request_400(secrets_with_key, url_observable, caplog):
     responses.add(responses.POST, url, json={"error": "bad request"}, status=400)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(url_observable, ObservableType.URL)
+    result = engine.analyze(url_observable)
 
     assert result is None
     assert "Error while querying Google Safe Browsing" in caplog.text
@@ -190,7 +190,7 @@ def test_analyze_request_timeout(secrets_with_key, url_observable, caplog):
     responses.add(responses.POST, url, body=timeout_error)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(url_observable, ObservableType.URL)
+    result = engine.analyze(url_observable)
 
     assert result is None
     assert "Error while querying Google Safe Browsing" in caplog.text
@@ -206,7 +206,7 @@ def test_analyze_request_connection_error(secrets_with_key, url_observable, capl
     responses.add(responses.POST, url, body=conn_error)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(url_observable, ObservableType.URL)
+    result = engine.analyze(url_observable)
 
     assert result is None
     assert "Error while querying Google Safe Browsing" in caplog.text
@@ -221,7 +221,7 @@ def test_analyze_invalid_json_response(secrets_with_key, url_observable, caplog)
     responses.add(responses.POST, url, body="invalid json{", status=200)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(url_observable, ObservableType.URL)
+    result = engine.analyze(url_observable)
 
     assert result is None
     assert "Error while querying Google Safe Browsing" in caplog.text
@@ -253,7 +253,7 @@ def test_analyze_observable_types_success(
 
     responses.add(responses.POST, url, json=mock_resp, status=200)
 
-    result = engine.analyze(observable_value, observable_type)
+    result = engine.analyze(Observable(value=observable_value, type=observable_type))
 
     assert result is not None
     assert result["threat_found"] == "Threat found"
@@ -270,7 +270,7 @@ def test_analyze_empty_url_observable(secrets_with_key, caplog):
     responses.add(responses.POST, url, json=mock_resp, status=200)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze("", ObservableType.URL)
+    result = engine.analyze(Observable(value="", type=ObservableType.URL))
 
     assert result is not None
     assert result["threat_found"] == "No threat found"
@@ -288,7 +288,7 @@ def test_analyze_url_with_query_parameters(secrets_with_key):
 
     responses.add(responses.POST, url, json=mock_resp, status=200)
 
-    result = engine.analyze(url_with_params, ObservableType.URL)
+    result = engine.analyze(Observable(value=url_with_params, type=ObservableType.URL))
 
     assert result is not None
     assert result["threat_found"] == "Threat found"
@@ -306,7 +306,7 @@ def test_analyze_url_with_fragment_identifier(secrets_with_key):
 
     responses.add(responses.POST, url, json=mock_resp, status=200)
 
-    result = engine.analyze(url_with_fragment, ObservableType.URL)
+    result = engine.analyze(Observable(value=url_with_fragment, type=ObservableType.URL))
 
     assert result is not None
     assert result["threat_found"] == "Threat found"
@@ -327,7 +327,7 @@ def test_analyze_request_contains_threat_types(secrets_with_key, url_observable)
 
     responses.add(responses.POST, api_url, json=mock_resp, status=200)
 
-    engine.analyze(url_observable, ObservableType.URL)
+    engine.analyze(url_observable)
 
     # Verify request was made
     assert len(responses.calls) == 1
@@ -347,7 +347,7 @@ def test_analyze_request_uses_post_method(secrets_with_key, url_observable):
 
     responses.add(responses.POST, api_url, json=mock_resp, status=200)
 
-    engine.analyze(url_observable, ObservableType.URL)
+    engine.analyze(url_observable)
 
     assert len(responses.calls) == 1
     assert responses.calls[0].request.method == "POST"
@@ -363,7 +363,7 @@ def test_analyze_api_key_in_url_query_params(secrets_with_key, url_observable):
 
     responses.add(responses.POST, api_url, json=mock_resp, status=200)
 
-    engine.analyze(url_observable, ObservableType.URL)
+    engine.analyze(url_observable)
 
     assert len(responses.calls) == 1
     request_url = responses.calls[0].request.url
@@ -381,14 +381,14 @@ def test_analyze_response_parsing_with_json(secrets_with_key, url_observable):
             {
                 "threatType": "MALWARE",
                 "platformType": "WINDOWS",
-                "threat": {"url": url_observable},
+                "threat": {"url": url_observable.value},
             }
         ]
     }
 
     responses.add(responses.POST, api_url, json=mock_resp, status=200)
 
-    result = engine.analyze(url_observable, ObservableType.URL)
+    result = engine.analyze(url_observable)
 
     # Verify JSON was parsed and included in result
     assert result["details"] == mock_resp["matches"]

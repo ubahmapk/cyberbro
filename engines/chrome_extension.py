@@ -5,7 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -51,11 +51,9 @@ class ChromeExtensionEngine(BaseEngine):
             )
             return None
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
-        chrome_url = f"https://chromewebstore.google.com/detail/{observable_value}"
-        edge_url = f"https://microsoftedge.microsoft.com/addons/detail/{observable_value}"
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
+        chrome_url = f"https://chromewebstore.google.com/detail/{observable.value}"
+        edge_url = f"https://microsoftedge.microsoft.com/addons/detail/{observable.value}"
 
         result = self._fetch_extension_name(chrome_url)
         if result and result["name"]:

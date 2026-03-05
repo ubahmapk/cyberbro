@@ -6,7 +6,7 @@ import requests
 import responses
 
 from engines.misp import MISPEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
 logger = logging.getLogger(__name__)
@@ -39,43 +39,46 @@ def misp_engine(secrets_with_key):
 @pytest.fixture
 def ipv4_observable():
     """IPv4 observable for testing."""
-    return "8.8.8.8"
+    return Observable(value="8.8.8.8", type=ObservableType.IPV4)
 
 
 @pytest.fixture
 def ipv6_observable():
     """IPv6 observable for testing."""
-    return "2001:4860:4860::8888"
+    return Observable(value="2001:4860:4860::8888", type=ObservableType.IPV6)
 
 
 @pytest.fixture
 def fqdn_observable():
     """FQDN observable for testing."""
-    return "example.com"
+    return Observable(value="example.com", type=ObservableType.FQDN)
 
 
 @pytest.fixture
 def url_observable():
     """URL observable for testing."""
-    return "https://example.com/path"
+    return Observable(value="https://example.com/path", type=ObservableType.URL)
 
 
 @pytest.fixture
 def md5_hash():
     """MD5 hash observable for testing."""
-    return "5d41402abc4b2a76b9719d911017c592"
+    return Observable(value="5d41402abc4b2a76b9719d911017c592", type=ObservableType.MD5)
 
 
 @pytest.fixture
 def sha1_hash():
     """SHA1 hash observable for testing."""
-    return "356a192b7913b04c54574d18c28d46e6395428ab"
+    return Observable(value="356a192b7913b04c54574d18c28d46e6395428ab", type=ObservableType.SHA1)
 
 
 @pytest.fixture
 def sha256_hash():
     """SHA256 hash observable for testing."""
-    return "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    return Observable(
+        value="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        type=ObservableType.SHA256,
+    )
 
 
 def create_misp_attribute(timestamp: str, event_id: int, event_info: str) -> dict:
@@ -114,7 +117,7 @@ def test_analyze_missing_api_key(secrets_without_key, ipv4_observable, caplog):
     engine = MISPEngine(secrets_without_key, proxies={}, ssl_verify=True)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is None
     assert "MISP API key or URL is required" in caplog.text
 
@@ -127,7 +130,7 @@ def test_analyze_missing_misp_url(secrets_without_key, ipv4_observable, caplog):
     engine = MISPEngine(secrets_without_key, proxies={}, ssl_verify=True)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is None
     assert "MISP API key or URL is required" in caplog.text
 
@@ -138,7 +141,7 @@ def test_analyze_missing_both_credentials(secrets_without_key, ipv4_observable, 
     engine = MISPEngine(secrets_without_key, proxies={}, ssl_verify=True)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is None
     assert "MISP API key or URL is required" in caplog.text
 
@@ -174,7 +177,7 @@ def test_analyze_observable_type_routing(secrets_with_key, observable_type, obse
         status=200,
     )
 
-    result = engine.analyze(observable_value, observable_type)
+    result = engine.analyze(Observable(value=observable_value, type=observable_type))
     assert result is not None
     assert len(responses.calls) == 1
 
@@ -185,7 +188,7 @@ def test_analyze_unsupported_observable_type(secrets_with_key, caplog):
     engine = MISPEngine(secrets_with_key, proxies={}, ssl_verify=True)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze("test@example.com", ObservableType.EMAIL)
+    result = engine.analyze(Observable(value="test@example.com", type=ObservableType.EMAIL))
     assert result is None
     assert "Unsupported observable type for MISP" in caplog.text
 
@@ -209,7 +212,7 @@ def test_link_generation_simple_observable(secrets_with_key, fqdn_observable):
         status=200,
     )
 
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
     assert result is not None
     assert result["link"] == f"https://misp.example.com/attributes/index?value={fqdn_observable}"
 
@@ -229,7 +232,7 @@ def test_link_generation_with_special_characters(secrets_with_key):
         status=200,
     )
 
-    result = engine.analyze(observable, ObservableType.FQDN)
+    result = engine.analyze(Observable(value=observable, type=ObservableType.FQDN))
     assert result is not None
     assert "test%40example.com" in result["link"]
 
@@ -249,7 +252,7 @@ def test_link_generation_with_url_special_chars(secrets_with_key):
         status=200,
     )
 
-    result = engine.analyze(observable, ObservableType.FQDN)
+    result = engine.analyze(Observable(value=observable, type=ObservableType.FQDN))
     assert result is not None
     assert "%3F" in result["link"]  # "?" encoded as %3F
     assert "%3D" in result["link"]  # "=" encoded as %3D
@@ -270,7 +273,7 @@ def test_url_preprocessing_trailing_slash_removal(secrets_with_key, fqdn_observa
         status=200,
     )
 
-    result = engine.analyze(fqdn_observable, ObservableType.FQDN)
+    result = engine.analyze(fqdn_observable)
     assert result is not None
     assert len(responses.calls) == 1
     assert responses.calls[0].request.url == url
@@ -295,7 +298,7 @@ def test_analyze_invalid_credentials_401(secrets_with_key, ipv4_observable, capl
     )
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is None
     assert "Error querying MISP" in caplog.text
 
@@ -314,7 +317,7 @@ def test_analyze_invalid_credentials_403(secrets_with_key, ipv4_observable, capl
     )
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is None
     assert "Error querying MISP" in caplog.text
 
@@ -342,7 +345,7 @@ def test_analyze_event_limiting_less_than_5(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert len(result["events"]) == 3
 
@@ -361,7 +364,7 @@ def test_analyze_event_limiting_exactly_5(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert len(result["events"]) == 5
 
@@ -380,7 +383,7 @@ def test_analyze_event_limiting_more_than_5(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert len(result["events"]) == 5
     assert result["count"] == 12
@@ -406,7 +409,7 @@ def test_analyze_event_sorting_descending_by_timestamp(secrets_with_key, ipv4_ob
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert len(result["events"]) == 5
     timestamps = [int(e["timestamp"]) for e in result["events"]]
@@ -432,7 +435,7 @@ def test_analyze_event_deduplication_by_event_id(secrets_with_key, ipv4_observab
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert len(result["events"]) == 2
     assert result["count"] == 4
@@ -461,7 +464,7 @@ def test_analyze_event_missing_event_info(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert len(result["events"]) == 1
     assert result["events"][0]["title"] == "Unknown"
@@ -487,7 +490,7 @@ def test_analyze_timestamp_conversion_recent_date(secrets_with_key, ipv4_observa
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert result["first_seen"] == "2024-01-01"
     assert result["last_seen"] == "2024-01-01"
@@ -508,7 +511,7 @@ def test_analyze_timestamp_conversion_epoch(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert result["first_seen"] == "1970-01-01"
     assert result["last_seen"] == "1970-01-01"
@@ -529,7 +532,7 @@ def test_analyze_timestamp_year_boundary(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert result["first_seen"] == "2022-12-31"
 
@@ -553,7 +556,7 @@ def test_analyze_first_seen_last_seen_tracking(secrets_with_key, ipv4_observable
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     dt_100 = datetime.fromtimestamp(100, tz=timezone.utc).strftime("%Y-%m-%d")
     dt_500 = datetime.fromtimestamp(500, tz=timezone.utc).strftime("%Y-%m-%d")
@@ -579,7 +582,7 @@ def test_analyze_missing_timestamps_partial(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     dt_1000 = datetime.fromtimestamp(1000, tz=timezone.utc).strftime("%Y-%m-%d")
     dt_3000 = datetime.fromtimestamp(3000, tz=timezone.utc).strftime("%Y-%m-%d")
@@ -610,7 +613,7 @@ def test_analyze_all_timestamps_missing(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert result["first_seen"] is None
     assert result["last_seen"] is None
@@ -631,7 +634,7 @@ def test_analyze_timestamp_utc_conversion(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     dt_utc = datetime.fromtimestamp(int(timestamp), tz=timezone.utc).strftime("%Y-%m-%d")
     assert result["first_seen"] == dt_utc
@@ -655,7 +658,7 @@ def test_analyze_empty_attributes_list(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert result["count"] == 0
     assert result["events"] == []
@@ -686,7 +689,7 @@ def test_analyze_complete_response_success(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert result["count"] == 8
     assert len(result["events"]) == 5
@@ -708,7 +711,7 @@ def test_analyze_missing_response_key(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert result["count"] == 0
     assert result["events"] == []
@@ -734,7 +737,7 @@ def test_analyze_attribute_not_list(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert result["count"] == 0
     assert result["events"] == []
@@ -763,7 +766,7 @@ def test_analyze_missing_event_data(secrets_with_key, ipv4_observable):
         status=200,
     )
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is not None
     assert result["count"] == 2
 
@@ -788,7 +791,7 @@ def test_analyze_http_error_codes(secrets_with_key, ipv4_observable, status_code
     )
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is None
     assert "Error querying MISP" in caplog.text
 
@@ -806,7 +809,7 @@ def test_analyze_connection_timeout(secrets_with_key, ipv4_observable, caplog):
     )
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is None
     assert "Error querying MISP" in caplog.text
 
@@ -824,7 +827,7 @@ def test_analyze_connection_error(secrets_with_key, ipv4_observable, caplog):
     )
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is None
     assert "Error querying MISP" in caplog.text
 
@@ -843,7 +846,7 @@ def test_analyze_invalid_json_response(secrets_with_key, ipv4_observable, caplog
     )
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is None
     assert "Error querying MISP" in caplog.text
 

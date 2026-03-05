@@ -4,7 +4,7 @@ from typing import Any
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -22,13 +22,11 @@ class IPAPIEngine(BaseEngine):
     def execute_after_reverse_dns(self):
         return True  # IP-only engine
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         try:
             url = "https://api.ipapi.is"
             headers = {"Content-Type": "application/json"}
-            data = {"q": observable_value}
+            data = {"q": observable.value}
 
             # Validate API key (should be non-empty and 20 characters)
             if self.secrets.ipapi and len(self.secrets.ipapi) == 20:
@@ -39,12 +37,12 @@ class IPAPIEngine(BaseEngine):
                 if self.secrets.ipapi:
                     logger.warning(
                         "ipapi API key format is invalid, querying without API key for '%s'",
-                        observable_value,
+                        observable.value,
                     )
                 else:
                     logger.warning(
                         "Be careful, you don't use API key for ipapi, rate limit"
-                        f"can happen more often (query: '{observable_value}')",
+                        f"can happen more often (query: '{observable.value}')",
                     )
 
             response = requests.post(
@@ -67,7 +65,7 @@ class IPAPIEngine(BaseEngine):
                 return data
 
         except Exception as e:
-            logger.error("Error querying ipapi for '%s': %s", observable_value, e, exc_info=True)
+            logger.error("Error querying ipapi for '%s': %s", observable.value, e, exc_info=True)
 
         return None
 

@@ -5,7 +5,7 @@ import requests
 from typing_extensions import override
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -20,19 +20,17 @@ class CrtShEngine(BaseEngine):
     def supported_types(self) -> ObservableType:
         return ObservableType.FQDN | ObservableType.URL
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         try:
             # If observable is a URL, extract domain
-            if observable_type is ObservableType.URL:
-                domain_part = observable_value.split("/")[2].split(":")[0]
-                observable = domain_part
+            if observable.type is ObservableType.URL:
+                domain_part = observable.value.split("/")[2].split(":")[0]
+                query_value = domain_part
             else:
-                observable = observable_value
+                query_value = observable.value
 
             url = "https://crt.sh/json"
-            params: dict[str, str] = {"q": observable}
+            params: dict[str, str] = {"q": query_value}
 
             response = requests.get(
                 url, params=params, proxies=self.proxies, verify=self.ssl_verify, timeout=20
@@ -61,11 +59,11 @@ class CrtShEngine(BaseEngine):
             top_domains = [{"domain": dmn, "count": cnt} for dmn, cnt in sorted_domains[:5]]
             return {
                 "top_domains": top_domains,
-                "link": f"https://crt.sh/?q={observable}",
+                "link": f"https://crt.sh/?q={query_value}",
             }
 
         except Exception as e:
-            logger.error("Error querying crt.sh for '%s': %s", observable_value, e, exc_info=True)
+            logger.error("Error querying crt.sh for '%s': %s", observable.value, e, exc_info=True)
             return None
 
     def create_export_row(self, analysis_result: Any) -> dict:

@@ -5,7 +5,7 @@ from urllib.parse import urljoin
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -28,16 +28,14 @@ class OpenCTIEngine(BaseEngine):
             | ObservableType.URL
         )
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         api_key: str = self.secrets.opencti_api_key
         opencti_url: str = self.secrets.opencti_url
 
         try:
-            observable = observable_value
-            if "http" in observable:
-                observable = observable.split("/")[2].split(":")[0]
+            search_value = observable.value
+            if "http" in search_value:
+                search_value = search_value.split("/")[2].split(":")[0]
 
             base_url = urljoin(opencti_url, "/").rstrip("/")
             url = f"{base_url}/graphql"
@@ -102,7 +100,7 @@ class OpenCTIEngine(BaseEngine):
                     ],
                     "filterGroups": [],
                 },
-                "search": observable,
+                "search": search_value,
             }
 
             payload = {
@@ -110,7 +108,7 @@ class OpenCTIEngine(BaseEngine):
                 "query": query,
                 "variables": variables,
             }
-            search_link = f"{base_url}/dashboard/search/knowledge/{observable}"
+            search_link = f"{base_url}/dashboard/search/knowledge/{search_value}"
 
             response = requests.post(
                 url,
@@ -213,7 +211,7 @@ class OpenCTIEngine(BaseEngine):
             }
 
         except Exception as e:
-            logger.error("Error querying OpenCTI for '%s': %s", observable_value, e, exc_info=True)
+            logger.error("Error querying OpenCTI for '%s': %s", observable.value, e, exc_info=True)
             return None
 
     def create_export_row(self, analysis_result: Any) -> dict:

@@ -5,7 +5,7 @@ import requests
 import tldextract
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -19,14 +19,12 @@ class RDAPWhoisEngine(BaseEngine):
     def supported_types(self) -> ObservableType:
         return ObservableType.FQDN | ObservableType.URL
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
-        match observable_type:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
+        match observable.type:
             case ObservableType.URL:
-                domain_part = observable_value.split("/")[2].split(":")[0]
+                domain_part = observable.value.split("/")[2].split(":")[0]
             case ObservableType.FQDN:
-                domain_part = observable_value
+                domain_part = observable.value
             case _:
                 return None
 
@@ -52,7 +50,7 @@ class RDAPWhoisEngine(BaseEngine):
             if "error" in data:
                 logger.warning(
                     "RDAP/Whois API error for '%s': %s - %s",
-                    observable_value,
+                    observable.value,
                     data.get("error"),
                     data.get("message"),
                 )
@@ -79,7 +77,7 @@ class RDAPWhoisEngine(BaseEngine):
         except Exception as e:
             logger.error(
                 "Error querying RDAP/Whois for '%s': %s",
-                observable_value,
+                observable.value,
                 e,
                 exc_info=True,
             )

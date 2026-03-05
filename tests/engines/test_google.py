@@ -1,12 +1,12 @@
 import logging
 from unittest.mock import MagicMock, patch
-from models.observable import ObservableType
 
 import pytest
 import requests
 import responses
 
 from engines.google import GoogleCSEEngine
+from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
 logger = logging.getLogger(__name__)
@@ -71,12 +71,12 @@ def invalid_api_key_response():
 
 @pytest.fixture
 def observable_domain():
-    return "example.com"
+    return Observable(value="example.com", type=ObservableType.FQDN)
 
 
 @pytest.fixture
 def observable_hash():
-    return "a" * 40
+    return Observable(value="a" * 40, type=ObservableType.SHA1)
 
 
 # ============================================================================
@@ -89,7 +89,7 @@ def observable_hash():
 def test_analyze_success_complete_response(mock_sleep, secrets_with_credentials):
     """Test successful API response with all fields present."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     mock_resp = {
         "items": [
@@ -115,7 +115,7 @@ def test_analyze_success_complete_response(mock_sleep, secrets_with_credentials)
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(observable, ObservableType.FQDN)
+    result = engine.analyze(observable)
 
     assert result is not None
     assert result["total"] == 1234567
@@ -131,7 +131,7 @@ def test_analyze_success_complete_response(mock_sleep, secrets_with_credentials)
 def test_analyze_success_minimal_response(mock_sleep, secrets_with_credentials):
     """Test successful API response with minimal fields."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     mock_resp = {
         "items": [],
@@ -141,7 +141,7 @@ def test_analyze_success_minimal_response(mock_sleep, secrets_with_credentials):
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(observable, ObservableType.FQDN)
+    result = engine.analyze(observable)
 
     assert result is not None
     assert result["total"] == 0
@@ -153,12 +153,10 @@ def test_analyze_missing_api_keys(missing_secrets, caplog, request):
     """Test handling of missing API credentials."""
     secrets = request.getfixturevalue(missing_secrets)
     engine = GoogleCSEEngine(secrets, proxies={}, ssl_verify=True)
-    observable_value = "example.com"
-
-    url = "https://www.googleapis.com/customsearch/v1"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     with caplog.at_level(logging.WARNING):
-        result = engine.analyze(observable_value, ObservableType.FQDN)
+        result = engine.analyze(observable)
 
     assert result is None
 
@@ -170,7 +168,7 @@ def test_analyze_invalid_credentials_wrong_cx(
 ):
     """Test handling of invalid google_cse_cx (wrong value)."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     mock_resp = invalid_api_key_response
 
@@ -178,7 +176,7 @@ def test_analyze_invalid_credentials_wrong_cx(
     responses.add(responses.GET, url, json=mock_resp, status=400)
 
     with caplog.at_level(logging.WARNING):
-        result = engine.analyze(observable, ObservableType.FQDN)
+        result = engine.analyze(observable)
 
     assert result is not None
     assert result["total"] == 0
@@ -190,7 +188,7 @@ def test_analyze_invalid_credentials_wrong_cx(
 def test_analyze_http_error_400(mock_sleep, secrets_with_credentials, caplog):
     """Test handling of 400 Bad Request error."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     mock_resp = {
         "error": {
@@ -203,7 +201,7 @@ def test_analyze_http_error_400(mock_sleep, secrets_with_credentials, caplog):
     responses.add(responses.GET, url, json=mock_resp, status=400)
 
     with caplog.at_level(logging.WARNING):
-        result = engine.analyze(observable, ObservableType.FQDN)
+        result = engine.analyze(observable)
 
     assert result is not None
     assert result["total"] == 0
@@ -216,7 +214,7 @@ def test_analyze_http_error_400(mock_sleep, secrets_with_credentials, caplog):
 def test_analyze_http_error_403_quota(mock_sleep, secrets_with_credentials, caplog):
     """Test handling of 403 Quota Exceeded error."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     mock_resp = {
         "error": {
@@ -230,7 +228,7 @@ def test_analyze_http_error_403_quota(mock_sleep, secrets_with_credentials, capl
     responses.add(responses.GET, url, json=mock_resp, status=403)
 
     with caplog.at_level(logging.WARNING):
-        result = engine.analyze(observable, ObservableType.FQDN)
+        result = engine.analyze(observable)
 
     assert result is not None
     assert result["total"] == 0
@@ -242,13 +240,13 @@ def test_analyze_http_error_403_quota(mock_sleep, secrets_with_credentials, capl
 def test_analyze_http_error_500(mock_sleep, secrets_with_credentials, caplog):
     """Test handling of 500 Server Error."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(responses.GET, url, status=500)
 
     with caplog.at_level(logging.WARNING):
-        result = engine.analyze(observable, ObservableType.FQDN)
+        result = engine.analyze(observable)
 
     assert result is not None
     assert result["total"] == 0
@@ -260,7 +258,7 @@ def test_analyze_http_error_500(mock_sleep, secrets_with_credentials, caplog):
 def test_analyze_error_in_json_with_200_status(mock_sleep, secrets_with_credentials, caplog):
     """Test detecting error in JSON response even with 200 status."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     mock_resp = {
         "error": {
@@ -273,7 +271,7 @@ def test_analyze_error_in_json_with_200_status(mock_sleep, secrets_with_credenti
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
     with caplog.at_level(logging.WARNING):
-        result = engine.analyze(observable, ObservableType.FQDN)
+        result = engine.analyze(observable)
 
     assert result is not None
     assert result["total"] == 0
@@ -285,13 +283,13 @@ def test_analyze_error_in_json_with_200_status(mock_sleep, secrets_with_credenti
 def test_analyze_json_parsing_error(mock_sleep, secrets_with_credentials, caplog):
     """Test handling of malformed JSON response."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(responses.GET, url, body="<html>Error page</html>", status=200)
 
     with caplog.at_level(logging.ERROR):
-        result = engine.analyze(observable, ObservableType.FQDN)
+        result = engine.analyze(observable)
 
     assert result is None
     assert "Expected JSON from Google CSE" in caplog.text
@@ -302,7 +300,7 @@ def test_analyze_json_parsing_error(mock_sleep, secrets_with_credentials, caplog
 def test_analyze_connection_timeout(mock_sleep, secrets_with_credentials, caplog):
     """Test handling of connection timeout."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(
@@ -312,7 +310,7 @@ def test_analyze_connection_timeout(mock_sleep, secrets_with_credentials, caplog
     )
 
     with caplog.at_level(logging.ERROR):
-        result = engine.analyze(observable, ObservableType.FQDN)
+        result = engine.analyze(observable)
 
     assert result is None
     assert "Network error querying Google CSE" in caplog.text
@@ -323,7 +321,7 @@ def test_analyze_connection_timeout(mock_sleep, secrets_with_credentials, caplog
 def test_analyze_connection_error(mock_sleep, secrets_with_credentials, caplog):
     """Test handling of connection error."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(
@@ -333,7 +331,7 @@ def test_analyze_connection_error(mock_sleep, secrets_with_credentials, caplog):
     )
 
     with caplog.at_level(logging.ERROR):
-        result = engine.analyze(observable, ObservableType.FQDN)
+        result = engine.analyze(observable)
 
     assert result is None
     assert "Network error querying Google CSE" in caplog.text
@@ -344,7 +342,7 @@ def test_analyze_connection_error(mock_sleep, secrets_with_credentials, caplog):
 def test_analyze_unexpected_exception(mock_sleep, secrets_with_credentials, caplog):
     """Test handling of unexpected exception."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(
@@ -354,7 +352,7 @@ def test_analyze_unexpected_exception(mock_sleep, secrets_with_credentials, capl
     )
 
     with caplog.at_level(logging.ERROR):
-        result = engine.analyze(observable, ObservableType.FQDN)
+        result = engine.analyze(observable)
 
     assert result is None
     assert "Unexpected error querying Google CSE" in caplog.text
@@ -370,7 +368,7 @@ def test_analyze_unexpected_exception(mock_sleep, secrets_with_credentials, capl
 def test_analyze_dorks_simple_prefix(mock_sleep, secrets_with_credentials):
     """Test dorks parameter with simple prefix."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "password"
+    observable = Observable(value="password", type=ObservableType.FQDN)
     dorks = "filetype:pdf"
 
     mock_resp = {
@@ -381,7 +379,7 @@ def test_analyze_dorks_simple_prefix(mock_sleep, secrets_with_credentials):
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(observable, ObservableType.FQDN, dorks=dorks)
+    result = engine.analyze(observable, dorks=dorks)
 
     assert result is not None
     # Verify the query was constructed with dorks prefix
@@ -394,7 +392,7 @@ def test_analyze_dorks_simple_prefix(mock_sleep, secrets_with_credentials):
 def test_analyze_dorks_multiple_words(mock_sleep, secrets_with_credentials):
     """Test dorks parameter with multiple words."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "admin"
+    observable = Observable(value="admin", type=ObservableType.FQDN)
     dorks = "inurl:admin OR inurl:panel"
 
     mock_resp = {
@@ -405,7 +403,7 @@ def test_analyze_dorks_multiple_words(mock_sleep, secrets_with_credentials):
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(observable, ObservableType.FQDN, dorks=dorks)
+    result = engine.analyze(observable, dorks=dorks)
 
     assert result is not None
 
@@ -415,7 +413,7 @@ def test_analyze_dorks_multiple_words(mock_sleep, secrets_with_credentials):
 def test_analyze_dorks_with_trailing_space(mock_sleep, secrets_with_credentials):
     """Test dorks parameter with trailing space."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "password"
+    observable = Observable(value="password", type=ObservableType.FQDN)
     dorks = "filetype:pdf  "  # trailing spaces
 
     mock_resp = {
@@ -426,7 +424,7 @@ def test_analyze_dorks_with_trailing_space(mock_sleep, secrets_with_credentials)
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(observable, ObservableType.FQDN, dorks=dorks)
+    result = engine.analyze(observable, dorks=dorks)
 
     assert result is not None
 
@@ -436,7 +434,7 @@ def test_analyze_dorks_with_trailing_space(mock_sleep, secrets_with_credentials)
 def test_analyze_dorks_empty_string(mock_sleep, secrets_with_credentials):
     """Test dorks parameter with empty string."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
     dorks = ""
 
     mock_resp = {
@@ -447,7 +445,7 @@ def test_analyze_dorks_empty_string(mock_sleep, secrets_with_credentials):
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(observable, ObservableType.FQDN, dorks=dorks)
+    result = engine.analyze(observable, dorks=dorks)
 
     assert result is not None
 
@@ -457,7 +455,7 @@ def test_analyze_dorks_empty_string(mock_sleep, secrets_with_credentials):
 def test_analyze_observable_wrapped_in_quotes(mock_sleep, secrets_with_credentials):
     """Test that observable value is wrapped in quotes."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     mock_resp = {
         "items": [],
@@ -467,7 +465,7 @@ def test_analyze_observable_wrapped_in_quotes(mock_sleep, secrets_with_credentia
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(observable, ObservableType.FQDN)
+    result = engine.analyze(observable)
 
     assert result is not None
     # Verify observable is wrapped in quotes in the URL
@@ -504,8 +502,8 @@ def test_analyze_observable_types(mock_sleep, observable_type, secrets_with_cred
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    observable = f"test_{observable_type}"
-    result = engine.analyze(observable, observable_type)
+    observable = Observable(value=f"test_{observable_type}", type=ObservableType.FQDN)
+    result = engine.analyze(observable)
     assert result is not None
 
 
@@ -514,7 +512,7 @@ def test_analyze_observable_types(mock_sleep, observable_type, secrets_with_cred
 def test_analyze_special_characters_in_observable(mock_sleep, secrets_with_credentials):
     """Test handling of special characters in observable value."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "test@example.com"
+    observable = Observable(value="test@example.com", type=ObservableType.EMAIL)
 
     mock_resp = {
         "items": [],
@@ -524,7 +522,7 @@ def test_analyze_special_characters_in_observable(mock_sleep, secrets_with_crede
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(observable, ObservableType.EMAIL)
+    result = engine.analyze(observable)
 
     assert result is not None
 
@@ -536,10 +534,10 @@ def test_analyze_different_observable_values(mock_sleep, secrets_with_credential
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
 
     observables = [
-        "1.1.1.1",
-        "example.com",
-        "a" * 40,  # SHA1
-        "d41d8cd98f00b204e9800998ecf8427e",  # MD5
+        Observable(value="1.1.1.1", type=ObservableType.IPV4),
+        Observable(value="example.com", type=ObservableType.FQDN),
+        Observable(value="a" * 40, type=ObservableType.SHA1),
+        Observable(value="d41d8cd98f00b204e9800998ecf8427e", type=ObservableType.MD5),
     ]
 
     mock_resp = {
@@ -551,7 +549,7 @@ def test_analyze_different_observable_values(mock_sleep, secrets_with_credential
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
     for observable in observables:
-        result = engine.analyze(observable, ObservableType.IPV4)
+        result = engine.analyze(observable)
         assert result is not None
 
 
@@ -559,7 +557,7 @@ def test_analyze_different_observable_values(mock_sleep, secrets_with_credential
 def test_analyze_rate_limiting_sleep_called(mock_sleep, secrets_with_credentials):
     """Test that time.sleep(0.5) is called for rate limiting."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     with patch("requests.get") as mock_get:
         mock_response = MagicMock()
@@ -570,7 +568,7 @@ def test_analyze_rate_limiting_sleep_called(mock_sleep, secrets_with_credentials
         }
         mock_get.return_value = mock_response
 
-        result = engine.analyze(observable, ObservableType.FQDN)
+        result = engine.analyze(observable)
 
         assert result is not None
         assert mock_sleep.called
@@ -582,7 +580,7 @@ def test_analyze_rate_limiting_sleep_called(mock_sleep, secrets_with_credentials
 def test_analyze_timeout_parameter(mock_sleep, secrets_with_credentials):
     """Test that timeout=10 is passed to requests.get()."""
     engine = GoogleCSEEngine(secrets_with_credentials, proxies={}, ssl_verify=True)
-    observable = "example.com"
+    observable = Observable(value="example.com", type=ObservableType.FQDN)
 
     mock_resp = {
         "items": [],
@@ -592,7 +590,7 @@ def test_analyze_timeout_parameter(mock_sleep, secrets_with_credentials):
     url = "https://www.googleapis.com/customsearch/v1"
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(observable, ObservableType.FQDN)
+    result = engine.analyze(observable)
 
     assert result is not None
     # Verify the request was made with timeout

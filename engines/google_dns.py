@@ -4,7 +4,7 @@ from typing import Any
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -95,12 +95,10 @@ class GoogleDNSEngine(BaseEngine):
             logger.error("Error querying SPF for '%s': %s", domain, e, exc_info=True)
             return None
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         try:
-            if observable_type in ObservableType.IPV4 | ObservableType.IPV6:
-                reverse_name: str = f"{observable_value}.in-addr.arpa"
+            if observable.type in ObservableType.IPV4 | ObservableType.IPV6:
+                reverse_name: str = f"{observable.value}.in-addr.arpa"
                 url = "https://dns.google/resolve"
                 params: dict[str, str] = {"name": reverse_name, "type": "PTR"}
                 response = requests.get(
@@ -119,7 +117,7 @@ class GoogleDNSEngine(BaseEngine):
                     )
                 return data
 
-            domain = self._extract_domain(observable_value)
+            domain = self._extract_domain(observable.value)
             all_records = []
 
             # Query all standard records
@@ -153,7 +151,7 @@ class GoogleDNSEngine(BaseEngine):
 
         except Exception as e:
             logger.error(
-                "Error querying Google DNS for '%s': %s", observable_value, e, exc_info=True
+                "Error querying Google DNS for '%s': %s", observable.value, e, exc_info=True
             )
             return None
 

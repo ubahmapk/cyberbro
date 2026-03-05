@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -19,27 +19,26 @@ class HudsonRockEngine(BaseEngine):
     def supported_types(self) -> ObservableType:
         return ObservableType.EMAIL | ObservableType.FQDN | ObservableType.URL
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         try:
-            if observable_type is ObservableType.URL:
+            if observable.type is ObservableType.URL:
                 # Candidate for FQDN from URL private method
-                parsed_url = urlparse(observable_value)
-                observable = parsed_url.netloc
-                observable_type = ObservableType.FQDN
+                parsed_url = urlparse(observable.value)
+                lookup_value: str = parsed_url.netloc
+                lookup_type = ObservableType.FQDN
             else:
-                observable = observable_value
+                lookup_value = observable.value
+                lookup_type = observable.type
 
-            match observable_type:
+            match lookup_type:
                 case ObservableType.EMAIL:
                     url_path = "search-by-email"
-                    params = {"email": observable}
+                    params = {"email": lookup_value}
                 case ObservableType.FQDN:
                     url_path = "search-by-domain"
-                    params = {"domain": observable}
+                    params = {"domain": lookup_value}
                 case _:
-                    logger.error("Unsupported observable type: %s", observable_type)
+                    logger.error("Unsupported observable type: %s", lookup_type)
                     return None
 
             url: str = f"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/{url_path}"
@@ -50,7 +49,7 @@ class HudsonRockEngine(BaseEngine):
             data = response.json()
 
             # Clean up output as in the original logic
-            if observable_type is ObservableType.FQDN:
+            if lookup_type is ObservableType.FQDN:
                 for section in ["data", "stats"]:
                     if section in data:
                         for key in ["all_urls", "clients_urls", "employees_urls"]:
@@ -60,16 +59,11 @@ class HudsonRockEngine(BaseEngine):
                                     for entry in data[section][key]
                                     if "url" not in entry or "••" not in entry["url"]
                                 ]
-                    # REFACTOR NOTE: Line 55 accesses data[section] without checking if
-                    # section is in data. While line 45 checks `if section in data`, the
-                    # logic below (lines 53-58) executes outside that block. This can cause
-                    # KeyError if only "data" is present but not "stats" (or vice versa).
-                    # Should restructure to ensure section exists before accessing.
-                    if section == "stats":
+                    if section == "stats" and section in data:
                         for key in ["clients_urls", "employees_urls"]:
                             if key in data[section]:
                                 data[section][key] = [
-                                    url for url in data[section][key] if "••" not in url
+                                    u for u in data[section][key] if "••" not in u
                                 ]
                     if "thirdPartyDomains" in data:
                         data["thirdPartyDomains"] = [
@@ -83,7 +77,7 @@ class HudsonRockEngine(BaseEngine):
 
         except Exception as e:
             logger.error(
-                "Error while querying Hudson Rock for '%s': %s", observable_value, e, exc_info=True
+                "Error while querying Hudson Rock for '%s': %s", observable.value, e, exc_info=True
             )
             return None
 

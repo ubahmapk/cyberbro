@@ -5,7 +5,7 @@ from typing import Any
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -28,14 +28,12 @@ class DFIRIrisEngine(BaseEngine):
             | ObservableType.URL
         )
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         dfir_iris_api_key = self.secrets.dfir_iris_api_key
         dfir_iris_url = self.secrets.dfir_iris_url
 
         # Use selective wildcards to match ioc
-        match observable_type:
+        match observable.type:
             case (
                 ObservableType.IPV4
                 | ObservableType.IPV6
@@ -44,11 +42,11 @@ class DFIRIrisEngine(BaseEngine):
                 | ObservableType.SHA256
                 | ObservableType.BOGON
             ):
-                body = {"search_value": f"%{observable_value}", "search_type": "ioc"}
+                body = {"search_value": f"%{observable.value}", "search_type": "ioc"}
             case ObservableType.FQDN | ObservableType.URL:
-                body = {"search_value": f"{observable_value}%", "search_type": "ioc"}
+                body = {"search_value": f"{observable.value}%", "search_type": "ioc"}
             case _:
-                body = {"search_value": f"{observable_value}", "search_type": "ioc"}
+                body = {"search_value": f"{observable.value}", "search_type": "ioc"}
 
         try:
             url = f"{dfir_iris_url}/search"
@@ -85,7 +83,7 @@ class DFIRIrisEngine(BaseEngine):
 
         except Exception as e:
             logger.error(
-                "Error querying DFIR-IRIS for '%s': %s", observable_value, e, exc_info=True
+                "Error querying DFIR-IRIS for '%s': %s", observable.value, e, exc_info=True
             )
             return None
 

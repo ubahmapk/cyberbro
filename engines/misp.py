@@ -6,7 +6,7 @@ from urllib.parse import quote
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +40,7 @@ class MISPEngine(BaseEngine):
         }
         return mapping.get(observable_type, "")
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         api_key: str = self.secrets.misp_api_key
         misp_url: str = self.secrets.misp_url
 
@@ -59,12 +57,12 @@ class MISPEngine(BaseEngine):
                 "Content-Type": "application/json",
             }
 
-            misp_type = self._map_observable_type(observable_type)
+            misp_type = self._map_observable_type(observable.type)
             if not misp_type:
-                logger.error("Unsupported observable type for MISP: %s", observable_type)
+                logger.error("Unsupported observable type for MISP: %s", observable.type)
                 return None
 
-            payload = {"returnFormat": "json", "value": observable_value, "type": misp_type}
+            payload = {"returnFormat": "json", "value": observable.value, "type": misp_type}
 
             response = requests.post(
                 url,
@@ -118,7 +116,7 @@ class MISPEngine(BaseEngine):
                 event_data.sort(key=lambda x: x["timestamp"], reverse=True)
                 event_data = event_data[:5]  # Keep only 5 most recent events
 
-            link = f"{misp_url}/attributes/index?value={quote(observable_value)}"
+            link = f"{misp_url}/attributes/index?value={quote(observable.value)}"
 
             if first_seen:
                 first_seen = datetime.fromtimestamp(int(first_seen), tz=timezone.utc).strftime(
@@ -138,7 +136,7 @@ class MISPEngine(BaseEngine):
             }
 
         except Exception as e:
-            logger.error("Error querying MISP for '%s': %s", observable_value, e, exc_info=True)
+            logger.error("Error querying MISP for '%s': %s", observable.value, e, exc_info=True)
             return None
 
     def create_export_row(self, analysis_result: Any) -> dict:

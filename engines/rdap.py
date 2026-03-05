@@ -5,7 +5,7 @@ import requests
 import tldextract
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -33,14 +33,12 @@ class RDAPEngine(BaseEngine):
                 return item[3]
         return ""
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         try:
-            if observable_type is ObservableType.URL:
-                domain_part = observable_value.split("/")[2].split(":")[0]
-            elif observable_type is ObservableType.FQDN:
-                domain_part = observable_value
+            if observable.type is ObservableType.URL:
+                domain_part = observable.value.split("/")[2].split(":")[0]
+            elif observable.type is ObservableType.FQDN:
+                domain_part = observable.value
             else:
                 return None
 
@@ -131,7 +129,7 @@ class RDAPEngine(BaseEngine):
             return result
 
         except Exception as e:
-            logger.error("Error querying RDAP for '%s': %s", observable_value, e, exc_info=True)
+            logger.error("Error querying RDAP for '%s': %s", observable.value, e, exc_info=True)
             return None
 
     def create_export_row(self, analysis_result: Any) -> dict:
