@@ -48,6 +48,8 @@ class Secrets:
     shodan: str = ""
     spur_us: str = ""
     threatfox: str = ""
+    flask_debug: bool = False
+    flask_port: int = 5005
     ssl_verify: bool = True
     virustotal: str = ""
     webscout: str = ""
