@@ -47,6 +47,7 @@ services:
       - SUPERVISORD_TIMEOUT=${SUPERVISORD_TIMEOUT:-}
       - API_PREFIX=${API_PREFIX:-}
       - MAX_FORM_MEMORY_SIZE=${MAX_FORM_MEMORY_SIZE:-}
+      - DISABLE_VERSION_CHECK=${DISABLE_VERSION_CHECK:-}
     restart: always
     volumes:
       - ./data:/app/data
