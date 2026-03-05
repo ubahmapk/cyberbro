@@ -263,7 +263,7 @@ function formatResults(data) {
         if (result.hudsonrock) {
             plainText += `Hudson Rock:\n`;
 
-            if (result.type === "Email" && result.hudsonrock.stealers) {
+            if (result.type === "EMAIL" && result.hudsonrock.stealers) {
                 plainText += `Compromised Computer Details:\n`;
                 result.hudsonrock.stealers.forEach(stealer => {
                     if (stealer.computer_name) plainText += `Computer Name: ${stealer.computer_name}\n`;

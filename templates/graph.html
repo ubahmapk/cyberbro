@@ -709,7 +709,7 @@
                 edges.push({ from: obs, to: vtNodeLabel, label: vtEdgeLabel });
             }
 
-            if (entry.type === "Email" && entry.hudsonrock?.stealers) {
+            if (entry.type === "EMAIL" && entry.hudsonrock?.stealers) {
                 entry.hudsonrock.stealers.forEach((stealer) => {
                     if (stealer.computer_name) {
                         addNode(stealer.computer_name, stealer.computer_name, "compromised_computer");
@@ -1046,7 +1046,7 @@
                 edges.push({ from: obs, to: extensionName, label: "Extension Name" });
             }
 
-            if (entry.type == "Email") {
+            if (entry.type == "EMAIL") {
                 const email = entry.observable;
                 const domain = email.split("@")[1]; // Extract the domain name from the email address
                 if (domain) {
