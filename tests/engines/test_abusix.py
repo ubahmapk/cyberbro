@@ -2,9 +2,9 @@ import logging
 from unittest.mock import patch
 
 import pytest
-from models.observable import ObservableType
 
 from engines.abusix import AbusixEngine
+from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
 logger = logging.getLogger(__name__)
@@ -17,12 +17,12 @@ def secrets_with_config():
 
 @pytest.fixture
 def ipv4_observable():
-    return "1.1.1.1"
+    return Observable(value="1.1.1.1", type=ObservableType.IPV4)
 
 
 @pytest.fixture
 def ipv6_observable():
-    return "2001:4860:4860::8888"
+    return Observable(value="2001:4860:4860::8888", type=ObservableType.IPV6)
 
 
 # High Priority Tests: Credentials/Auth Error Handling
@@ -35,10 +35,10 @@ def test_analyze_auth_error(mock_contact_finder, secrets_with_config, ipv4_obser
     mock_instance = mock_contact_finder.return_value
     mock_instance.find.side_effect = Exception("Invalid API credentials")
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
-    mock_instance.find.assert_called_once_with(ipv4_observable)
+    mock_instance.find.assert_called_once_with(ipv4_observable.value)
 
 
 @patch("querycontacts.ContactFinder")
@@ -48,35 +48,36 @@ def test_analyze_exception_generic(mock_contact_finder, secrets_with_config, ipv
     mock_instance = mock_contact_finder.return_value
     mock_instance.find.side_effect = Exception("Connection timeout")
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
-    mock_instance.find.assert_called_once_with(ipv4_observable)
+    mock_instance.find.assert_called_once_with(ipv4_observable.value)
 
 
 # Medium Priority Tests: Critical Paths
 
 
 @pytest.mark.parametrize(
-    "observable_value,observable_type,expected_email",
+    "observable,expected_email",
     [
-        ("1.1.1.1", ObservableType.IPV4, "abuse@example.com"),
-        ("2001:4860:4860::8888", ObservableType.IPV6, "abuse-ipv6@example.com"),
+        (Observable(value="1.1.1.1", type=ObservableType.IPV4), "abuse@example.com"),
+        (
+            Observable(value="2001:4860:4860::8888", type=ObservableType.IPV6),
+            "abuse-ipv6@example.com",
+        ),
     ],
 )
 @patch("querycontacts.ContactFinder")
-def test_analyze_success(
-    mock_contact_finder, secrets_with_config, observable_value, observable_type, expected_email
-):
+def test_analyze_success(mock_contact_finder, secrets_with_config, observable, expected_email):
     """Test successful analysis of IPv4 and IPv6 addresses."""
     engine = AbusixEngine(secrets_with_config, proxies={}, ssl_verify=True)
     mock_instance = mock_contact_finder.return_value
     mock_instance.find.return_value = [expected_email]
 
-    result = engine.analyze(observable_value, observable_type)
+    result = engine.analyze(observable)
 
     assert result == {"abuse": expected_email}
-    mock_instance.find.assert_called_once_with(observable_value)
+    mock_instance.find.assert_called_once_with(observable.value)
 
 
 @patch("querycontacts.ContactFinder")
@@ -86,10 +87,10 @@ def test_analyze_empty_results(mock_contact_finder, secrets_with_config, ipv4_ob
     mock_instance = mock_contact_finder.return_value
     mock_instance.find.return_value = []
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
-    mock_instance.find.assert_called_once_with(ipv4_observable)
+    mock_instance.find.assert_called_once_with(ipv4_observable.value)
 
 
 @patch("querycontacts.ContactFinder")
@@ -104,10 +105,10 @@ def test_analyze_multiple_results_uses_first(
         "abuse2@example.com",
     ]
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result == {"abuse": "abuse1@example.com"}
-    mock_instance.find.assert_called_once_with(ipv4_observable)
+    mock_instance.find.assert_called_once_with(ipv4_observable.value)
 
 
 # Low Priority Tests: Edge Cases and Properties
