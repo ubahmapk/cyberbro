@@ -4,7 +4,7 @@ import socket
 
 import tldextract
 
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 # Set of valid TLDs that can lead to false positives
 # Edit this list to add more invalid TLDs or in case of false positives
@@ -98,7 +98,7 @@ INVALID_TLD: set[str] = {
 }
 
 
-def identify_observable_type(observable) -> ObservableType | str:
+def identify_observable_type(observable) -> ObservableType:
     """testing the observable against a set of patterns to identify its type"""
     patterns = {
         ObservableType.IPV4: r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$",
@@ -116,12 +116,13 @@ def identify_observable_type(observable) -> ObservableType | str:
         if re.match(pattern, observable):
             return type_name
     # Raise an error ? or add an ObservableType of "UNKNOWN"?
-    return "Unknown"
+    raise ValueError(f"Unknown observable type: {observable}")
+    # return "Unknown"
 
 
-def extract_observables(text):
+def extract_observables(text: str) -> list[Observable]:
     """Extract observables from text, focusing on full URLs with http or https."""
-    patterns = {
+    patterns: dict[ObservableType, str] = {
         ObservableType.IPV4: r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b",
         ObservableType.MD5: r"\b[a-fA-F0-9]{32}\b",
         ObservableType.SHA1: r"\b[a-fA-F0-9]{40}\b",
@@ -134,7 +135,7 @@ def extract_observables(text):
         ObservableType.CHROME_EXTENSION: r"\b[a-z]{32}\b",
     }
 
-    results: list[dict[str, ObservableType]] = []
+    results: list[Observable] = []
     seen = set()
 
     # Extract URLs first to prevent FQDN overlap
@@ -149,7 +150,7 @@ def extract_observables(text):
                 continue
             if match not in seen:
                 seen.add(match)
-                results.append({"value": match, "type": type_name})
+                results.append(Observable(value=match, type=type_name))
 
     # IPv6 regex pattern provided by https://stackoverflow.com/a/17871737
     # (David M. Syzdek and Benjamin Loison)
@@ -183,14 +184,14 @@ def extract_observables(text):
     for ipv6 in ipv6_addresses:
         if ipv6 not in seen:
             seen.add(ipv6)
-            results.append({"value": ipv6, "type": ObservableType.IPV6})
+            results.append(Observable(value=ipv6, type=ObservableType.IPV6))
 
     # filter invalid TLDs using tldextract and the list of invalid TLDs
-    filtered_results = []
+    filtered_results: list[Observable] = []
     for result in results:
-        if result["type"] is ObservableType.FQDN:
-            tld = result["value"].split(".")[-1]
-            extracted = tldextract.extract(result["value"])
+        if result.type is ObservableType.FQDN:
+            tld = result.value.split(".")[-1]
+            extracted = tldextract.extract(result.value)
             if tld in INVALID_TLD or not extracted.suffix:
                 continue
         filtered_results.append(result)
@@ -198,7 +199,7 @@ def extract_observables(text):
     return filtered_results
 
 
-def is_really_ipv6(value):
+def is_really_ipv6(value) -> bool:
     try:
         socket.inet_pton(socket.AF_INET6, value)
         return True
@@ -206,5 +207,5 @@ def is_really_ipv6(value):
         return False
 
 
-def is_bogon(ip):
+def is_bogon(ip) -> bool:
     return ipaddress.ip_address(ip).is_private
