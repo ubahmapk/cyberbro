@@ -6,7 +6,7 @@ import requests
 import responses
 
 from engines.virustotal import VirusTotalEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
 logger = logging.getLogger(__name__)
@@ -40,37 +40,40 @@ def secrets_with_whitespace_key():
 
 @pytest.fixture
 def ipv4_observable():
-    return "1.1.1.1"
+    return Observable(value="1.1.1.1", type=ObservableType.IPV4)
 
 
 @pytest.fixture
 def ipv6_observable():
-    return "2001:4860:4860::8888"
+    return Observable(value="2001:4860:4860::8888", type=ObservableType.IPV6)
 
 
 @pytest.fixture
 def fqdn_observable():
-    return "example.com"
+    return Observable(value="example.com", type=ObservableType.FQDN)
 
 
 @pytest.fixture
 def url_observable():
-    return "https://example.com/path?query=value"
+    return Observable(value="https://example.com/path?query=value", type=ObservableType.URL)
 
 
 @pytest.fixture
 def md5_observable():
-    return "5d41402abc4b2a76b9719d911017c592"
+    return Observable(value="5d41402abc4b2a76b9719d911017c592", type=ObservableType.MD5)
 
 
 @pytest.fixture
 def sha1_observable():
-    return "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    return Observable(value="aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d", type=ObservableType.SHA1)
 
 
 @pytest.fixture
 def sha256_observable():
-    return "2c26b46911185131006d3e59674e0e21bbe0f1f1a4bfbb4fb4b4c1b5f5d5c5c5c"
+    return Observable(
+        value="2c26b46911185131006d3e59674e0e21bbe0f1f1a4bfbb4fb4b4c1b5f5d5c5c5c",
+        type=ObservableType.SHA256,
+    )
 
 
 @pytest.fixture
@@ -104,7 +107,7 @@ def full_analysis_result():
 def test_analyze_with_valid_key_success(secrets_with_valid_key, ipv4_observable):
     """Test successful API response with valid credential."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {
         "data": {
@@ -116,7 +119,7 @@ def test_analyze_with_valid_key_success(secrets_with_valid_key, ipv4_observable)
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["detection_ratio"] == "3/50"
@@ -159,7 +162,7 @@ def test_analyze_correct_url_endpoint_per_observable_type(
     }
     responses.add(responses.GET, expected_url, json=mock_resp, status=200)
 
-    result = engine.analyze(observable_value, observable_type)
+    result = engine.analyze(Observable(value=observable_value, type=observable_type))
 
     assert result is not None
     assert expected_link_contains in result["link"]
@@ -173,7 +176,7 @@ def test_analyze_url_type_base64_encoding(secrets_with_valid_key, url_observable
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
 
     # Calculate expected encoded value
-    expected_encoded = base64.urlsafe_b64encode(url_observable.encode()).decode().strip("=")
+    expected_encoded = base64.urlsafe_b64encode(url_observable.value.encode()).decode().strip("=")
     expected_url = f"https://www.virustotal.com/api/v3/urls/{expected_encoded}"
 
     mock_resp = {
@@ -186,7 +189,7 @@ def test_analyze_url_type_base64_encoding(secrets_with_valid_key, url_observable
     }
     responses.add(responses.GET, expected_url, json=mock_resp, status=200)
 
-    result = engine.analyze(url_observable, ObservableType.URL)
+    result = engine.analyze(url_observable)
 
     assert result is not None
     assert len(responses.calls) == 1
@@ -214,7 +217,7 @@ def test_analyze_url_type_padding_stripped(secrets_with_valid_key):
     }
     responses.add(responses.GET, expected_url, json=mock_resp, status=200)
 
-    result = engine.analyze(test_url, ObservableType.URL)
+    result = engine.analyze(Observable(value=test_url, type=ObservableType.URL))
 
     assert result is not None
     # Verify padding was stripped (encoded string ends without =)
@@ -243,7 +246,7 @@ def test_analyze_url_type_special_characters(secrets_with_valid_key):
     }
     responses.add(responses.GET, expected_url, json=mock_resp, status=200)
 
-    result = engine.analyze(special_url, ObservableType.URL)
+    result = engine.analyze(Observable(value=special_url, type=ObservableType.URL))
 
     assert result is not None
 
@@ -252,7 +255,7 @@ def test_analyze_url_type_special_characters(secrets_with_valid_key):
 def test_analyze_success_complete_response(secrets_with_valid_key, ipv4_observable):
     """Test successful API response with all fields present."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {
         "data": {
@@ -270,7 +273,7 @@ def test_analyze_success_complete_response(secrets_with_valid_key, ipv4_observab
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     # Total should be sum of all stats: 5+2+45+18+2 = 72
@@ -283,7 +286,7 @@ def test_analyze_success_complete_response(secrets_with_valid_key, ipv4_observab
 def test_analyze_minimal_response_empty_stats(secrets_with_valid_key, ipv4_observable):
     """Test response with empty stats dict."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {
         "data": {
@@ -295,7 +298,7 @@ def test_analyze_minimal_response_empty_stats(secrets_with_valid_key, ipv4_obser
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["detection_ratio"] == "0/0"
@@ -306,7 +309,7 @@ def test_analyze_minimal_response_empty_stats(secrets_with_valid_key, ipv4_obser
 def test_analyze_missing_stats_defaults_to_empty(secrets_with_valid_key, ipv4_observable):
     """Test response with missing last_analysis_stats key."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {
         "data": {
@@ -317,7 +320,7 @@ def test_analyze_missing_stats_defaults_to_empty(secrets_with_valid_key, ipv4_ob
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["detection_ratio"] == "0/0"
@@ -329,7 +332,7 @@ def test_analyze_missing_stats_defaults_to_empty(secrets_with_valid_key, ipv4_ob
 def test_analyze_missing_reputation_defaults_to_zero(secrets_with_valid_key, ipv4_observable):
     """Test response with missing reputation field."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {
         "data": {
@@ -340,7 +343,7 @@ def test_analyze_missing_reputation_defaults_to_zero(secrets_with_valid_key, ipv
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["community_score"] == 0
@@ -350,7 +353,7 @@ def test_analyze_missing_reputation_defaults_to_zero(secrets_with_valid_key, ipv
 def test_analyze_detection_ratio_format(secrets_with_valid_key, ipv4_observable):
     """Test that detection_ratio is formatted as malicious/total string."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {
         "data": {
@@ -366,7 +369,7 @@ def test_analyze_detection_ratio_format(secrets_with_valid_key, ipv4_observable)
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["detection_ratio"] == "10/50"
@@ -389,12 +392,12 @@ def test_analyze_http_error_codes_return_none(
     TODO (Bug #3): Broad exception catching doesn't distinguish error types.
     """
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     responses.add(responses.GET, url, json={"error": "error"}, status=status_code)
     caplog.set_level(logging.ERROR)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
     assert "Error querying VirusTotal" in caplog.text
@@ -404,12 +407,12 @@ def test_analyze_http_error_codes_return_none(
 def test_analyze_timeout_returns_none(secrets_with_valid_key, ipv4_observable, caplog):
     """Test handling of request timeout."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     responses.add(responses.GET, url, body=requests.Timeout("Connection timed out"))
     caplog.set_level(logging.ERROR)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
     assert "Error querying VirusTotal" in caplog.text
@@ -419,12 +422,12 @@ def test_analyze_timeout_returns_none(secrets_with_valid_key, ipv4_observable, c
 def test_analyze_connection_error_returns_none(secrets_with_valid_key, ipv4_observable, caplog):
     """Test handling of connection error."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     responses.add(responses.GET, url, body=requests.ConnectionError("Connection failed"))
     caplog.set_level(logging.ERROR)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
     assert "Error querying VirusTotal" in caplog.text
@@ -434,12 +437,12 @@ def test_analyze_connection_error_returns_none(secrets_with_valid_key, ipv4_obse
 def test_analyze_json_parse_error_returns_none(secrets_with_valid_key, ipv4_observable, caplog):
     """Test handling of invalid JSON response."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     responses.add(responses.GET, url, body="Invalid JSON {{{", status=200)
     caplog.set_level(logging.ERROR)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
     assert "Error querying VirusTotal" in caplog.text
@@ -449,12 +452,12 @@ def test_analyze_json_parse_error_returns_none(secrets_with_valid_key, ipv4_obse
 def test_analyze_missing_data_key_returns_none(secrets_with_valid_key, ipv4_observable):
     """Test response without 'data' key returns None."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {"error": "something went wrong"}
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
 
@@ -463,12 +466,12 @@ def test_analyze_missing_data_key_returns_none(secrets_with_valid_key, ipv4_obse
 def test_analyze_missing_attributes_key_returns_none(secrets_with_valid_key, ipv4_observable):
     """Test response with data but no 'attributes' key returns None."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {"data": {"type": "ip_address"}}
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
 
@@ -477,12 +480,12 @@ def test_analyze_missing_attributes_key_returns_none(secrets_with_valid_key, ipv
 def test_analyze_invalid_data_structure_not_dict(secrets_with_valid_key, ipv4_observable):
     """Test response where data is not a dict."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {"data": "invalid"}
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
 
@@ -491,12 +494,12 @@ def test_analyze_invalid_data_structure_not_dict(secrets_with_valid_key, ipv4_ob
 def test_analyze_attributes_not_dict(secrets_with_valid_key, ipv4_observable):
     """Test response where attributes is not a dict."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {"data": {"attributes": "invalid"}}
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
 
@@ -508,7 +511,7 @@ def test_analyze_stats_not_dict(secrets_with_valid_key, ipv4_observable):
     TODO (Bug #4): Stats calculation assumes integer values, no type validation.
     """
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {
         "data": {
@@ -520,7 +523,7 @@ def test_analyze_stats_not_dict(secrets_with_valid_key, ipv4_observable):
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     # Will raise an error when trying to sum non-integer values
     assert result is None
@@ -619,7 +622,7 @@ def test_analyze_with_proxies(secrets_with_valid_key, ipv4_observable):
     """Test that proxies are correctly passed to requests."""
     proxies = {"http": "http://proxy.example.com:8080"}
     engine = VirusTotalEngine(secrets_with_valid_key, proxies=proxies, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {
         "data": {
@@ -631,7 +634,7 @@ def test_analyze_with_proxies(secrets_with_valid_key, ipv4_observable):
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
 
@@ -640,7 +643,7 @@ def test_analyze_with_proxies(secrets_with_valid_key, ipv4_observable):
 def test_analyze_with_ssl_verify_false(secrets_with_valid_key, ipv4_observable):
     """Test that SSL verification can be disabled."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=False)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {
         "data": {
@@ -652,7 +655,7 @@ def test_analyze_with_ssl_verify_false(secrets_with_valid_key, ipv4_observable):
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
 
@@ -661,7 +664,7 @@ def test_analyze_with_ssl_verify_false(secrets_with_valid_key, ipv4_observable):
 def test_analyze_timeout_parameter(secrets_with_valid_key, ipv4_observable):
     """Test that request timeout is set to 5 seconds."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {
         "data": {
@@ -673,7 +676,7 @@ def test_analyze_timeout_parameter(secrets_with_valid_key, ipv4_observable):
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     # Verify timeout parameter is in the request call
@@ -684,7 +687,7 @@ def test_analyze_timeout_parameter(secrets_with_valid_key, ipv4_observable):
 def test_analyze_export_workflow_ipv4(secrets_with_valid_key, ipv4_observable):
     """Test complete workflow: analyze IPv4 -> export."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {
         "data": {
@@ -696,7 +699,7 @@ def test_analyze_export_workflow_ipv4(secrets_with_valid_key, ipv4_observable):
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    analysis = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    analysis = engine.analyze(ipv4_observable)
     export = engine.create_export_row(analysis)
 
     assert export["vt_detect"] == "2/50"
@@ -709,7 +712,7 @@ def test_analyze_export_workflow_url(secrets_with_valid_key, url_observable):
     """Test complete workflow: analyze URL -> export."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
 
-    encoded = base64.urlsafe_b64encode(url_observable.encode()).decode().strip("=")
+    encoded = base64.urlsafe_b64encode(url_observable.value.encode()).decode().strip("=")
     url = f"https://www.virustotal.com/api/v3/urls/{encoded}"
 
     mock_resp = {
@@ -722,7 +725,7 @@ def test_analyze_export_workflow_url(secrets_with_valid_key, url_observable):
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    analysis = engine.analyze(url_observable, ObservableType.URL)
+    analysis = engine.analyze(url_observable)
     export = engine.create_export_row(analysis)
 
     assert export["vt_detect"] == "1/50"
@@ -765,8 +768,8 @@ def test_analyze_multiple_types_same_engine_instance(secrets_with_valid_key):
         status=200,
     )
 
-    result_ipv4 = engine.analyze(ipv4, ObservableType.IPV4)
-    result_domain = engine.analyze(domain, ObservableType.FQDN)
+    result_ipv4 = engine.analyze(Observable(value=ipv4, type=ObservableType.IPV4))
+    result_domain = engine.analyze(Observable(value=domain, type=ObservableType.FQDN))
 
     assert result_ipv4 is not None
     assert result_domain is not None
@@ -778,7 +781,7 @@ def test_analyze_multiple_types_same_engine_instance(secrets_with_valid_key):
 def test_analyze_stats_with_multiple_detection_vendors(secrets_with_valid_key, ipv4_observable):
     """Test complex stats aggregation with multiple vendor detection statuses."""
     engine = VirusTotalEngine(secrets_with_valid_key, proxies={}, ssl_verify=True)
-    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable}"
+    url = f"https://www.virustotal.com/api/v3/ip_addresses/{ipv4_observable.value}"
 
     mock_resp = {
         "data": {
@@ -798,7 +801,7 @@ def test_analyze_stats_with_multiple_detection_vendors(secrets_with_valid_key, i
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     # Total should be sum of all: 15+8+40+5+2+1+1 = 72
     assert result is not None
@@ -827,7 +830,7 @@ def test_analyze_very_long_url_observable(secrets_with_valid_key):
     }
     responses.add(responses.GET, expected_url, json=mock_resp, status=200)
 
-    result = engine.analyze(long_url, ObservableType.URL)
+    result = engine.analyze(Observable(value=long_url, type=ObservableType.URL))
 
     assert result is not None
 
@@ -854,7 +857,7 @@ def test_analyze_unicode_characters_in_domain(secrets_with_valid_key):
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(unicode_domain, ObservableType.FQDN)
+    result = engine.analyze(Observable(value=unicode_domain, type=ObservableType.FQDN))
 
     assert result is not None
 
@@ -869,7 +872,7 @@ def test_analyze_empty_string_observable(secrets_with_valid_key):
 
     responses.add(responses.GET, url, json={"error": "Invalid input"}, status=400)
 
-    result = engine.analyze(empty_value, ObservableType.IPV4)
+    result = engine.analyze(Observable(value=empty_value, type=ObservableType.IPV4))
 
     assert result is None
 
@@ -902,7 +905,7 @@ def test_analyze_hash_observables_all_types(secrets_with_valid_key):
 
     results = []
     for hash_type, hash_value in hashes:
-        result = engine.analyze(hash_value, hash_type)
+        result = engine.analyze(Observable(value=hash_value, type=hash_type))
         results.append(result)
 
     # All should succeed

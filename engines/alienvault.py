@@ -7,7 +7,7 @@ from pydantic import ValidationError
 
 from models.alienvault_datamodel import OTXReport, Pulse
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 from utils.config import QueryError
 
 logger = logging.getLogger(__name__)
@@ -30,9 +30,7 @@ class AlienVaultEngine(BaseEngine):
             | ObservableType.URL
         )
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         """
         Queries the OTX AlienVault API for information about a given observable.
         Reuses the original maintainer's logic for querying and parsing.
@@ -43,7 +41,7 @@ class AlienVaultEngine(BaseEngine):
             return None
 
         # Prepare the dictionary expected by the original helper functions
-        observable_dict = {"value": observable_value, "type": observable_type}
+        observable_dict = {"value": observable.value, "type": observable.type}
 
         try:
             # Reuse the existing query logic

@@ -4,7 +4,7 @@ from typing import Any
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -87,11 +87,9 @@ class RostiEngine(BaseEngine):
             | ObservableType.SHA256
         )
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         return query_rosti(
-            observable_value, self.secrets.rosti_api_key, self.proxies, self.ssl_verify
+            observable.value, self.secrets.rosti_api_key, self.proxies, self.ssl_verify
         )
 
     def create_export_row(self, analysis_result: Any) -> dict:

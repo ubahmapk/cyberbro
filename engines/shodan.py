@@ -5,7 +5,7 @@ import requests
 from requests.exceptions import HTTPError, JSONDecodeError
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +23,10 @@ class ShodanEngine(BaseEngine):
     def execute_after_reverse_dns(self):
         return True
 
-    def analyze(self, observable_value: str, observable_type: ObservableType) -> dict | None:
+    def analyze(self, observable: Observable) -> dict | None:
         headers = {"Accept": "application/json"}
         params = {"key": self.secrets.shodan}
-        url = f"https://api.shodan.io/shodan/host/{observable_value}"
+        url = f"https://api.shodan.io/shodan/host/{observable.value}"
 
         try:
             response = requests.get(
@@ -45,7 +45,7 @@ class ShodanEngine(BaseEngine):
             return {
                 "ports": data.get("ports", []),
                 "tags": data.get("tags", []),
-                "link": f"https://www.shodan.io/host/{observable_value}",
+                "link": f"https://www.shodan.io/host/{observable.value}",
             }
         except (HTTPError, JSONDecodeError, Exception) as e:
             logger.error(f"Error querying Shodan: {e}")

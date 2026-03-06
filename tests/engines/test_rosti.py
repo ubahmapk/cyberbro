@@ -5,7 +5,7 @@ import requests
 import responses
 
 from engines.rosti import RostiEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
 logger = logging.getLogger(__name__)
@@ -35,49 +35,49 @@ def secrets_without_key():
 @pytest.fixture
 def ipv4_observable():
     """IPv4 address for testing."""
-    return "192.168.1.1"
+    return Observable(value="192.168.1.1", type=ObservableType.IPV4)
 
 
 @pytest.fixture
 def ipv6_observable():
     """IPv6 address for testing."""
-    return "2001:db8::1"
+    return Observable(value="2001:db8::1", type=ObservableType.IPV6)
 
 
 @pytest.fixture
 def fqdn_observable():
     """FQDN for testing."""
-    return "example.com"
+    return Observable(value="example.com", type=ObservableType.FQDN)
 
 
 @pytest.fixture
 def url_observable():
     """URL for testing."""
-    return "https://example.com/path"
+    return Observable(value="https://example.com/path", type=ObservableType.URL)
 
 
 @pytest.fixture
 def email_observable():
     """Email address for testing."""
-    return "test@example.com"
+    return Observable(value="test@example.com", type=ObservableType.EMAIL)
 
 
 @pytest.fixture
 def md5_observable():
     """MD5 hash for testing."""
-    return "5d41402abc4b2a76b9719d911017c592"
+    return Observable(value="5d41402abc4b2a76b9719d911017c592", type=ObservableType.MD5)
 
 
 @pytest.fixture
 def sha1_observable():
     """SHA1 hash for testing."""
-    return "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
+    return Observable(value="aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d", type=ObservableType.SHA1)
 
 
 @pytest.fixture
 def sha256_observable():
     """SHA256 hash for testing."""
-    return "2c26b46911185131006745196ee8cbf7d0ec70a2"
+    return Observable(value="2c26b46911185131006745196ee8cbf7d0ec70a2", type=ObservableType.SHA256)
 
 
 # ============================================================================
@@ -88,7 +88,7 @@ def sha256_observable():
 def test_analyze_missing_api_key(secrets_without_key, ipv4_observable):
     """Test that analyze returns None when API key is not configured."""
     engine = RostiEngine(secrets_without_key, proxies={}, ssl_verify=True)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
     assert result is None
 
 
@@ -118,7 +118,7 @@ def test_analyze_success_complete(secrets_with_key, ipv4_observable):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["count"] == 1
@@ -140,7 +140,7 @@ def test_analyze_http_error_codes(secrets_with_key, ipv4_observable, status_code
     responses.add(responses.GET, url, json={"error": "error"}, status=status_code)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
     assert "Error querying Rösti" in caplog.text
@@ -155,7 +155,7 @@ def test_analyze_response_missing_data_key(secrets_with_key, ipv4_observable):
     mock_resp = {"error": "No data", "meta": {}}
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["count"] == 0
@@ -171,7 +171,7 @@ def test_analyze_invalid_json_response(secrets_with_key, ipv4_observable, caplog
     responses.add(responses.GET, url, body="invalid json{", status=200)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
     assert "Error querying Rösti" in caplog.text
@@ -213,7 +213,7 @@ def test_analyze_all_supported_types(
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(observable_value, observable_type)
+    result = engine.analyze(Observable(value=observable_value, type=observable_type))
 
     assert result is not None
     assert result["count"] == 1
@@ -228,12 +228,12 @@ def test_analyze_correct_api_headers_and_params(secrets_with_key, ipv4_observabl
 
     responses.add(responses.GET, url, json={"data": [], "meta": {}}, status=200)
 
-    engine.analyze(ipv4_observable, ObservableType.IPV4)
+    engine.analyze(ipv4_observable)
 
     assert len(responses.calls) == 1
     request = responses.calls[0].request
     assert request.headers["X-API-Key"] == "test_rosti_api_key_12345"
-    assert f"q={ipv4_observable}" in request.url
+    assert f"q={ipv4_observable.value}" in request.url
     assert "pattern=true" in request.url
 
 
@@ -252,7 +252,7 @@ def test_analyze_request_timeout(secrets_with_key, ipv4_observable, caplog):
     responses.add(responses.GET, url, body=timeout_error)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
     assert "Error querying Rösti" in caplog.text
@@ -268,7 +268,7 @@ def test_analyze_connection_error(secrets_with_key, ipv4_observable, caplog):
     responses.add(responses.GET, url, body=conn_error)
 
     caplog.set_level(logging.ERROR)
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is None
     assert "Error querying Rösti" in caplog.text
@@ -283,7 +283,7 @@ def test_analyze_empty_results(secrets_with_key, ipv4_observable):
     mock_resp = {"data": [], "meta": {"total": 0, "has_more": False}}
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["count"] == 0
@@ -309,7 +309,7 @@ def test_analyze_non_dict_items_in_results(secrets_with_key, ipv4_observable):
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["count"] == 1  # Only the valid dict is counted
@@ -329,7 +329,7 @@ def test_analyze_pagination_metadata(secrets_with_key, ipv4_observable):
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["total"] == 50
@@ -354,7 +354,7 @@ def test_analyze_report_link_generation(secrets_with_key, ipv4_observable):
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["results"][0]["link"] == "https://rosti.bin.re/reports/abc123def456"
@@ -372,7 +372,7 @@ def test_analyze_report_link_none_when_no_report_id(secrets_with_key, ipv4_obser
     }
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["results"][0]["link"] is None
@@ -543,7 +543,7 @@ def test_analyze_all_optional_fields_present(secrets_with_key, ipv4_observable):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     item = result["results"][0]
@@ -572,7 +572,7 @@ def test_analyze_minimal_result_fields(secrets_with_key, ipv4_observable):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     item = result["results"][0]
@@ -595,7 +595,7 @@ def test_analyze_meta_missing_total(secrets_with_key, ipv4_observable):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["total"] is None
@@ -615,7 +615,7 @@ def test_analyze_data_is_not_list(secrets_with_key, ipv4_observable):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["count"] == 0
@@ -641,7 +641,7 @@ def test_analyze_multiple_results_mixed_validity(secrets_with_key, ipv4_observab
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    result = engine.analyze(ipv4_observable, ObservableType.IPV4)
+    result = engine.analyze(ipv4_observable)
 
     assert result is not None
     assert result["count"] == 3  # Three valid dicts

@@ -5,7 +5,7 @@ from typing import Any
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -27,26 +27,26 @@ class VirusTotalEngine(BaseEngine):
             | ObservableType.URL
         )
 
-    def analyze(self, observable_value: str, observable_type: ObservableType) -> dict | None:
+    def analyze(self, observable: Observable) -> dict | None:
         headers = {"x-apikey": self.secrets.virustotal}
         # TODO: validate api_key before API call
 
-        match observable_type:
+        match observable.type:
             case ObservableType.IPV4 | ObservableType.IPV6:
-                url = f"https://www.virustotal.com/api/v3/ip_addresses/{observable_value}"
-                link = f"https://www.virustotal.com/gui/ip-address/{observable_value}/detection"
+                url = f"https://www.virustotal.com/api/v3/ip_addresses/{observable.value}"
+                link = f"https://www.virustotal.com/gui/ip-address/{observable.value}/detection"
             case ObservableType.FQDN:
-                url = f"https://www.virustotal.com/api/v3/domains/{observable_value}"
-                link = f"https://www.virustotal.com/gui/domain/{observable_value}/detection"
+                url = f"https://www.virustotal.com/api/v3/domains/{observable.value}"
+                link = f"https://www.virustotal.com/gui/domain/{observable.value}/detection"
             case ObservableType.URL:
                 encoded_url = (
-                    base64.urlsafe_b64encode(observable_value.encode()).decode().strip("=")
+                    base64.urlsafe_b64encode(observable.value.encode()).decode().strip("=")
                 )
                 url = f"https://www.virustotal.com/api/v3/urls/{encoded_url}"
                 link = f"https://www.virustotal.com/gui/url/{encoded_url}/detection"
             case _:
-                url = f"https://www.virustotal.com/api/v3/files/{observable_value}"
-                link = f"https://www.virustotal.com/gui/file/{observable_value}/detection"
+                url = f"https://www.virustotal.com/api/v3/files/{observable.value}"
+                link = f"https://www.virustotal.com/gui/file/{observable.value}/detection"
 
         try:
             response = requests.get(

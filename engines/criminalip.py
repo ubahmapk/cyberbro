@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, ValidationError, model_validator
 from requests.exceptions import HTTPError
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 from utils.config import Secrets, get_config
 
 logger = logging.getLogger(__name__)
@@ -175,7 +175,7 @@ class CriminalIPEngine(BaseEngine):
         # IP-only engine, runs after potential IP pivot
         return True
 
-    def analyze(self, observable_value: str, observable_type: ObservableType) -> dict | None:
+    def analyze(self, observable: Observable) -> dict | None:
         """Perform Criminal IP analysis using the preserved helper/models."""
 
         api_key: str = self.secrets.criminalip_api_key
@@ -185,7 +185,7 @@ class CriminalIPEngine(BaseEngine):
             return None
 
         report: SuspiciousInfoReport | None = get_suspicious_info_report(
-            api_key, observable_value, self.proxies, self.ssl_verify
+            api_key, observable.value, self.proxies, self.ssl_verify
         )
 
         if not report:

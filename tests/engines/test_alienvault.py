@@ -1,4 +1,4 @@
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 import pytest
 import responses
 from engines.alienvault import parse_alienvault_response, query_alienvault, get_endpoint

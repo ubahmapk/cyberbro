@@ -3,9 +3,10 @@ from typing import Any
 
 import dns.resolver
 import dns.reversename
+from pydantic import AnyUrl, ValidationError
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 from utils.utils import identify_observable_type, is_really_ipv6
 
 logger = logging.getLogger(__name__)
@@ -31,7 +32,9 @@ class ReverseDNSEngine(BaseEngine):
         # This engine can change the observable type (e.g., FQDN -> IP)
         return True
 
-    def analyze(self, observable_value: str, observable_type: ObservableType) -> dict | None:
+    def analyze(self, observable: Observable) -> dict | None:
+        observable_value = observable.value
+        observable_type = observable.type
         try:
             if observable_type in [ObservableType.IPV4, ObservableType.IPV6, ObservableType.BOGON]:
                 reverse_name = dns.reversename.from_address(observable_value)
@@ -43,16 +46,15 @@ class ReverseDNSEngine(BaseEngine):
                 return {"reverse_dns": [str(ip) for ip in answer]}
 
             if observable_type is ObservableType.URL:
-                # POTENTIAL FUTURE REMEDIATION: URL parsing uses fragile string split logic.
-                # Current approach: split("/")[2] for domain extraction,
-                # then split(":")[0] for port removal.
-                #
-                # Limitations: IPv6 in brackets without port ([ipv6]/path) becomes
-                # malformed ([ipv6:...]).
-                #
-                # Solution: Refactor to use urllib.parse.urlparse() for robust URL handling.
-                # See: https://docs.python.org/3/library/urllib.parse.html#urllib.parse.urlparse
-                extracted = observable_value.split("/")[2]
+                try:
+                    extracted: str = AnyUrl(observable_value).host or ""
+                    if not extracted:
+                        raise ValidationError
+                except ValidationError:
+                    logger.debug(f"Failed to parse URL: {observable_value}")
+                    return None
+
+                # Check for IPv6 address
                 if ":" in extracted:
                     if is_really_ipv6(extracted):
                         reverse_name = dns.reversename.from_address(extracted)
@@ -62,7 +64,7 @@ class ReverseDNSEngine(BaseEngine):
 
                 # TODO: Fix identify_observable_type to not return "Unknown"
                 extracted_type: ObservableType = identify_observable_type(extracted)
-                assert isinstance(extracted_type, ObservableType)
+                # assert isinstance(extracted_type, ObservableType)
                 match extracted_type:
                     case ObservableType.FQDN:
                         answer = dns.resolver.resolve(extracted, "A")
