@@ -4,7 +4,7 @@ from typing import Any
 import requests
 
 from models.base_engine import BaseEngine
-from models.observable import ObservableType
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +26,7 @@ class URLScanEngine(BaseEngine):
             | ObservableType.URL
         )
 
-    def analyze(
-        self, observable_value: str, observable_type: ObservableType
-    ) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         query_fields: dict[ObservableType, str] = {
             ObservableType.IPV4: "ip",
             ObservableType.IPV6: "ip",
@@ -38,17 +36,18 @@ class URLScanEngine(BaseEngine):
             ObservableType.URL: "page.domain",
             ObservableType.FQDN: "page.domain",
         }
-        query_field = query_fields.get(observable_type, "page.domain")
+        query_field = query_fields.get(observable.type, "page.domain")
 
         try:
-            if observable_type is ObservableType.URL:
-                domain_part = observable_value.split("/")[2].split(":")[0]
-                observable = domain_part
+            if observable.type is ObservableType.URL:
+                query_value = observable.value.split("/")[2].split(":")[0]
             else:
-                observable = observable_value
+                query_value = observable.value
 
             url = "https://urlscan.io/api/v1/search/"
-            params: dict[str, str] = {"q": f"{query_field}:{observable}"}
+            # URLQuery requires IPv6 addresses to be quoted, due to the colons
+            # So far, testing seems to indicate quotes work for all query types
+            params: dict[str, str] = {"q": f'{query_field}:"{query_value}"'}
 
             response = requests.get(
                 url, params=params, proxies=self.proxies, verify=self.ssl_verify, timeout=5
@@ -71,12 +70,12 @@ class URLScanEngine(BaseEngine):
             return {
                 "scan_count": scan_count,
                 "top_domains": top_domains,
-                "link": f"https://urlscan.io/search/#{query_field}:{observable}",
+                "link": f"https://urlscan.io/search/#{query_field}:{query_value}",
             }
 
         except Exception as e:
             logger.error(
-                "Error querying urlscan.io for '%s': %s", observable_value, e, exc_info=True
+                "Error querying urlscan.io for '%s': %s", observable.value, e, exc_info=True
             )
             return None
 
