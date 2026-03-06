@@ -1,5 +1,6 @@
+from pandas.io.parsers.base_parser import validate_parse_dates_presence
 import logging
-from urllib.parse import quote
+from urllib.parse import quote, urlparse, ParseResult
 
 import pytest
 import requests
@@ -191,7 +192,9 @@ def test_query_field_ipv4_uses_ip_field(ipv4_observable):
     responses.add(responses.GET, url, json={"results": [], "total": 0}, status=200)
     engine.analyze(ipv4_observable)
 
-    assert quote('ip:"1.1.1.1"') in responses.calls[0].request.url
+    parsed_query: ParseResult = urlparse(responses.calls[0].request.url)
+
+    assert f"q={quote('ip:1.1.1.1')}" == parsed_query.query
 
 
 @responses.activate
@@ -203,7 +206,9 @@ def test_query_field_ipv6_uses_ip_field(ipv6_observable):
     responses.add(responses.GET, url, json={"results": [], "total": 0}, status=200)
     engine.analyze(ipv6_observable)
 
-    assert quote('ip:"2001:') in responses.calls[0].request.url
+    parsed_query: ParseResult = urlparse(responses.calls[0].request.url)
+
+    assert "q=ip%3A2001%25" in parsed_query.query
 
 
 @responses.activate
@@ -251,7 +256,7 @@ def test_query_field_fqdn_uses_page_domain(fqdn_observable):
     responses.add(responses.GET, url, json={"results": [], "total": 0}, status=200)
     engine.analyze(fqdn_observable)
 
-    assert quote('page.domain:"example.com"') in responses.calls[0].request.url
+    assert quote("page.domain:example.com") in responses.calls[0].request.url
 
 
 @responses.activate

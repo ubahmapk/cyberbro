@@ -1,5 +1,6 @@
 import logging
 from typing import Any
+from urllib.parse import quote
 
 import requests
 
@@ -47,7 +48,7 @@ class URLScanEngine(BaseEngine):
             url = "https://urlscan.io/api/v1/search/"
             # URLQuery requires IPv6 addresses to be quoted, due to the colons
             # So far, testing seems to indicate quotes work for all query types
-            params: dict[str, str] = {"q": f'{query_field}:"{query_value}"'}
+            params: dict[str, str] = {"q": f"{query_field}:{quote(query_value)}"}
 
             response = requests.get(
                 url, params=params, proxies=self.proxies, verify=self.ssl_verify, timeout=5
