@@ -2,7 +2,6 @@ import logging
 from typing import Any
 
 import requests
-from pydantic import AnyUrl, ValidationError
 from requests.exceptions import ConnectTimeout, HTTPError, JSONDecodeError, ReadTimeout
 from typing_extensions import override
 
@@ -25,11 +24,8 @@ class CrtShEngine(BaseEngine):
     def analyze(self, observable: Observable) -> dict[str, Any] | None:
         # If observable is a URL, extract domain
         if observable.type is ObservableType.URL:
-            try:
-                query_value: str = AnyUrl(observable.value).host or ""
-                if not query_value:
-                    raise ValidationError
-            except ValidationError:
+            query_value: str = observable._return_fqdn_from_url()
+            if not query_value:
                 logger.error(f"Invalid URL passed to crtsh: {observable.value}")
                 return None
         else:
