@@ -1,8 +1,8 @@
 import logging
 from typing import Any
-from urllib.parse import urlparse
 
 import requests
+from requests.exceptions import HTTPError, JSONDecodeError
 
 from models.base_engine import BaseEngine
 from models.observable import Observable, ObservableType
@@ -20,34 +20,44 @@ class HudsonRockEngine(BaseEngine):
         return ObservableType.EMAIL | ObservableType.FQDN | ObservableType.URL
 
     def analyze(self, observable: Observable) -> dict[str, Any] | None:
+        if observable.type is ObservableType.URL:
+            lookup_value: str = observable._return_fqdn_from_url()
+            if not lookup_value:
+                logger.error(f"Invalid URL passed to crtsh: {observable.value}")
+                return None
+            lookup_type = ObservableType.FQDN
+        else:
+            lookup_value = observable.value
+            lookup_type = observable.type
+
+        # lookup_type is used instead of observable.type, since
+        # we might have converted the type from URL to FQDN above
+        match lookup_type:
+            case ObservableType.EMAIL:
+                url_path = "search-by-email"
+                params = {"email": lookup_value}
+            case ObservableType.FQDN:
+                url_path = "search-by-domain"
+                params = {"domain": lookup_value}
+            case _:
+                logger.error("Unsupported observable type for HudsonRock: %s", lookup_type)
+                return None
+
+        url: str = f"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/{url_path}"
+
         try:
-            if observable.type is ObservableType.URL:
-                # Candidate for FQDN from URL private method
-                parsed_url = urlparse(observable.value)
-                lookup_value: str = parsed_url.netloc
-                lookup_type = ObservableType.FQDN
-            else:
-                lookup_value = observable.value
-                lookup_type = observable.type
-
-            match lookup_type:
-                case ObservableType.EMAIL:
-                    url_path = "search-by-email"
-                    params = {"email": lookup_value}
-                case ObservableType.FQDN:
-                    url_path = "search-by-domain"
-                    params = {"domain": lookup_value}
-                case _:
-                    logger.error("Unsupported observable type: %s", lookup_type)
-                    return None
-
-            url: str = f"https://cavalier.hudsonrock.com/api/json/v2/osint-tools/{url_path}"
             response = requests.get(
                 url, params=params, proxies=self.proxies, verify=self.ssl_verify, timeout=5
             )
             response.raise_for_status()
             data = response.json()
+        except (HTTPError, JSONDecodeError) as e:
+            logger.error(
+                "Error while querying Hudson Rock for '%s': %s", observable.value, e, exc_info=True
+            )
+            return None
 
+        try:
             # Clean up output as in the original logic
             if lookup_type is ObservableType.FQDN:
                 for section in ["data", "stats"]:
@@ -77,7 +87,10 @@ class HudsonRockEngine(BaseEngine):
 
         except Exception as e:
             logger.error(
-                "Error while querying Hudson Rock for '%s': %s", observable.value, e, exc_info=True
+                "Error processing data in Hudson Rock response for '%s': %s",
+                observable.value,
+                e,
+                exc_info=True,
             )
             return None
 
