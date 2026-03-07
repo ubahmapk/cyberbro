@@ -2,6 +2,8 @@ import logging
 from typing import Any
 
 import requests
+from pydantic import AnyUrl, ValidationError
+from requests.exceptions import ConnectTimeout, HTTPError, JSONDecodeError, ReadTimeout
 from typing_extensions import override
 
 from models.base_engine import BaseEngine
@@ -21,50 +23,69 @@ class CrtShEngine(BaseEngine):
         return ObservableType.FQDN | ObservableType.URL
 
     def analyze(self, observable: Observable) -> dict[str, Any] | None:
+        # If observable is a URL, extract domain
+        if observable.type is ObservableType.URL:
+            try:
+                query_value: str = AnyUrl(observable.value).host or ""
+                if not query_value:
+                    raise ValidationError
+            except ValidationError:
+                logger.error(f"Invalid URL passed to crtsh: {observable.value}")
+                return None
+        else:
+            query_value = observable.value
+
+        url = "https://crt.sh/json"
+        params: dict[str, str] = {"q": query_value}
+
         try:
-            # If observable is a URL, extract domain
-            if observable.type is ObservableType.URL:
-                domain_part = observable.value.split("/")[2].split(":")[0]
-                query_value = domain_part
-            else:
-                query_value = observable.value
-
-            url = "https://crt.sh/json"
-            params: dict[str, str] = {"q": query_value}
-
             response = requests.get(
                 url, params=params, proxies=self.proxies, verify=self.ssl_verify, timeout=20
             )
             response.raise_for_status()
 
             results = response.json()
-            domain_count = {}
-            for entry in results:
-                domains = set()
-                common_name = entry.get("common_name")
-                if common_name:
-                    domains.add(common_name)
 
-                name_value = entry.get("name_value")
-                if name_value:
-                    for el in name_value.split("\n"):
-                        if el:
-                            domains.add(str(el).strip())
-
-                for domain in domains:
-                    domain_count[domain] = domain_count.get(domain, 0) + 1
-
-            # Sort and extract top 5
-            sorted_domains = sorted(domain_count.items(), key=lambda item: item[1], reverse=True)
-            top_domains = [{"domain": dmn, "count": cnt} for dmn, cnt in sorted_domains[:5]]
-            return {
-                "top_domains": top_domains,
-                "link": f"https://crt.sh/?q={query_value}",
-            }
-
-        except Exception as e:
+        except (ReadTimeout, ConnectTimeout):
+            """
+            Crt.sh can be **SLOW**, especially for large domains, or domains
+            with a long certificate history.
+            """
+            logger.info(f"Timeout occurred while querying crt.sh for {observable.value}.")
+            return None
+        except HTTPError as e:
             logger.error("Error querying crt.sh for '%s': %s", observable.value, e, exc_info=True)
             return None
+        except JSONDecodeError as e:
+            msg: str = (
+                f"Unexpected error while parsing response from crt.sh for {observable.value}: {e}"
+            )
+            logger.error(msg)
+            return None
+
+        domain_count = {}
+        for entry in results:
+            domains = set()
+            common_name = entry.get("common_name")
+            if common_name:
+                domains.add(common_name)
+
+            name_value = entry.get("name_value")
+            if name_value:
+                for el in name_value.split("\n"):
+                    if el:
+                        domains.add(str(el).strip())
+
+            for domain in domains:
+                domain_count[domain] = domain_count.get(domain, 0) + 1
+
+        # Sort and extract top 5
+        sorted_domains = sorted(domain_count.items(), key=lambda item: item[1], reverse=True)
+        top_domains = [{"domain": dmn, "count": cnt} for dmn, cnt in sorted_domains[:5]]
+        return {
+            "top_domains": top_domains,
+            "link": f"https://crt.sh/?q={query_value}",
+        }
 
     def create_export_row(self, analysis_result: Any) -> dict:
         if not analysis_result:

@@ -191,11 +191,12 @@ def test_analyze_connection_error(fqdn_observable, caplog):
     timeout_error = requests.exceptions.ConnectTimeout("Connection timed out")
     responses.add(responses.GET, url, body=timeout_error)
 
-    caplog.set_level(logging.ERROR)
+    caplog.set_level(logging.INFO)
     result = engine.analyze(fqdn_observable)
 
     assert result is None
-    assert "Error querying crt.sh" in caplog.text
+    # assert "Error querying crt.sh" in caplog.text
+    assert "Timeout occurred while querying crt.sh" in caplog.text
 
 
 # ============================================================================
@@ -318,7 +319,7 @@ def test_analyze_invalid_json_response(fqdn_observable, caplog):
     result = engine.analyze(fqdn_observable)
 
     assert result is None
-    assert "Error querying crt.sh" in caplog.text
+    assert "Unexpected error while parsing response from crt.sh" in caplog.text
 
 
 # ============================================================================
