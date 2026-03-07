@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 import requests
-from requests.exceptions import HTTPError, JSONDecodeError
+from requests.exceptions import JSONDecodeError, RequestException
 
 from models.base_engine import BaseEngine
 from models.observable import Observable, ObservableType
@@ -41,15 +41,15 @@ class ShodanEngine(BaseEngine):
                 return None
             response.raise_for_status()
             data = response.json()
-
-            return {
-                "ports": data.get("ports", []),
-                "tags": data.get("tags", []),
-                "link": f"https://www.shodan.io/host/{observable.value}",
-            }
-        except (HTTPError, JSONDecodeError, Exception) as e:
+        except (RequestException, JSONDecodeError) as e:
             logger.error(f"Error querying Shodan: {e}")
             return None
+
+        return {
+            "ports": data.get("ports", []),
+            "tags": data.get("tags", []),
+            "link": f"https://www.shodan.io/host/{observable.value}",
+        }
 
     def create_export_row(self, analysis_result: Any) -> dict:
         return {"shodan_ports": analysis_result.get("ports") if analysis_result else None}

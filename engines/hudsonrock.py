@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 import requests
-from requests.exceptions import HTTPError, JSONDecodeError
+from requests.exceptions import JSONDecodeError, RequestException
 
 from models.base_engine import BaseEngine
 from models.observable import Observable, ObservableType
@@ -51,7 +51,7 @@ class HudsonRockEngine(BaseEngine):
             )
             response.raise_for_status()
             data = response.json()
-        except (HTTPError, JSONDecodeError) as e:
+        except (RequestException, JSONDecodeError) as e:
             logger.error(
                 "Error while querying Hudson Rock for '%s': %s", observable.value, e, exc_info=True
             )

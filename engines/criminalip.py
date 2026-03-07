@@ -5,7 +5,7 @@ from typing import Any, Self
 
 import requests
 from pydantic import BaseModel, Field, ValidationError, model_validator
-from requests.exceptions import HTTPError
+from requests.exceptions import RequestException
 
 from models.base_engine import BaseEngine
 from models.observable import Observable, ObservableType
@@ -141,7 +141,7 @@ def get_suspicious_info_report(
             url, params=params, headers=headers, proxies=proxies, verify=ssl_verify
         )
         response.raise_for_status()
-    except HTTPError as e:
+    except RequestException as e:
         logger.error(
             f"Error retrieving Criminal IP Suspicious Info report for {observable}: {e}",
         )
