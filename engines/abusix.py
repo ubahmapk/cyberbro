@@ -1,12 +1,18 @@
 import logging
-from typing import Any
 
 import querycontacts
+from pydantic import ConfigDict, EmailStr, Field, ValidationError
 
 from models.base_engine import BaseEngine
 from models.observable import Observable, ObservableType
+from models.report import BaseReport
 
 logger = logging.getLogger(__name__)
+
+
+class AbusixReport(BaseReport):
+    model_config = ConfigDict(validate_by_alias=True, validate_by_name=True)
+    abuse_email: EmailStr | None = Field(validation_alias="abuse", default=None)
 
 
 class AbusixEngine(BaseEngine):
@@ -23,24 +29,26 @@ class AbusixEngine(BaseEngine):
         # IP-only engine, runs after potential IP pivot
         return True
 
-    def analyze(self, observable: Observable) -> dict[str, str] | None:
+    def analyze(self, observable: Observable) -> AbusixReport:
         try:
             results = querycontacts.ContactFinder().find(observable.value)
             if not results:
-                logger.warning(
-                    "No contact information returned for observable: %s", observable.value
-                )
-                return None
-
-            return {"abuse": results[0]}
+                raise ValueError
+            report: AbusixReport = AbusixReport(success=True, abuse_email=results[0])
+        except ValueError:
+            msg: str = f"No contact information returned for observable: {observable.value}"
+            logger.warning(msg)
+            return AbusixReport(success=False, error=msg)
+        except ValidationError as e:
+            msg: str = f"Error validating Abusix report for observable '{observable.value}': {e}"
+            logger.error(msg, exc_info=True)
+            return AbusixReport(success=False, error=msg)
         except Exception as e:
-            logger.error(
-                "Error querying Abusix for observable '%s': %s",
-                observable.value,
-                e,
-                exc_info=True,
-            )
-            return None
+            msg: str = f"Error querying Abusix for observable '{observable.value}': {e}"
+            logger.error(msg, exc_info=True)
+            return AbusixReport(success=False, error=msg)
 
-    def create_export_row(self, analysis_result: Any) -> dict:
-        return {"abusix_abuse": analysis_result.get("abuse") if analysis_result else None}
+        return report
+
+    def create_export_row(self, analysis_result: AbusixReport | None) -> dict:
+        return {"abusix_abuse": analysis_result.abuse_email if analysis_result else None}

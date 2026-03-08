@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from engines.abusix import AbusixEngine
+from engines.abusix import AbusixEngine, AbusixReport
 from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
@@ -29,28 +29,20 @@ def ipv6_observable():
 
 
 @patch("querycontacts.ContactFinder")
-def test_analyze_auth_error(mock_contact_finder, secrets_with_config, ipv4_observable):
-    """Test handling of authentication/authorization errors from querycontacts."""
-    engine = AbusixEngine(secrets_with_config, proxies={}, ssl_verify=True)
-    mock_instance = mock_contact_finder.return_value
-    mock_instance.find.side_effect = Exception("Invalid API credentials")
-
-    result = engine.analyze(ipv4_observable)
-
-    assert result is None
-    mock_instance.find.assert_called_once_with(ipv4_observable.value)
-
-
-@patch("querycontacts.ContactFinder")
-def test_analyze_exception_generic(mock_contact_finder, secrets_with_config, ipv4_observable):
+def test_analyze_exception_generic(
+    mock_contact_finder, secrets_with_config, ipv4_observable, caplog
+):
     """Test handling of generic exceptions (network, service errors)."""
     engine = AbusixEngine(secrets_with_config, proxies={}, ssl_verify=True)
     mock_instance = mock_contact_finder.return_value
     mock_instance.find.side_effect = Exception("Connection timeout")
 
-    result = engine.analyze(ipv4_observable)
+    with caplog.at_level(logging.ERROR):
+        result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert result.success is False
+    assert result.error is not None
+    assert "Connection timeout" in caplog.text
     mock_instance.find.assert_called_once_with(ipv4_observable.value)
 
 
@@ -76,7 +68,8 @@ def test_analyze_success(mock_contact_finder, secrets_with_config, observable, e
 
     result = engine.analyze(observable)
 
-    assert result == {"abuse": expected_email}
+    assert result.success is True
+    assert result.abuse_email == expected_email
     mock_instance.find.assert_called_once_with(observable.value)
 
 
@@ -89,7 +82,8 @@ def test_analyze_empty_results(mock_contact_finder, secrets_with_config, ipv4_ob
 
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert result.success is False
+    assert result.error is not None
     mock_instance.find.assert_called_once_with(ipv4_observable.value)
 
 
@@ -107,74 +101,66 @@ def test_analyze_multiple_results_uses_first(
 
     result = engine.analyze(ipv4_observable)
 
-    assert result == {"abuse": "abuse1@example.com"}
+    assert result.success is True
+    assert result.abuse_email == "abuse1@example.com"
     mock_instance.find.assert_called_once_with(ipv4_observable.value)
 
 
 # Low Priority Tests: Edge Cases and Properties
 
 
-def test_create_export_row_with_result():
+def test_create_export_row_with_result(secrets_with_config):
     """Test export row creation with valid analysis result."""
-    engine = AbusixEngine(Secrets(), proxies={}, ssl_verify=True)
-    analysis_result = {"abuse": "abuse@example.com"}
+    engine = AbusixEngine(secrets_with_config, proxies={}, ssl_verify=True)
+    analysis_result = AbusixReport(success=True, abuse_email="abuse@example.com")
 
     export_row = engine.create_export_row(analysis_result)
 
     assert export_row == {"abusix_abuse": "abuse@example.com"}
 
 
-def test_create_export_row_with_none():
+def test_create_export_row_with_none(secrets_with_config):
     """Test export row creation with None result."""
-    engine = AbusixEngine(Secrets(), proxies={}, ssl_verify=True)
+    engine = AbusixEngine(secrets_with_config, proxies={}, ssl_verify=True)
 
     export_row = engine.create_export_row(None)
 
     assert export_row == {"abusix_abuse": None}
 
 
-def test_create_export_row_missing_abuse_key():
-    """Test export row creation when abuse key is missing from result."""
-    engine = AbusixEngine(Secrets(), proxies={}, ssl_verify=True)
-    analysis_result = {"other_key": "other_value"}
+def test_create_export_row_with_failed_report(secrets_with_config):
+    """Test that a failed report (success=False) still surfaces the email field."""
+    engine = AbusixEngine(secrets_with_config, proxies={}, ssl_verify=True)
+    analysis_result = AbusixReport(success=False, error="some error")
 
     export_row = engine.create_export_row(analysis_result)
 
     assert export_row == {"abusix_abuse": None}
 
 
-def test_create_export_row_empty_dict():
-    """Test export row creation with empty dictionary result."""
-    engine = AbusixEngine(Secrets(), proxies={}, ssl_verify=True)
-
-    export_row = engine.create_export_row({})
-
-    assert export_row == {"abusix_abuse": None}
-
-
-def test_name_property():
+def test_name_property(secrets_with_config):
     """Test that name property returns correct engine identifier."""
-    engine = AbusixEngine(Secrets(), proxies={}, ssl_verify=True)
+    engine = AbusixEngine(secrets_with_config, proxies={}, ssl_verify=True)
 
     assert engine.name == "abusix"
 
 
-def test_supported_types_property():
+def test_supported_types_property(secrets_with_config):
     """Test that supported_types includes both IPv4 and IPv6."""
-    engine = AbusixEngine(Secrets(), proxies={}, ssl_verify=True)
+    engine = AbusixEngine(secrets_with_config, proxies={}, ssl_verify=True)
 
     assert engine.supported_types is ObservableType.IPV4 | ObservableType.IPV6
 
 
-def test_execute_after_reverse_dns_property():
+def test_execute_after_reverse_dns_property(secrets_with_config):
     """Test that execute_after_reverse_dns returns True (post-pivot engine)."""
-    engine = AbusixEngine(Secrets(), proxies={}, ssl_verify=True)
+    engine = AbusixEngine(secrets_with_config, proxies={}, ssl_verify=True)
 
     assert engine.execute_after_reverse_dns is True
 
 
-def test_is_pivot_engine_property():
+def test_is_pivot_engine_property(secrets_with_config):
     """Test that is_pivot_engine returns False (inherited default)."""
-    engine = AbusixEngine(Secrets(), proxies={}, ssl_verify=True)
+    engine = AbusixEngine(secrets_with_config, proxies={}, ssl_verify=True)
 
     assert engine.is_pivot_engine is False
