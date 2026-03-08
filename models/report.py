@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import BaseModel, model_serializer
 
 """Registry of report classes for serialization/deserialization."""
@@ -5,6 +7,9 @@ _REPORT_REGISTRY: dict[str, type] = {}
 
 
 class BaseReport(BaseModel):
+    # Easy check to see if the engine was successful
+    # If false, show the error
+    # If true, continue processing the sub-class's data
     success: bool = False
     error: str | None = None
 
@@ -13,7 +18,7 @@ class BaseReport(BaseModel):
         _REPORT_REGISTRY[cls.__name__] = cls
 
     @classmethod
-    def from_dict(cls, data: dict) -> "BaseReport":
+    def from_dict(cls, data: dict) -> BaseReport:
         data = dict(data)  # avoid mutating caller's dict
         cls_name = data.pop("__cls__", None)
         klass = _REPORT_REGISTRY.get(cls_name, cls)
