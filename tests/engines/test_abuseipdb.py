@@ -5,7 +5,7 @@ import pytest
 import requests
 import responses
 
-from engines.abuseipdb import AbuseIPDBEngine
+from engines.abuseipdb import AbuseIPDBEngine, AbuseIPDBReport
 from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
@@ -233,17 +233,19 @@ def test_create_export_row_with_data():
     """Test export row with non-zero reports and risk_score."""
     engine = AbuseIPDBEngine(Secrets(), proxies={}, ssl_verify=True)
 
-    analysis_result = {
-        "reports": 42,
-        "risk_score": 75,
-        "link": "https://www.abuseipdb.com/check/1.1.1.1",
-        "country_name": "Germany",
-        "isp": "3xK Tech GmbH",
-        "domain": "3xktech.cloud",
-        "usage_type": "Data Center/Web Hosting/Transit",
-        "is_tor": False,
-        "last_reported_at": "2026-02-05T21:42:02+00:00",
-    }
+    analysis_result = AbuseIPDBReport(
+        ip_address="1.1.1.1",
+        risk_score=75,
+        reports=42,
+        country_code="DE",
+        country_name="Germany",
+        isp="3xK Tech GmbH",
+        domain="3xktech.cloud",
+        usage_type="Data Center/Web Hosting/Transit",
+        is_tor=False,
+        last_reported_at="2026-02-05T21:42:02+00:00",
+        success=True,
+    )
 
     row = engine.create_export_row(analysis_result)
 
@@ -271,21 +273,6 @@ def test_create_export_row_none():
     assert row["a_ipdb_usage_type"] is None
     assert row["a_ipdb_is_tor"] is None
     assert row["a_ipdb_last_reported"] is None
-
-
-def test_create_export_row_missing_fields():
-    """Test export row with missing optional fields."""
-    engine = AbuseIPDBEngine(Secrets(), proxies={}, ssl_verify=True)
-
-    analysis_result = {
-        "reports": 10,
-        # Missing risk_score
-    }
-
-    row = engine.create_export_row(analysis_result)
-
-    assert row["a_ipdb_reports"] == 10
-    assert row["a_ipdb_risk"] is None
 
 
 def test_engine_properties():
