@@ -1,12 +1,14 @@
 import logging
 from abc import ABC, abstractmethod
 from enum import Flag, auto
-from typing import Any
+from typing import Generic, TypeVar
 
 import requests
-from tenacity import after_log, retry, stop_after_attempt, wait_exponential
+from requests.exceptions import ConnectionError, Timeout
+from tenacity import after_log, retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from models.observable import Observable, ObservableType
+from models.report import BaseReport
 from utils.config import Secrets
 
 logger = logging.getLogger(__name__)
@@ -25,7 +27,10 @@ class ExecutionPhase(Flag):
     DEPENDENT = auto()  # Engins that need results from other engines
 
 
-class BaseEngine(ABC):
+R = TypeVar("R", bound=BaseReport)
+
+
+class BaseEngine(ABC, Generic[R]):
     """
     Abstract base class for all analysis engines.
     """
@@ -67,7 +72,7 @@ class BaseEngine(ABC):
         return False
 
     @abstractmethod
-    def analyze(self, observable: Observable) -> dict | None:
+    def analyze(self, observable: Observable) -> R:
         """
         Perform the analysis.
         Returns the report object, including success or the error message, present.
@@ -78,6 +83,7 @@ class BaseEngine(ABC):
         reraise=True,
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_exception_type((ConnectionError, Timeout)),
         after=after_log(logger, logging.DEBUG),
     )
     def _make_request(
@@ -100,7 +106,7 @@ class BaseEngine(ABC):
         return response
 
     @abstractmethod
-    def create_export_row(self, analysis_result: Any) -> dict:
+    def create_export_row(self, analysis_result: R | None) -> dict:
         """
         Format the raw result into a flat dictionary for CSV/Excel export.
         """

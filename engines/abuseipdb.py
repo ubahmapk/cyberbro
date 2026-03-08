@@ -1,16 +1,42 @@
 import logging
-from typing import Any
+from contextlib import suppress
 
 import pycountry
-import requests
+from pydantic import Field, ValidationError, model_validator
+from requests.exceptions import JSONDecodeError, RequestException
 
 from models.base_engine import BaseEngine
 from models.observable import Observable, ObservableType
+from models.report import BaseReport
 
 logger = logging.getLogger(__name__)
 
 
-class AbuseIPDBEngine(BaseEngine):
+class AbuseIPDBReport(BaseReport):
+    ip_address: str = Field(alias="ipAddress", default="")
+    # is_public: bool = Field(alias="isPublic")
+    # ip_version: int = Field(alias="ipVersion")
+    is_whitelisted: bool = Field(alias="isWhitelisted", default=False)
+    risk_score: int = Field(alias="abuseConfidenceScore", default=0)
+    is_tor: bool = Field(alias="isTor", default=False)
+    # hostnames: list[str] = Field(default_factory=list[str])
+    country_code: str = Field(alias="countryCode", default="")
+    country_name: str = "Unknown"
+    # usage_type: str = Field(alias="usageType", default="")
+    domain: str = ""
+    isp: str = ""
+    reports: int = Field(alias="totalReports", default=0)
+    # num_distinct_users: int = Field(alias="numDistinctUsers", default=0)
+    last_reported_at: str = Field(alias="lastReportedAt", default="")
+    link: str = Field(init=False, default="")
+
+    @model_validator(mode="after")
+    def __generate_link__(self):
+        self.link = f"https://www.abuseipdb.com/check/{self.ip_address}"
+        return self
+
+
+class AbuseIPDBEngine(BaseEngine[AbuseIPDBReport]):
     @property
     def name(self):
         return "abuseipdb"
@@ -24,63 +50,53 @@ class AbuseIPDBEngine(BaseEngine):
         # AbuseIPDB only supports IPs, so we want it to run AFTER any potential DNS resolution
         return True
 
-    def analyze(self, observable: Observable) -> dict | None:
-        api_key: str = self.secrets.abuseipdb
-
-        if not api_key:
-            logger.warning("AbuseIPDB API key not set")
-            return None
-
+    def query_api(self, api_key: str, observable: Observable) -> AbuseIPDBReport:
         url = "https://api.abuseipdb.com/api/v2/check"
         headers = {"Key": api_key, "Accept": "application/json"}
         params = {"ipAddress": observable.value}
 
         try:
-            response = requests.get(
+            response = self._make_request(
                 url,
                 headers=headers,
                 params=params,
-                proxies=self.proxies,
-                verify=self.ssl_verify,
                 timeout=5,
             )
             response.raise_for_status()
-            json_response = response.json()
+        except RequestException as e:
+            msg: str = f"AbuseIPDB API error: {e}"
+            logger.warning(msg)
+            return AbuseIPDBReport(success=False, error=msg)
 
-            if "data" not in json_response:
-                return None
+        try:
+            api_response: AbuseIPDBReport = AbuseIPDBReport(**response.json()["data"])
+        except (KeyError, ValidationError, JSONDecodeError) as e:
+            msg: str = f"AbuseIPDB API response parsing error: {e}"
+            logger.warning(msg)
+            return AbuseIPDBReport(success=False, error=msg)
 
-            data = json_response["data"]
+        api_response.success = True
+        return api_response
 
-            # Extract country code and resolve country name
-            country_code = data.get("countryCode", "")
-            country_name = "Unknown"
-            if country_code:
-                try:
-                    country_obj = pycountry.countries.get(alpha_2=country_code)
-                    country_name = country_obj.name if country_obj else "Unknown"
-                except Exception:
-                    country_name = "Unknown"
+    def analyze(self, observable: Observable) -> AbuseIPDBReport:
+        api_key: str = self.secrets.abuseipdb
 
-            return {
-                "reports": data.get("totalReports", 0),
-                "risk_score": data.get("abuseConfidenceScore", 0),
-                "is_whitelisted": data.get("isWhitelisted", False),
-                "country_code": country_code,
-                "country_name": country_name,
-                "usage_type": data.get("usageType", ""),
-                "isp": data.get("isp", ""),
-                "domain": data.get("domain", ""),
-                "hostnames": data.get("hostnames", []),
-                "is_tor": data.get("isTor", False),
-                "last_reported_at": data.get("lastReportedAt", ""),
-                "link": f"https://www.abuseipdb.com/check/{observable.value}",
-            }
-        except Exception as e:
-            logger.error(f"Error querying AbuseIPDB: {e}")
-            return None
+        if not api_key:
+            msg: str = "AbuseIPDB API key not set"
+            logger.warning(msg)
+            return AbuseIPDBReport(success=False, error=msg)
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+        report: AbuseIPDBReport = self.query_api(api_key, observable)
+        if not report.success:
+            return report
+
+        # Extract country code and resolve country name
+        with suppress(AttributeError):
+            report.country_name = pycountry.countries.get(alpha_2=report.country_code).name  # ty:ignore[unresolved-attribute]
+
+        return report
+
+    def create_export_row(self, analysis_result: AbuseIPDBReport | None) -> dict:
         if not analysis_result:
             return {
                 "a_ipdb_reports": None,

@@ -1,4 +1,5 @@
 import logging
+from unittest.mock import patch
 
 import pytest
 import requests
@@ -70,49 +71,68 @@ def test_analyze_success_complete(secrets_with_key, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["reports"] == 24
-    assert result["risk_score"] == 25
-    assert result["link"] == f"https://www.abuseipdb.com/check/{ipv4_observable.value}"
-    # Verify new fields
-    assert result["is_whitelisted"] is True
-    assert result["country_code"] == "AU"
-    assert result["country_name"] == "Australia"
-    assert result["usage_type"] == "Content Delivery Network"
-    assert result["isp"] == "APNIC and Cloudflare DNS Resolver project"
-    assert result["domain"] == "cloudflare.com"
-    assert result["hostnames"] == ["one.one.one.one"]
-    assert result["is_tor"] is False
-    assert result["last_reported_at"] == "2025-04-22T13:01:09+00:00"
+    assert result.success is True
+    assert result.reports == 24
+    assert result.risk_score == 25
+    assert result.link == f"https://www.abuseipdb.com/check/{ipv4_observable.value}"
+    assert result.is_whitelisted is True
+    assert result.country_code == "AU"
+    assert result.country_name == "Australia"
+    assert result.isp == "APNIC and Cloudflare DNS Resolver project"
+    assert result.domain == "cloudflare.com"
+    assert result.is_tor is False
+    assert result.last_reported_at == "2025-04-22T13:01:09+00:00"
+
+
+def test_analyze_no_api_key(secrets_without_key, ipv4_observable, caplog):
+    """Test that missing API key returns a failed report."""
+    engine = AbuseIPDBEngine(secrets_without_key, proxies={}, ssl_verify=True)
+
+    caplog.set_level(logging.WARNING)
+    result = engine.analyze(ipv4_observable)
+
+    assert result is not None
+    assert result.success is False
+    assert result.error is not None
+    assert "AbuseIPDB API key not set" in caplog.text
 
 
 @responses.activate
 @pytest.mark.parametrize("status_code", [401, 403, 500])
-def test_analyze_http_error_codes(secrets_with_key, ipv4_observable, status_code, caplog):
+def test_analyze_http_error_returns_failed_report(
+    secrets_with_key, ipv4_observable, status_code, caplog
+):
     """Test handling of HTTP error responses (401, 403, 500)."""
     engine = AbuseIPDBEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = "https://api.abuseipdb.com/api/v2/check"
 
     responses.add(responses.GET, url, json={"error": "error"}, status=status_code)
 
-    caplog.set_level(logging.ERROR)
+    caplog.set_level(logging.WARNING)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error querying AbuseIPDB" in caplog.text
+    assert result is not None
+    assert result.success is False
+    assert result.error is not None
+    assert "AbuseIPDB API error" in caplog.text
 
 
 @responses.activate
-def test_analyze_response_missing_data_key(secrets_with_key, ipv4_observable):
-    """Test handling of valid 200 response missing 'data' key."""
+def test_analyze_response_missing_data_key(secrets_with_key, ipv4_observable, caplog):
+    """Test handling of valid 200 response missing 'data' key returns failed report."""
     engine = AbuseIPDBEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = "https://api.abuseipdb.com/api/v2/check"
 
     mock_resp = {"error": "No data"}
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
+    caplog.set_level(logging.WARNING)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert result is not None
+    assert result.success is False
+    assert result.error is not None
+    assert "AbuseIPDB API response parsing error" in caplog.text
 
 
 # ============================================================================
@@ -139,56 +159,69 @@ def test_analyze_ipv6_success(secrets_with_key, ipv6_observable):
     result = engine.analyze(ipv6_observable)
 
     assert result is not None
-    assert result["reports"] == 5
-    assert result["risk_score"] == 50
-    assert result["link"] == f"https://www.abuseipdb.com/check/{ipv6_observable.value}"
+    assert result.success is True
+    assert result.reports == 5
+    assert result.risk_score == 50
+    assert result.link == f"https://www.abuseipdb.com/check/{ipv6_observable.value}"
 
 
 @responses.activate
-def test_analyze_request_timeout(secrets_with_key, ipv4_observable, caplog):
-    """Test handling of request timeout."""
+@patch("time.sleep")
+def test_analyze_request_timeout_returns_failed_report(
+    mock_sleep, secrets_with_key, ipv4_observable, caplog
+):
+    """Test handling of request timeout returns failed report."""
     engine = AbuseIPDBEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = "https://api.abuseipdb.com/api/v2/check"
 
     timeout_error = requests.exceptions.ConnectTimeout("Connection timed out")
     responses.add(responses.GET, url, body=timeout_error)
 
-    caplog.set_level(logging.ERROR)
+    caplog.set_level(logging.WARNING)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error querying AbuseIPDB" in caplog.text
+    assert result is not None
+    assert result.success is False
+    assert result.error is not None
+    assert "AbuseIPDB API error" in caplog.text
 
 
 @responses.activate
-def test_analyze_request_connection_error(secrets_with_key, ipv4_observable, caplog):
-    """Test handling of connection error."""
+@patch("time.sleep")
+def test_analyze_connection_error_returns_failed_report(
+    mock_sleep, secrets_with_key, ipv4_observable, caplog
+):
+    """Test handling of connection error returns failed report."""
     engine = AbuseIPDBEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = "https://api.abuseipdb.com/api/v2/check"
 
     conn_error = requests.exceptions.ConnectionError("Connection failed")
     responses.add(responses.GET, url, body=conn_error)
 
-    caplog.set_level(logging.ERROR)
+    caplog.set_level(logging.WARNING)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error querying AbuseIPDB" in caplog.text
+    assert result is not None
+    assert result.success is False
+    assert result.error is not None
+    assert "AbuseIPDB API error" in caplog.text
 
 
 @responses.activate
-def test_analyze_invalid_json_response(secrets_with_key, ipv4_observable, caplog):
-    """Test handling of 200 status but invalid JSON."""
+def test_analyze_invalid_json_returns_failed_report(secrets_with_key, ipv4_observable, caplog):
+    """Test handling of 200 status but invalid JSON returns failed report."""
     engine = AbuseIPDBEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = "https://api.abuseipdb.com/api/v2/check"
 
     responses.add(responses.GET, url, body="invalid json{", status=200)
 
-    caplog.set_level(logging.ERROR)
+    caplog.set_level(logging.WARNING)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error querying AbuseIPDB" in caplog.text
+    assert result is not None
+    assert result.success is False
+    assert result.error is not None
+    assert "AbuseIPDB API response parsing error" in caplog.text
 
 
 # ============================================================================

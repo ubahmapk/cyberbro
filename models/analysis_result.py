@@ -5,6 +5,7 @@ from sqlalchemy import Text
 from sqlalchemy.types import TypeDecorator
 
 from models.observable import Observable, ObservableFlag
+from models.report import _REPORT_REGISTRY, BaseReport
 
 db = SQLAlchemy()
 
@@ -37,6 +38,8 @@ class JSONEncodedResults(TypeDecorator):
             return {"__observable__": {"value": obj.value, "type": str(obj.type)}}
         if isinstance(obj, ObservableFlag):
             return {"__flag__": str(obj)}
+        if isinstance(obj, BaseReport):
+            return obj.model_dump()
         raise TypeError(f"Not JSON serializable: {type(obj)}")
 
     @staticmethod
@@ -63,6 +66,13 @@ class JSONEncodedResults(TypeDecorator):
         elif isinstance(type_val, str):
             # Legacy or serialized string like "IPV4" or "IPv4"
             item["type"] = ObservableFlag.from_str(type_val)
+
+        # Reconstruct any BaseReport subclasses stored as tagged dicts
+        for key, val in list(item.items()):
+            if key in ("observable", "type"):
+                continue
+            if isinstance(val, dict) and "__cls__" in val and val["__cls__"] in _REPORT_REGISTRY:
+                item[key] = BaseReport.from_dict(val)
 
         return item
 
