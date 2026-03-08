@@ -23,7 +23,7 @@ class AbuseIPDBReport(BaseReport):
     # hostnames: list[str] = Field(default_factory=list[str])
     country_code: str = Field(validation_alias="countryCode", default="")
     country_name: str = "Unknown"
-    # usage_type: str = Field(alias="usageType", default="")
+    usage_type: str = Field(validation_alias="usageType", default="")
     domain: str = ""
     isp: str = ""
     reports: int = Field(validation_alias="totalReports", default=0)
@@ -110,12 +110,12 @@ class AbuseIPDBEngine(BaseEngine[AbuseIPDBReport]):
                 "a_ipdb_last_reported": None,
             }
         return {
-            "a_ipdb_reports": analysis_result.get("reports"),
-            "a_ipdb_risk": analysis_result.get("risk_score"),
-            "a_ipdb_country": analysis_result.get("country_name"),
-            "a_ipdb_isp": analysis_result.get("isp"),
-            "a_ipdb_domain": analysis_result.get("domain"),
-            "a_ipdb_usage_type": analysis_result.get("usage_type"),
-            "a_ipdb_is_tor": analysis_result.get("is_tor"),
-            "a_ipdb_last_reported": analysis_result.get("last_reported_at"),
+            "a_ipdb_reports": analysis_result.reports,
+            "a_ipdb_risk": analysis_result.risk_score,
+            "a_ipdb_country": analysis_result.country_name,
+            "a_ipdb_isp": analysis_result.isp,
+            "a_ipdb_domain": analysis_result.domain,
+            "a_ipdb_usage_type": analysis_result.usage_type,
+            "a_ipdb_is_tor": analysis_result.is_tor,
+            "a_ipdb_last_reported": analysis_result.last_reported_at,
         }
