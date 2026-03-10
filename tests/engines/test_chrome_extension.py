@@ -1,9 +1,11 @@
 import logging
+from unittest.mock import patch
 
 import pytest
 import responses
+from requests.exceptions import ConnectionError as RequestsConnectionError
 
-from engines.chrome_extension import ChromeExtensionEngine
+from engines.chrome_extension import ChromeExtensionEngine, ChromeExtensionReport
 from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
@@ -113,7 +115,7 @@ def html_empty_body():
     ],
 )
 def test_analyze_success_browser_variants(
-    request, secrets, observable, browser_url, browser_html, browser_name
+    request, secrets, observable, browser_url, browser_html, browser_name, chrome_url, html_no_tags
 ):
     """Test successful extension name extraction from Chrome and Edge stores."""
     # Resolve fixture names to actual fixtures
@@ -121,13 +123,16 @@ def test_analyze_success_browser_variants(
     html = request.getfixturevalue(browser_html)
 
     engine = ChromeExtensionEngine(secrets, proxies={}, ssl_verify=True)
+    # For Edge variant, mock Chrome to fail fast (no retries) so fallback to Edge is exercised
+    if browser_url == "edge_url":
+        responses.add(responses.GET, chrome_url, body=html_no_tags, status=200)
     responses.add(responses.GET, url, body=html, status=200)
 
     result = engine.analyze(observable)
 
-    assert result is not None
-    assert result["name"] == "Test Extension Name"
-    assert result["url"] == url
+    assert result.success is True
+    assert result.name == "Test Extension Name"
+    assert result.url == url
 
 
 @responses.activate
@@ -141,9 +146,9 @@ def test_analyze_chrome_fails_fallback_edge(
 
     result = engine.analyze(observable)
 
-    assert result is not None
-    assert result["name"] == "Test Extension Name"
-    assert result["url"] == edge_url
+    assert result.success is True
+    assert result.name == "Test Extension Name"
+    assert result.url == edge_url
 
 
 @responses.activate
@@ -155,27 +160,31 @@ def test_analyze_both_urls_fail(secrets, observable, chrome_url, edge_url, html_
 
     result = engine.analyze(observable)
 
-    assert result is None
+    assert result.success is False
 
 
 @responses.activate
 def test_analyze_chrome_empty_name_fallback(
     secrets, observable, chrome_url, edge_url, html_empty_name, edge_html_success
 ):
-    """Test fallback to Edge when Chrome returns empty whitespace-only h1."""
+    """
+    Test fallback to Edge when Chrome returns empty whitespace-only h1.
+    For this to work performantly, we also need to mock the Chrome URLs, since
+    that lookup happens before Edge.
+    """
     engine = ChromeExtensionEngine(secrets, proxies={}, ssl_verify=True)
     responses.add(responses.GET, chrome_url, body=html_empty_name, status=200)
     responses.add(responses.GET, edge_url, body=edge_html_success, status=200)
 
     result = engine.analyze(observable)
 
-    assert result is not None
-    assert result["name"] == "Test Extension Name"
-    assert result["url"] == edge_url
+    assert result.success is True
+    assert result.name == "Test Extension Name"
+    assert result.url == edge_url
 
 
 @responses.activate
-def test_analyze_edge_title_parsing(secrets, extension_id, edge_url):
+def test_analyze_edge_title_parsing(secrets, extension_id, chrome_url, edge_url, html_no_tags):
     """Test Edge title tag parsing extracts name before '-' delimiter."""
     engine = ChromeExtensionEngine(secrets, proxies={}, ssl_verify=True)
     html = """
@@ -184,19 +193,27 @@ def test_analyze_edge_title_parsing(secrets, extension_id, edge_url):
     <body></body>
     </html>
     """
+
+    """
+    For this to work performantly, we also need to mock the Chrome URLs, since
+    that lookup happens before Edge.
+    """
+    responses.add(responses.GET, chrome_url, body=html_no_tags, status=200)
     responses.add(responses.GET, edge_url, body=html, status=200)
 
     result = engine.analyze(Observable(value=extension_id, type=ObservableType.CHROME_EXTENSION))
 
-    assert result is not None
-    assert result["name"] == "My Cool Extension"
-    assert result["url"] == edge_url
+    assert result.success is True
+    assert result.name == "My Cool Extension"
+    assert result.url == edge_url
 
 
 def test_create_export_row_success(secrets):
     """Test create_export_row formats result dict with extension_name."""
     engine = ChromeExtensionEngine(secrets, proxies={}, ssl_verify=True)
-    analysis_result = {"name": "Test Extension", "url": "https://example.com"}
+    analysis_result = ChromeExtensionReport(
+        success=True, name="Test Extension", url="https://example.com"
+    )
 
     export_row = engine.create_export_row(analysis_result)
 
@@ -225,7 +242,7 @@ def test_fetch_extension_http_error_404(secrets, extension_id, chrome_url):
 
     result = engine._fetch_extension_name(chrome_url)
 
-    assert result is None
+    assert result.success is False
 
 
 @responses.activate
@@ -236,29 +253,31 @@ def test_fetch_extension_http_error_500(secrets, extension_id, edge_url):
 
     result = engine._fetch_extension_name(edge_url)
 
-    assert result is None
+    assert result.success is False
 
 
 @responses.activate
-def test_fetch_extension_timeout_error(secrets, extension_id, chrome_url):
+@patch("time.sleep")
+def test_fetch_extension_timeout_error(mock_sleep, secrets, extension_id, chrome_url):
     """Test handles request timeout gracefully."""
     engine = ChromeExtensionEngine(secrets, proxies={}, ssl_verify=True)
-    responses.add(responses.GET, chrome_url, body=ConnectionError("Connection timeout"))
+    responses.add(responses.GET, chrome_url, body=RequestsConnectionError("Connection timeout"))
 
     result = engine._fetch_extension_name(chrome_url)
 
-    assert result is None
+    assert result.success is False
 
 
 @responses.activate
-def test_fetch_extension_connection_error(secrets, extension_id, edge_url):
+@patch("time.sleep")
+def test_fetch_extension_connection_error(mock_sleep, secrets, extension_id, edge_url):
     """Test handles connection error gracefully."""
     engine = ChromeExtensionEngine(secrets, proxies={}, ssl_verify=True)
-    responses.add(responses.GET, edge_url, body=ConnectionError("Failed to connect"))
+    responses.add(responses.GET, edge_url, body=RequestsConnectionError("Failed to connect"))
 
     result = engine._fetch_extension_name(edge_url)
 
-    assert result is None
+    assert result.success is False
 
 
 @responses.activate
@@ -269,7 +288,7 @@ def test_fetch_extension_invalid_html(secrets, extension_id, chrome_url, html_no
 
     result = engine._fetch_extension_name(chrome_url)
 
-    assert result is None
+    assert result.success is False
 
 
 @responses.activate
@@ -327,7 +346,7 @@ def test_fetch_extension_empty_response_body(secrets, extension_id, chrome_url, 
 
     result = engine._fetch_extension_name(chrome_url)
 
-    assert result is None
+    assert result.success is False
 
 
 @responses.activate
@@ -362,13 +381,13 @@ def test_fetch_extension_whitespace_handling(secrets, extension_id, chrome_url):
 
     result = engine._fetch_extension_name(chrome_url)
 
-    assert result["name"] == "Test Extension With Spaces"
+    assert result.name == "Test Extension With Spaces"
 
 
-def test_create_export_row_missing_name_key(secrets):
-    """Test create_export_row gracefully handles result missing 'name' key."""
+def test_create_export_row_failed_result(secrets):
+    """Test create_export_row returns None extension_name when result has success=False."""
     engine = ChromeExtensionEngine(secrets, proxies={}, ssl_verify=True)
-    analysis_result = {"url": "https://example.com"}
+    analysis_result = ChromeExtensionReport(success=False, error="Not found")
 
     export_row = engine.create_export_row(analysis_result)
 

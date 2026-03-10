@@ -15,7 +15,7 @@ class AbusixReport(BaseReport):
     abuse_email: EmailStr | None = Field(validation_alias="abuse", default=None)
 
 
-class AbusixEngine(BaseEngine):
+class AbusixEngine(BaseEngine[AbusixReport]):
     @property
     def name(self):
         return "abusix"
