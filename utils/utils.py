@@ -109,7 +109,7 @@ def identify_observable_type(observable) -> ObservableType:
         ObservableType.EMAIL: r"^[\w\.-]+@[\w\.-]+\.\w+$",
         ObservableType.FQDN: r"^(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$",
         ObservableType.URL: r"^(https?|ftp)://[^\s/$.?#].[^\s]*$",
-        ObservableType.CHROME_EXTENSION: r"^[a-z]{32}$",
+        ObservableType.CHROME_EXTENSION: r"^[a-p]{32}$",
     }
 
     for type_name, pattern in patterns.items():
@@ -132,7 +132,7 @@ def extract_observables(text: str) -> list[Observable]:
         # "URL": r"\bhttps?://[^\s/$.?#].[^\s]*\b",
         ObservableType.URL: r"\bhttps?://[^\s/$.?#].[^\s<>\"'\?,;\]\[\}\{]*",
         ObservableType.FQDN: r"\b(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\b",
-        ObservableType.CHROME_EXTENSION: r"\b[a-z]{32}\b",
+        ObservableType.CHROME_EXTENSION: r"\b[a-p]{32}\b",
     }
 
     results: list[Observable] = []
