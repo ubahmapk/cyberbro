@@ -63,6 +63,7 @@ class AbuseIPDBEngine(BaseEngine):
                     country_name = "Unknown"
 
             return {
+                "ip_address": observable_value,
                 "reports": data.get("totalReports", 0),
                 "risk_score": data.get("abuseConfidenceScore", 0),
                 "is_whitelisted": data.get("isWhitelisted", False),
