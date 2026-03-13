@@ -1,11 +1,10 @@
 import logging
-from typing import Any
 from urllib.parse import quote
 
-import requests
 from pydantic import ValidationError
+from requests.exceptions import ConnectTimeout, HTTPError, JSONDecodeError, ReadTimeout
 
-from models.alienvault_datamodel import OTXReport, Pulse
+from models.alienvault import AlienvaultReport, OTXReport, Pulse, PulseData
 from models.base_engine import BaseEngine
 from models.observable import Observable, ObservableType
 from utils.config import QueryError
@@ -30,35 +29,72 @@ class AlienVaultEngine(BaseEngine):
             | ObservableType.URL
         )
 
-    def analyze(self, observable: Observable) -> dict[str, Any] | None:
-        """
-        Queries the OTX AlienVault API for information about a given observable.
-        Reuses the original maintainer's logic for querying and parsing.
-        """
-        api_key: str = self.secrets.alienvault
-        if not api_key:
-            logger.error("OTX AlienVault API key is required")
-            return None
+    def _query_alienvault(
+        self,
+        observable: Observable,
+    ) -> dict:
 
-        # Prepare the dictionary expected by the original helper functions
-        observable_dict = {"value": observable.value, "type": observable.type}
+        # If it's a URL, extract the domain portion for searching
+        if observable.type == ObservableType.URL:
+            artifact: str = observable._return_fqdn_from_url()
+            observable_type: ObservableType = ObservableType.FQDN
+        else:
+            artifact = observable.value
+            observable_type = observable.type
+
+        endpoint = get_endpoint(artifact, observable_type)
+
+        if not endpoint:
+            raise QueryError(f"Invalid observable type: {observable_type}") from None
+
+        url = f"https://otx.alienvault.com/api/v1{endpoint}"
+        headers = {"X-OTX-API-KEY": self.secrets.alienvault}
 
         try:
-            # Reuse the existing query logic
-            result: dict = query_alienvault(observable_dict, api_key, self.proxies, self.ssl_verify)
+            response = self._make_request(url, headers=headers)
+            response.raise_for_status()
+            result = response.json()
 
-            # Reuse the existing parsing logic
-            report: dict = parse_alienvault_response(result)
-            return report
+        except (ReadTimeout, ConnectTimeout) as e:
+            msg: str = f"Timeout occurred while querying Alienvault for {observable.value}."
+            logger.error(msg)
+            raise QueryError from e
+        except HTTPError as e:
+            msg: str = f"Error querying crt.sh for {observable.value}: {e!s}"
+            logger.error(msg, exc_info=True)
+            raise QueryError from e
+        except JSONDecodeError as e:
+            msg: str = (
+                f"Unexpected error while parsing JSON response "
+                f"from crt.sh for {observable.value}: {e!s}\n"
+                f"Response: {response!s}"
+            )
+            logger.error(msg)
+            raise QueryError from e
 
-        except QueryError:
-            logger.warning("Error retrieving or parsing report from AlienVault")
-            return None
-        except Exception as e:
-            logger.error(f"Unexpected error in AlienVault engine: {e}")
-            return None
+        return result
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    def analyze(self, observable: Observable) -> AlienvaultReport:
+        """
+        Queries the OTX AlienVault API for information about a given observable.
+        """
+        if not self.secrets.alienvault:
+            msg: str = "OTX AlienVault API key is required"
+            logger.error(msg)
+            return AlienvaultReport(success=False, error=msg)
+
+        try:
+            query_result: dict = self._query_alienvault(observable)
+        except QueryError as e:
+            msg: str = f"{e!s}"
+            logger.error(msg)
+            return AlienvaultReport(success=False, error=msg)
+
+        # Reuse the existing parsing logic
+        report: AlienvaultReport = parse_alienvault_response(query_result)
+        return report
+
+    def create_export_row(self, analysis_result: AlienvaultReport | None) -> dict:
         if not analysis_result:
             return {
                 "alienvault_pulses": None,
@@ -66,17 +102,14 @@ class AlienVaultEngine(BaseEngine):
                 "alienvault_adversary": None,
             }
 
-        malware_families = ", ".join(analysis_result.get("malware_families", []))
-        adversaries = ", ".join(analysis_result.get("adversary", []))
+        malware_families = ", ".join(analysis_result.malware_families)
+        adversaries = ", ".join(analysis_result.adversary)
 
         return {
-            "alienvault_pulses": analysis_result.get("count"),
+            "alienvault_pulses": analysis_result.count,
             "alienvault_malwares": malware_families if malware_families else None,
             "alienvault_adversary": adversaries if adversaries else None,
         }
-
-
-# --- Original Maintainer's Code / Helper Functions (Preserved) ---
 
 
 def get_endpoint(artifact: str, observable_type: ObservableType) -> str | None:
@@ -93,39 +126,7 @@ def get_endpoint(artifact: str, observable_type: ObservableType) -> str | None:
     return endpoint_map.get(observable_type)
 
 
-def query_alienvault(
-    observable_dict: dict,
-    api_key: str,
-    proxies: dict[str, str] | None = None,
-    ssl_verify: bool = True,
-) -> dict:
-    artifact: str = observable_dict["value"]
-
-    # If it's a URL, extract the domain portion for searching
-    if (observable_type := observable_dict["type"]) == ObservableType.URL:
-        artifact = observable_dict["value"].split("/")[2].split(":")[0]
-        observable_type = ObservableType.FQDN
-
-    endpoint = get_endpoint(artifact, observable_type)
-
-    if not endpoint:
-        raise QueryError(f"Invalid observable type: {observable_type}") from None
-
-    url = f"https://otx.alienvault.com/api/v1{endpoint}"
-    headers = {"X-OTX-API-KEY": api_key}
-
-    try:
-        response = requests.get(url, headers=headers, proxies=proxies, verify=ssl_verify, timeout=5)
-        response.raise_for_status()
-        result = response.json()
-    except requests.exceptions.RequestException as req_err:
-        logger.error("Network error while querying OTX AlienVault: %s", req_err, exc_info=True)
-        raise QueryError from req_err
-
-    return result
-
-
-def parse_alienvault_response(result: dict) -> dict:
+def parse_alienvault_response(result: dict) -> AlienvaultReport:
     try:
         otx_report: OTXReport = OTXReport(**result)
     except ValidationError as e:
@@ -140,21 +141,12 @@ def parse_alienvault_response(result: dict) -> dict:
     - Related.Alienvault (string)
     - Related.Other (string)
     """
-    report_malware_families: list[str] = []
-    report_malware_families.extend(
-        [
-            family
-            for family in otx_report.pulse_info.related.alienvault.malware_families
-            if family.lower() not in map(str.lower, report_malware_families)
-        ]
+    report_malware_families: set[str] = set()
+    report_malware_families.update(
+        f.lower() for f in otx_report.pulse_info.related.alienvault.malware_families
     )
-
-    report_malware_families.extend(
-        [
-            family
-            for family in otx_report.pulse_info.related.other.malware_families
-            if family.lower() not in map(str.lower, report_malware_families)
-        ]
+    report_malware_families.update(
+        f.lower() for f in otx_report.pulse_info.related.other.malware_families
     )
 
     """
@@ -163,7 +155,7 @@ def parse_alienvault_response(result: dict) -> dict:
     adversary: set[str] = set(otx_report.pulse_info.related.alienvault.adversary)
 
     pulses: list[Pulse] = otx_report.pulse_info.pulses
-    pulse_data: list[dict[str, str | None]] = []
+    pulse_data: set[PulseData] = set()
     seen_urls: set[str | None] = set()  # Track unique pulse URLs
 
     # Sort pulses by 'created' timestamp in descending order
@@ -183,15 +175,11 @@ def parse_alienvault_response(result: dict) -> dict:
 
         # Add to seen URLs and include in output
         seen_urls.add(pulse_url)
-        pulse_data.append({"title": pulse.name, "url": pulse_url})
+        pulse_data.add(PulseData(title=pulse.name, url=pulse_url))
 
         # Add the pulse malware_family to the set
-        report_malware_families.extend(
-            [
-                family.display_name
-                for family in pulse.malware_families
-                if family.display_name.lower() not in map(str.lower, report_malware_families)
-            ]
+        report_malware_families.update(
+            family.display_name.lower() for family in pulse.malware_families
         )
 
         if pulse.adversary:
@@ -205,10 +193,11 @@ def parse_alienvault_response(result: dict) -> dict:
 
     # The original observable is included in the OTXReport object as the "indicator"
     link = f"https://otx.alienvault.com/browse/global/pulses?q={quote(otx_report.indicator)}"
-    return {
-        "count": count,
-        "pulses": pulse_data,
-        "malware_families": report_malware_families,
-        "adversary": list(adversary),
-        "link": link,
-    }
+    return AlienvaultReport(
+        success=True,
+        count=count,
+        pulse_data=pulse_data,
+        malware_families=report_malware_families,
+        adversary=adversary,
+        link=link,
+    )

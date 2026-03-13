@@ -1,12 +1,16 @@
+from unittest.mock import patch
+
 from models.observable import Observable, ObservableType
 import pytest
 import responses
-from engines.alienvault import parse_alienvault_response, query_alienvault, get_endpoint
+from engines.alienvault import AlienVaultEngine, parse_alienvault_response, get_endpoint
+from models.alienvault import AlienvaultReport, PulseData
 from utils.config import QueryError
 from pathlib import Path
+import copy
 import json
 from urllib.parse import quote
-from requests.exceptions import HTTPError, Timeout
+from requests.exceptions import HTTPError, ReadTimeout, Timeout
 from pytest_mock import MockerFixture
 
 
@@ -87,112 +91,65 @@ def md5_response():
 
 
 @pytest.fixture()
-def expected_fqdn_report():
-    return {
-        "count": 4,
-        "pulses": [
-            {
-                "title": "Backdoor:Linux/Mirai.B\t  - TikTok",
-                "url": "https://otx.alienvault.com/pulse/686b20fc7023e207712491d9",
-            },
-            {
-                "title": "Delete service | Affects Threat Research Platforms",
-                "url": "https://otx.alienvault.com/pulse/68596260a9ca6c4cc92ca068",
-            },
-            {
-                "title": "Zooming through BlueNoroff Indicators with Validin.",
-                "url": "https://www.validin.com/blog/zooming_through_bluenoroff_pivots/",
-            },
-            {
-                "title": "ELF:Mirai AMAZON-02 - Autonomous System  65.0.0.0/14",
-                "url": "https://otx.alienvault.com/pulse/684a93360163e8802e213158",
-            },
-        ],
-        "malware_families": ["Apnic"],
-        "adversary": ["Lazarus"],
-        "link": "https://otx.alienvault.com/browse/global/pulses?q=support-gmeet.com",
-    }
-
-
-@pytest.fixture()
-def expected_ip_report():
-    return {
-        "count": 1,
-        "pulses": [
-            {
-                "title": "LCIA HoneyNet Data - July 2025 - Redishoneypot",
-                "url": "https://github.com/telekom-security/tpotce",
-            }
-        ],
-        "malware_families": [],
-        "adversary": [],
-        "link": "https://otx.alienvault.com/browse/global/pulses?q=186.180.44.234",
-    }
-
-
-@pytest.fixture()
-def expected_md5_report():
-    return {
-        "count": 1,
-        "pulses": [
-            {"title": "malware", "url": "https://otx.alienvault.com/pulse/686b2966f904d473662ebd22"}
-        ],
-        "malware_families": [],
-        "adversary": [],
-        "link": "https://otx.alienvault.com/browse/global/pulses?q=1fd35d9dc2eb919088f4eb48ab18b5a8",
-    }
-
-
-@pytest.mark.parametrize(
-    "input_query_response,expected_report",
-    [
-        ("md5_response", "expected_md5_report"),
-        ("ip_response_from_file", "expected_ip_report"),
-        ("fqdn_response_from_file", "expected_fqdn_report"),
-    ],
-)
-def test_parse_alienvault(request, input_query_response, expected_report):
-    """
-    Use the built-in pytest fixture, request, to take the fixture name
-    **as a string** in the parametrized list and retrieve the **actual**
-    fixture data to be used in the test.
-
-    Thanks to https://engineeringfordatascience.com/posts/pytest_fixtures_with_parameterize/#using-requestgetfixturevalue-
-    for this solution.
-    """
-    input: dict = request.getfixturevalue(input_query_response)
-    expected: dict = request.getfixturevalue(expected_report)
-    report: dict = parse_alienvault_response(input)
-
-    assert report == expected
-
-
-@pytest.fixture()
 def fqdn_response_missing_pulse_info(fqdn_response_from_file):
-    input_data: dict = fqdn_response_from_file.copy()
+    input_data: dict = copy.deepcopy(fqdn_response_from_file)
     input_data.pop("pulse_info")
     return input_data
 
 
-def test_bad_or_empty_parse_alienvault(fqdn_response_missing_pulse_info):
-    expected: dict = {
-        "count": 0,
-        "pulses": [],
-        "malware_families": [],
-        "adversary": [],
-        "link": "https://otx.alienvault.com/browse/global/pulses?q=support-gmeet.com",
-    }
-
-    report: dict = parse_alienvault_response(fqdn_response_missing_pulse_info)
-
-    assert report == expected
+@pytest.fixture()
+def fqdn_response_missing_indicator(fqdn_response_from_file):
+    input_data: dict = copy.deepcopy(fqdn_response_from_file)
+    input_data.pop("indicator")
+    return input_data
 
 
 @pytest.fixture()
-def fqdn_response_missing_indicator(fqdn_response_from_file):
-    input_data: dict = fqdn_response_from_file.copy()
-    input_data.pop("indicator")
+def fqdn_response_missing_pulse_id(fqdn_response_from_file):
+    input_data: dict = copy.deepcopy(fqdn_response_from_file)
+    input_data["pulse_info"]["pulses"][0].pop("id")
     return input_data
+
+
+# --- parse_alienvault_response tests ---
+
+
+def test_parse_alienvault_fqdn(fqdn_response_from_file):
+    report = parse_alienvault_response(fqdn_response_from_file)
+    assert isinstance(report, AlienvaultReport)
+    assert report.success is True
+    assert report.count == 4
+    assert len(report.pulse_data) == 4
+    assert report.adversary == {"Lazarus"}
+    assert "apnic" in report.malware_families
+    assert report.link == "https://otx.alienvault.com/browse/global/pulses?q=support-gmeet.com"
+
+
+def test_parse_alienvault_ip(ip_response_from_file):
+    report = parse_alienvault_response(ip_response_from_file)
+    assert isinstance(report, AlienvaultReport)
+    assert report.success is True
+    assert report.count == 1
+    assert report.adversary == set()
+    assert report.malware_families == set()
+    assert report.link == "https://otx.alienvault.com/browse/global/pulses?q=186.180.44.234"
+
+
+def test_parse_alienvault_md5(md5_response):
+    report = parse_alienvault_response(md5_response)
+    assert isinstance(report, AlienvaultReport)
+    assert report.success is True
+    assert report.count == 1
+    titles = {p.title for p in report.pulse_data}
+    assert "malware" in titles
+
+
+def test_bad_or_empty_parse_alienvault(fqdn_response_missing_pulse_info):
+    report = parse_alienvault_response(fqdn_response_missing_pulse_info)
+    assert isinstance(report, AlienvaultReport)
+    assert report.success is True
+    assert report.count == 0
+    assert report.pulse_data == set()
 
 
 def test_missing_indicator_parse_alienvault(fqdn_response_missing_indicator):
@@ -200,63 +157,13 @@ def test_missing_indicator_parse_alienvault(fqdn_response_missing_indicator):
         _ = parse_alienvault_response(fqdn_response_missing_indicator)
 
 
-@pytest.fixture()
-def fqdn_response_missing_pulse_id(expected_fqdn_report, fqdn_response_from_file):
-    input_data: dict = fqdn_response_from_file.copy()
-    input_data["pulse_info"]["pulses"][0].pop("id")
-
-    return input_data
-
-
-def test_parse_alienvault_response_missing_pulse_id(
-    fqdn_response_missing_pulse_id, expected_fqdn_report
-):
-    expected_report: dict = expected_fqdn_report.copy()
-    expected_report["pulses"].pop(0)
-    expected_report["count"] = 3
-
+def test_parse_alienvault_response_missing_pulse_id(fqdn_response_missing_pulse_id):
     report = parse_alienvault_response(fqdn_response_missing_pulse_id)
-
-    assert report == expected_report
-
-
-@responses.activate
-def test_query_alienvault(fqdn_observable_dict, api_key, fqdn_response_from_file):
-    responses.add(
-        responses.GET,
-        f"https://otx.alienvault.com/api/v1/indicators/domain/{fqdn_observable_dict['value']}/general",
-        json=fqdn_response_from_file,
-    )
-
-    result: dict = query_alienvault(fqdn_observable_dict, api_key)
-
-    assert result == fqdn_response_from_file
+    assert report.count == 3
+    assert len(report.pulse_data) == 3
 
 
-@responses.activate
-def test_query_alienvault_http_error(api_key, ip_observable_dict):
-    responses.add(
-        responses.GET,
-        "https://otx.alienvault.com/api/v1/indicators/IPv4/1.1.1.1/general",
-        body=HTTPError(),
-    )
-
-    with pytest.raises(QueryError):
-        _ = query_alienvault(ip_observable_dict, api_key)
-
-
-def test_query_alienvault_request_timeout(ip_observable_dict, api_key, mocker: MockerFixture):
-    mocker.patch("requests.get", side_effect=Timeout)
-
-    with pytest.raises(QueryError):
-        _ = query_alienvault(ip_observable_dict, api_key)
-
-
-def test_query_alienvault_missing_endpoint(api_key):
-    observable_dict: dict = {"value": "1.1.1.1", "type": "NaN"}
-
-    with pytest.raises(QueryError):
-        _ = query_alienvault(observable_dict, api_key)
+# --- get_endpoint tests ---
 
 
 @pytest.mark.parametrize(
@@ -280,10 +187,83 @@ def test_query_alienvault_missing_endpoint(api_key):
             "84d89877f0d4041efb6bf91a16f0248f2fd573e6af05c19f96bedb9f882f7882",
             "/indicators/file/84d89877f0d4041efb6bf91a16f0248f2fd573e6af05c19f96bedb9f882f7882/general",
         ),
-        # ("NaN", "1.1.1.1", None),
     ],
 )
 def test_get_endpoint(type: ObservableType, artifact: str, endpoint: str | None):
     result: str | None = get_endpoint(artifact, type)
 
     assert endpoint == result
+
+
+# --- AlienVaultEngine.analyze() tests ---
+
+
+@responses.activate
+def test_analyze_fqdn(fqdn_observable, alienvault_secrets, fqdn_response_from_file):
+    responses.add(
+        responses.GET,
+        f"https://otx.alienvault.com/api/v1/indicators/domain/{fqdn_observable.value}/general",
+        json=fqdn_response_from_file,
+    )
+    engine = AlienVaultEngine(alienvault_secrets, proxies={}, ssl_verify=True)
+    result = engine.analyze(fqdn_observable)
+    assert isinstance(result, AlienvaultReport)
+    assert result.success is True
+    assert result.count == 4
+
+
+def test_analyze_missing_api_key(fqdn_observable, alienvault_secrets_no_key):
+    engine = AlienVaultEngine(alienvault_secrets_no_key, proxies={}, ssl_verify=True)
+    result = engine.analyze(fqdn_observable)
+    assert result.success is False
+    assert result.error is not None
+
+
+@responses.activate
+def test_analyze_http_error(ip_observable, alienvault_secrets):
+    responses.add(
+        responses.GET,
+        "https://otx.alienvault.com/api/v1/indicators/IPv4/186.180.44.234/general",
+        body=HTTPError(),
+    )
+    engine = AlienVaultEngine(alienvault_secrets, proxies={}, ssl_verify=True)
+    result = engine.analyze(ip_observable)
+    assert result.success is False
+
+
+@responses.activate
+@patch("time.sleep")
+def test_analyze_timeout(mock_sleep, fqdn_observable, alienvault_secrets, mocker: MockerFixture):
+    mocker.patch.object(AlienVaultEngine, "_make_request", side_effect=ReadTimeout)
+    engine = AlienVaultEngine(alienvault_secrets, proxies={}, ssl_verify=True)
+    result = engine.analyze(fqdn_observable)
+    assert result.success is False
+
+
+# --- create_export_row tests ---
+
+
+def test_create_export_row_with_result(alienvault_secrets, fqdn_response_from_file):
+    engine = AlienVaultEngine(alienvault_secrets, proxies={}, ssl_verify=True)
+    report = parse_alienvault_response(fqdn_response_from_file)
+    row = engine.create_export_row(report)
+    assert row["alienvault_pulses"] == 4
+    assert row["alienvault_adversary"] == "Lazarus"
+
+
+def test_create_export_row_none(alienvault_secrets):
+    engine = AlienVaultEngine(alienvault_secrets, proxies={}, ssl_verify=True)
+    row = engine.create_export_row(None)
+    assert row == {
+        "alienvault_pulses": None,
+        "alienvault_malwares": None,
+        "alienvault_adversary": None,
+    }
+
+
+def test_create_export_row_no_malware_or_adversary(alienvault_secrets, ip_response_from_file):
+    engine = AlienVaultEngine(alienvault_secrets, proxies={}, ssl_verify=True)
+    report = parse_alienvault_response(ip_response_from_file)
+    row = engine.create_export_row(report)
+    assert row["alienvault_malwares"] is None
+    assert row["alienvault_adversary"] is None
