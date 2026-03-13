@@ -76,6 +76,7 @@
 - [Documentation](contribute/Documentation.md)
 - [Coding Style](contribute/Coding-Style.md)
 - [Contributions](contribute/Contributions.md)
+- [Engine Design](contribute/Engine-Design.md)
 
 ---
 

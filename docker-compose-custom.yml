@@ -1,0 +1,80 @@
+services:
+
+  nginx:
+    container_name: nginx
+    hostname: nginx
+    image: nginx:latest
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+      - 5000:5000
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - certbot
+
+  certbot:
+    hostname: certbot
+    container_name: certbot
+    image: certbot/dns-route53
+    restart: always
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+
+  cyberbro:
+    container_name: cyberbro
+    hostname: cyberbro
+    image: ubahmapk/cyberbro-uv:latest
+    environment:
+      - FLASK_ENV=production
+      - ABUSEIPDB=${ABUSEIPDB:-}
+      - ALIENVAULT=${ALIENVAULT:-}
+      - CRIMINALIP_API_KEY=${CRIMINALIP_API_KEY:-}
+      - CROWDSTRIKE_CLIENT_ID=${CROWDSTRIKE_CLIENT_ID:-}
+      - CROWDSTRIKE_CLIENT_SECRET=${CROWDSTRIKE_CLIENT_SECRET:-}
+      - CROWDSTRIKE_FALCON_BASE_URL=${CROWDSTRIKE_FALCON_BASE_URL:-}
+      - GOOGLE_CSE_KEY=${GOOGLE_CSE_KEY:-}
+      - GOOGLE_CSE_CX=${GOOGLE_CSE_CX:-}
+      - GOOGLE_SAFE_BROWSING=${GOOGLE_SAFE_BROWSING:-}
+      - IPAPI=${IPAPI:-}
+      - IPINFO=${IPINFO:-}
+      - PHISHTANK=${PHISHTANK:-}
+      - MDE_CLIENT_ID=${MDE_CLIENT_ID:-}
+      - MDE_CLIENT_SECRET=${MDE_CLIENT_SECRET:-}
+      - MDE_TENANT_ID=${MDE_TENANT_ID:-}
+      - MISP_API_KEY=${MISP_API_KEY:-}
+      - MISP_URL=${MISP_URL:-}
+      - OPENCTI_API_KEY=${OPENCTI_API_KEY:-}
+      - OPENCTI_URL=${OPENCTI_URL:-}
+      - DFIR_IRIS_API_KEY=${DFIR_IRIS_API_KEY:-}
+      - DFIR_IRIS_URL=${DFIR_IRIS_URL:-}
+      - RL_ANALYZE_API_KEY=${RL_ANALYZE_API_KEY:-}
+      - RL_ANALYZE_URL=${RL_ANALYZE_URL:-}
+      - ROSTI_API_KEY=${ROSTI_API_KEY:-}
+      - SHODAN=${SHODAN:-}
+      - SPUR_US=${SPUR_US:-}
+      - THREATFOX=${THREATFOX:-}
+      - VIRUSTOTAL=${VIRUSTOTAL:-}
+      - WEBSCOUT=${WEBSCOUT:-}
+      - CONFIG_PAGE_ENABLED=${CONFIG_PAGE_ENABLED:-}
+      - SSL_VERIFY=${SSL_VERIFY:-}
+      - PROXY_URL=${PROXY_URL:-}
+      - GUI_CACHE_TIMEOUT=${GUI_CACHE_TIMEOUT:-}
+      - API_CACHE_TIMEOUT=${API_CACHE_TIMEOUT:-}
+      - GUI_ENABLED_ENGINES=${GUI_ENABLED_ENGINES:-}
+      - SUPERVISORD_WORKERS_COUNT=${SUPERVISORD_WORKERS_COUNT:-}
+      - SUPERVISORD_THREADS_COUNT=${SUPERVISORD_THREADS_COUNT:-}
+      - SUPERVISORD_TIMEOUT=${SUPERVISORD_TIMEOUT:-}
+      - API_PREFIX=${API_PREFIX:-}
+      - MAX_FORM_MEMORY_SIZE=${MAX_FORM_MEMORY_SIZE:-}
+    restart: always
+    volumes:
+      - ./data:/app/data
+      - ./logs:/var/log/cyberbro

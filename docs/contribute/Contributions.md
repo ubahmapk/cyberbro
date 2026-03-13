@@ -9,6 +9,8 @@ For details on contributing, community standards, and licensing, see:
 
 ## Checklist when adding a new engine
 
+Before writing code, read the **[Engine Design Guide](Engine-Design.md)** for a full explanation of the architecture, required components, and testing patterns.
+
 ### Engine Implementation
 * Make sure the engine is added to `engines/engine_name.py` (use `engines/abuseipdb.py` as a template).
 * Make sure the engine is added to `engines/__init__.py`.

@@ -1,0 +1,17 @@
+{
+  "languages": {
+    "Python": {
+      "language_servers": ["ty", "ruff"],
+      "format_on_save": "on",
+    },
+  },
+  "lsp": {
+    "ruff": {
+      "initialization_options": {
+        "settings": {
+          "configuration": ".ruff.toml",
+        },
+      },
+    },
+  },
+}
