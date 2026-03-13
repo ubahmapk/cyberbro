@@ -53,3 +53,8 @@ def fqdn_observable():
 ```
 
 When combining `@patch` with pytest fixtures, the patch mock always comes first in the parameter list.
+
+## 4. Examples
+
+For HTTP-based engines, use the `CrtSh` engine and associated tests as a reference.
+For custom client-based engines, use the `Abusix` engine and associated tests as a reference.
