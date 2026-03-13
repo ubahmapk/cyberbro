@@ -4,6 +4,11 @@
       "language_servers": ["ty", "ruff"],
       "format_on_save": "on",
     },
+    "Markdown": {
+      "format_on_save": "off",
+      "remove_trailing_whitespace_on_save": false,
+      "prettier": { "allowed": false },
+    },
   },
   "lsp": {
     "ruff": {
