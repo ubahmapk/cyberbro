@@ -1,18 +1,13 @@
 import logging
 
 import querycontacts
-from pydantic import ConfigDict, EmailStr, Field, ValidationError
+from pydantic import ValidationError
 
+from models.abusix import AbusixReport
 from models.base_engine import BaseEngine
 from models.observable import Observable, ObservableType
-from models.report import BaseReport
 
 logger = logging.getLogger(__name__)
-
-
-class AbusixReport(BaseReport):
-    model_config = ConfigDict(validate_by_alias=True, validate_by_name=True)
-    abuse_email: EmailStr | None = Field(validation_alias="abuse", default=None)
 
 
 class AbusixEngine(BaseEngine[AbusixReport]):
