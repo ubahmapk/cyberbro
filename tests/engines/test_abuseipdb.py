@@ -5,7 +5,8 @@ import pytest
 import requests
 import responses
 
-from engines.abuseipdb import AbuseIPDBEngine, AbuseIPDBReport
+from engines.abuseipdb import AbuseIPDBEngine
+from models.abuseipdb import AbuseIPDBReport
 from models.observable import Observable, ObservableType
 from utils.config import Secrets
 

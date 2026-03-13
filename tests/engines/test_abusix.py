@@ -3,7 +3,8 @@ from unittest.mock import patch
 
 import pytest
 
-from engines.abusix import AbusixEngine, AbusixReport
+from engines.abusix import AbusixEngine
+from models.abusix import AbusixReport
 from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
