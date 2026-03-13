@@ -101,6 +101,6 @@ class CrtShEngine(BaseEngine[CrtShReport]):
             return {"crtsh_top_domains": None}
 
         domains = analysis_result.top_domains
-        top_domains_str = ", ".join([d["domain"] for d in domains])
+        top_domains_str = ", ".join(d.domain for d in domains)
 
         return {"crtsh_top_domains": top_domains_str if top_domains_str else None}
