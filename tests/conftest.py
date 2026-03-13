@@ -49,3 +49,40 @@ def ipv4_observable():
 @pytest.fixture()
 def ipv6_observable():
     return "2001:4860:4860::8888"
+
+
+@pytest.fixture()
+def alienvault_secrets():
+    from utils.config import Secrets
+
+    s = Secrets()
+    s.alienvault = "test_api_key"
+    return s
+
+
+@pytest.fixture()
+def alienvault_secrets_no_key():
+    from utils.config import Secrets
+
+    s = Secrets()
+    s.alienvault = ""
+    return s
+
+
+@pytest.fixture()
+def engine_kwargs():
+    return {"proxies": {}, "ssl_verify": True}
+
+
+@pytest.fixture()
+def fqdn_observable():
+    from models.observable import Observable
+
+    return Observable(value="support-gmeet.com", type=ObservableType.FQDN)
+
+
+@pytest.fixture()
+def ip_observable():
+    from models.observable import Observable
+
+    return Observable(value="186.180.44.234", type=ObservableType.IPV4)
