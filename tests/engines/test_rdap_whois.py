@@ -231,22 +231,22 @@ class TestSuccessfulAnalysis:
         assert "registrar-abuse@cloudflare.com" in result["emails"]
 
     @responses.activate
-    def test_url_rdap_response(self, engine, complete_rdap_response):
+    def test_url_rdap_response(self, engine, url_observable, complete_rdap_response):
         """Test successful URL analysis - domain extracted from URL."""
         responses.add(responses.POST, API_URL, json=complete_rdap_response, status=200)
 
-        result = engine.analyze("https://www.cyberbro.net/", "URL")
+        result = engine.analyze(url_observable)
 
         assert result is not None
         assert result["registrar"] == "Cloudflare, Inc."
         assert result["data_source"] == "rdap"
 
     @responses.activate
-    def test_whois_fallback_response(self, engine, complete_whois_response):
+    def test_whois_fallback_response(self, engine, fqdn_observable, complete_whois_response):
         """Test successful analysis with WHOIS data source (API fallback)."""
         responses.add(responses.POST, API_URL, json=complete_whois_response, status=200)
 
-        result = engine.analyze("test-domain.pt", "FQDN")
+        result = engine.analyze(fqdn_observable)
 
         assert result is not None
         assert result["data_source"] == "whois"
@@ -605,19 +605,19 @@ class TestRequestVerification:
 
 class TestDataSource:
     @responses.activate
-    def test_rdap_data_source(self, engine, complete_rdap_response):
+    def test_rdap_data_source(self, engine, fqdn_observable, complete_rdap_response):
         """Verify data_source is correctly set for RDAP responses."""
         responses.add(responses.POST, API_URL, json=complete_rdap_response, status=200)
 
-        result = engine.analyze("cyberbro.net", "FQDN")
+        result = engine.analyze(fqdn_observable)
         assert result["data_source"] == "rdap"
 
     @responses.activate
-    def test_whois_data_source(self, engine, complete_whois_response):
+    def test_whois_data_source(self, engine, fqdn_observable, complete_whois_response):
         """Verify data_source is correctly set for WHOIS responses."""
         responses.add(responses.POST, API_URL, json=complete_whois_response, status=200)
 
-        result = engine.analyze("test-domain.pt", "FQDN")
+        result = engine.analyze(fqdn_observable)
         assert result["data_source"] == "whois"
 
 
@@ -626,20 +626,20 @@ class TestDataSource:
 
 class TestEmailsArray:
     @responses.activate
-    def test_multiple_emails(self, engine, complete_rdap_response):
+    def test_multiple_emails(self, engine, fqdn_observable, complete_rdap_response):
         """Multiple emails should be preserved as array."""
         responses.add(responses.POST, API_URL, json=complete_rdap_response, status=200)
 
-        result = engine.analyze("cyberbro.net", "FQDN")
+        result = engine.analyze(fqdn_observable)
         assert isinstance(result["emails"], list)
         assert len(result["emails"]) == 1
 
     @responses.activate
-    def test_three_emails_whois(self, engine, complete_whois_response):
+    def test_three_emails_whois(self, engine, fqdn_observable, complete_whois_response):
         """WHOIS response can have more emails from different contacts."""
         responses.add(responses.POST, API_URL, json=complete_whois_response, status=200)
 
-        result = engine.analyze("test-domain.pt", "FQDN")
+        result = engine.analyze(fqdn_observable)
         assert len(result["emails"]) == 3
 
     @responses.activate
