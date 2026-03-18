@@ -56,12 +56,12 @@ class IPInfoEngine(BaseEngine[IpInfoReport]):
         if not analysis_result:
             return {f"ipinfo_{k}": None for k in ["cn", "country", "geo", "asn", "org"]}
 
-        asn_data = analysis_result.get("asn").split(" ", 1) if analysis_result.get("asn") else []
+        asn_data = analysis_result.asn.split(" ", 1) if analysis_result.asn else []
 
         return {
-            "ipinfo_cn": analysis_result.get("country_code"),
-            "ipinfo_country": analysis_result.get("country_name"),
-            "ipinfo_geo": analysis_result.get("geolocation"),
+            "ipinfo_cn": analysis_result.country_code,
+            "ipinfo_country": analysis_result.country_name,
+            "ipinfo_geo": analysis_result.geolocation,
             "ipinfo_asn": asn_data[0] if len(asn_data) > 0 else None,
             "ipinfo_org": asn_data[1] if len(asn_data) > 1 else None,
         }
