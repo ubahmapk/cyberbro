@@ -11,7 +11,7 @@ class AbuseIPDBReport(BaseReport):
     is_whitelisted: bool = Field(validation_alias="isWhitelisted", default=False)
     risk_score: int = Field(validation_alias="abuseConfidenceScore", default=0)
     is_tor: bool = Field(validation_alias="isTor", default=False)
-    # hostnames: list[str] = Field(default_factory=list[str])
+    hostnames: list[str] = Field(default_factory=list[str])
     country_code: str = Field(validation_alias="countryCode", default="")
     country_name: str = "Unknown"
     usage_type: str = Field(validation_alias="usageType", default="")
