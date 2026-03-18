@@ -1,10 +1,12 @@
 import logging
+from pathlib import Path
 
 import pytest
 import responses
+from jinja2 import Environment, FileSystemLoader
 
 from engines.criminalip import CriminalIPEngine
-from models.criminalip import CriminalIpReport, Score, ScoreStatus
+from models.criminalip import CriminalIpReport, Issues, Score, ScoreStatus
 from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
@@ -771,3 +773,77 @@ def test_create_export_row_score_is_none(secrets_with_key):
     assert export_row["cip_score_inbound"] is None
     assert export_row["cip_score_outbound"] is None
     assert export_row["cip_abuse_count"] is None
+
+
+@pytest.fixture
+def jinja_env():
+    templates_dir = Path(__file__).parent.parent.parent / "templates"
+    return Environment(loader=FileSystemLoader(str(templates_dir)))
+
+
+def test_issues_items_returns_field_value_pairs():
+    """Test Issues.items() yields (field_name, bool) pairs for all fields."""
+    issues = Issues(is_tor=True, is_vpn=True)
+    items = dict(issues.items())
+
+    assert set(items.keys()) == set(Issues.model_fields.keys())
+    assert items["is_tor"] is True
+    assert items["is_vpn"] is True
+    assert items["is_cloud"] is False  # default value
+
+
+def test_criminalip_card_renders_issues(jinja_env):
+    """Card template correctly renders Issues flags with CSS classes."""
+    from types import SimpleNamespace
+
+    from models.criminalip import CurrentOpenedPorts, IDSAlerts
+
+    report = CriminalIpReport(
+        status=200,
+        abuse_record_count=1,
+        score=Score(inbound=ScoreStatus.DANGEROUS, outbound=ScoreStatus.SAFE),
+        issues=Issues(is_tor=True, is_vpn=False),
+        ids=IDSAlerts(count=0),
+        current_opened_port=CurrentOpenedPorts(count=0),
+    )
+    ctx = {"analysis_results": SimpleNamespace(results=[SimpleNamespace(criminalip=report)])}
+    tmpl = jinja_env.get_template("engine_layouts/criminalip_card.html")
+    html = tmpl.render(**ctx)
+
+    assert "is_tor" in html
+    assert "is_vpn" in html
+    assert "bad-value" in html  # is_tor=True → bad class
+    assert "good-value" in html  # is_vpn=False → good class
+    assert "Abuse Record Count" in html
+
+    # Also verify template renders without AttributeError when ids is None
+    report_no_ids = CriminalIpReport(
+        status=200,
+        abuse_record_count=1,
+        score=Score(inbound=ScoreStatus.DANGEROUS, outbound=ScoreStatus.SAFE),
+        issues=Issues(is_tor=True, is_vpn=False),
+    )
+    ctx2 = {
+        "analysis_results": SimpleNamespace(results=[SimpleNamespace(criminalip=report_no_ids)])
+    }
+    html2 = tmpl.render(**ctx2)
+    assert "is_tor" in html2
+
+
+def test_criminalip_table_renders_issues(jinja_env):
+    """Table template correctly renders Issues flags with CSS classes."""
+    from types import SimpleNamespace
+
+    report = CriminalIpReport(
+        status=200,
+        success=True,
+        abuse_record_count=0,
+        score=Score(inbound=ScoreStatus.SAFE, outbound=ScoreStatus.SAFE),
+        issues=Issues(is_scanner=True),
+    )
+    ctx = {"result": SimpleNamespace(criminalip=report)}
+    tmpl = jinja_env.get_template("engine_layouts/criminalip_table.html")
+    html = tmpl.render(**ctx)
+
+    assert "is_scanner" in html
+    assert "bad-value" in html  # is_scanner=True → bad class
