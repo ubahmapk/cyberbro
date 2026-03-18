@@ -44,7 +44,7 @@
     </div>
 {% endif %}
 
-{% if criminalip.ids.count > 0 %}
+{% if criminalip.ids and criminalip.ids.count > 0 %}
     <div><h4>IDS</h4>
     <div><ul>
     {% for ids in criminalip.ids.data %}

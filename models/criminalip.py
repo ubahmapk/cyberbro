@@ -46,6 +46,10 @@ class Issues(BaseModel):
     is_tor: bool = False
     is_vpn: bool = False
 
+    def items(self):
+        """Yield (field_name, value) pairs to support Jinja2 template iteration."""
+        return ((field, getattr(self, field)) for field in type(self).model_fields)
+
 
 class WhoisRecord(BaseModel):
     as_name: str | None = None
