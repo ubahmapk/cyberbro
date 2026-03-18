@@ -1,16 +1,10 @@
 <td>
     {% if result.crtsh %}
-        <strong>Scan count:</strong> <a href="{{ result.crtsh.link }}" target="_blank">{{ result.crtsh.scan_count }}</a><br/>
-        {% if result.crtsh.scan_count == 0 %}
+        <a href="{{ result.crtsh.link }}" target="_blank"><strong>details</strong></a><br/>
+        {% if not result.crtsh.success %}
             Not Found
         {% else %}
-            <strong>
-            {% if result.type in ["FQDN", "URL"] %}
-                Top domains:
-            {% else %}
-                Top related domains:
-            {% endif %}
-            </strong>
+            <strong>Top domains:</strong>
             <ul>
             {% for domain in result.crtsh.top_domains %}
                 <li>{{ domain.domain }} ({{ domain.count }})</li>

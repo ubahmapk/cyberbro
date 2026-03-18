@@ -1,7 +1,7 @@
 <div class="card">
     <h3>crt.sh</h3>
     <p><a href="{{ analysis_results.results[0].crtsh.link }}" target="_blank"><strong>details</strong></a></p>
-    {% if analysis_results.results[0].crtsh.scan_count == 0 %}
+    {% if not analysis_results.results[0].crtsh.success %}
         <p>Not Found</p>
     {% else %}
         <p><strong>
