@@ -83,6 +83,7 @@ def test_analyze_success_complete(secrets_with_key, ipv4_observable):
     assert result.domain == "cloudflare.com"
     assert result.is_tor is False
     assert result.last_reported_at == "2025-04-22T13:01:09+00:00"
+    assert result.hostnames == ["one.one.one.one"]
 
 
 def test_analyze_no_api_key(secrets_without_key, ipv4_observable, caplog):
@@ -245,6 +246,7 @@ def test_create_export_row_with_data():
         usage_type="Data Center/Web Hosting/Transit",
         is_tor=False,
         last_reported_at="2026-02-05T21:42:02+00:00",
+        hostnames=["one.one.one.one"],
         success=True,
     )
 
@@ -258,6 +260,7 @@ def test_create_export_row_with_data():
     assert row["a_ipdb_usage_type"] == "Data Center/Web Hosting/Transit"
     assert row["a_ipdb_is_tor"] is False
     assert row["a_ipdb_last_reported"] == "2026-02-05T21:42:02+00:00"
+    assert row["a_ipdb_hostnames"] == "one.one.one.one"
 
 
 def test_create_export_row_none():
@@ -274,6 +277,7 @@ def test_create_export_row_none():
     assert row["a_ipdb_usage_type"] is None
     assert row["a_ipdb_is_tor"] is None
     assert row["a_ipdb_last_reported"] is None
+    assert row["a_ipdb_hostnames"] is None
 
 
 def test_engine_properties():
