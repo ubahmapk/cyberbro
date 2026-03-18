@@ -197,6 +197,7 @@ class BadASNEngine(BaseEngine[BadAsnReport]):
                 risk_score=result.calculate_risk_score,
                 legitimate_but_abused=result.is_legit,
                 asn_org_name=result.name,
+                sources=result.sources,
             )
 
         logger.info(
@@ -214,6 +215,7 @@ class BadASNEngine(BaseEngine[BadAsnReport]):
             risk_score=result.calculate_risk_score,
             legitimate_but_abused=result.is_legit,
             asn_org_name=result.name,
+            sources=result.sources,
         )
 
     def _extract_asn_from_context(self, context: dict) -> str | None:
@@ -298,7 +300,7 @@ class BadASNEngine(BaseEngine[BadAsnReport]):
             return {
                 "bad_asn_status": "N/A",
                 "bad_asn_asn": "",
-                "bad_asn_source": "",
+                "bad_asn_sources": "",
                 "bad_asn_details": "",
                 "bad_asn_legitimate_but_abused": False,
                 "bad_asn_risk_score": 0,
@@ -308,7 +310,7 @@ class BadASNEngine(BaseEngine[BadAsnReport]):
         return {
             "bad_asn_status": analysis_result.status,
             "bad_asn_asn": analysis_result.asn,
-            "bad_asn_source": analysis_result.sources,
+            "bad_asn_sources": ", ".join(str(s) for s in analysis_result.sources),
             "bad_asn_details": analysis_result.details,
             "bad_asn_legitimate_but_abused": analysis_result.legitimate_but_abused,
             "bad_asn_risk_score": analysis_result.risk_score,
