@@ -4,6 +4,7 @@
     {% endif %}
 
     {% if result.abuseipdb %}
+        {% if result.abuseipdb.success %}
         <style>
             .badge {
                 display: inline-block;
@@ -53,6 +54,9 @@
         {% endif %}
         {% if result.abuseipdb.isp %}
         <strong>ISP: </strong>{{ result.abuseipdb.isp }}<br/>
+        {% endif %}
+        {% else %}
+        Not Found
         {% endif %}
     {% else %}
         Not applicable
