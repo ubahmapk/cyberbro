@@ -1,10 +1,12 @@
 import logging
+from unittest.mock import patch
 
 import pytest
 import requests
 import responses
 
 from engines.ipinfo import IPInfoEngine
+from models.ipinfo import IpInfoReport
 from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
@@ -60,13 +62,13 @@ def test_analyze_success_complete(secrets_with_key, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["ip"] == ipv4_observable.value
-    assert result["geolocation"] == "Los Angeles, California"
-    assert result["country_code"] == "US"
-    assert result["country_name"] == "United States"
-    assert result["hostname"] == "one.one.one.one"
-    assert result["asn"] == "15169 Google LLC"
-    assert result["link"] == f"https://ipinfo.io/{ipv4_observable.value}"
+    assert result.ip == ipv4_observable.value
+    assert result.geolocation == "Los Angeles, California"
+    assert result.country_code == "US"
+    assert result.country_name == "United States"
+    assert result.hostname == "one.one.one.one"
+    assert result.asn == "15169 Google LLC"
+    assert result.link == f"https://ipinfo.io/{ipv4_observable.value}"
 
 
 @responses.activate
@@ -86,13 +88,13 @@ def test_analyze_success_bogon(secrets_with_key):
     result = engine.analyze(Observable(value=bogon_ip, type=ObservableType.IPV4))
 
     assert result is not None
-    assert result["ip"] == bogon_ip
-    assert result["geolocation"] == ""
-    assert result["country_code"] == ""
-    assert result["country_name"] == "Bogon"
-    assert result["hostname"] == "Private IP"
-    assert result["asn"] == "BOGON"
-    assert result["link"] == f"https://ipinfo.io/{bogon_ip}"
+    assert result.ip == bogon_ip
+    assert result.geolocation == "Unknown"
+    assert result.country_code == ""
+    assert result.country_name == "Bogon"
+    assert result.hostname == "Private IP"
+    assert result.asn == "BOGON"
+    assert result.link == f"https://ipinfo.io/{bogon_ip}"
 
 
 @responses.activate
@@ -115,8 +117,8 @@ def test_analyze_success_country_resolution(secrets_with_key, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["country_code"] == "GB"
-    assert result["country_name"] == "United Kingdom"
+    assert result.country_code == "GB"
+    assert result.country_name == "United Kingdom"
 
 
 @responses.activate
@@ -139,8 +141,8 @@ def test_analyze_success_unknown_country(secrets_with_key, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["country_code"] == "XX"
-    assert result["country_name"] == "Unknown"
+    assert result.country_code == "XX"
+    assert result.country_name == "Unknown"
 
 
 # ============================================================================
@@ -168,10 +170,10 @@ def test_analyze_ipv6_success(secrets_with_key, ipv6_observable):
     result = engine.analyze(ipv6_observable)
 
     assert result is not None
-    assert result["ip"] == ipv6_observable.value
-    assert result["geolocation"] == "Mountain View, California"
-    assert result["country_code"] == "US"
-    assert result["country_name"] == "United States"
+    assert result.ip == ipv6_observable.value
+    assert result.geolocation == "Mountain View, California"
+    assert result.country_code == "US"
+    assert result.country_name == "United States"
 
 
 # ============================================================================
@@ -188,16 +190,17 @@ def test_analyze_http_error_codes(secrets_with_key, ipv4_observable, status_code
 
     responses.add(responses.GET, url, json={"error": "error"}, status=status_code)
 
-    caplog.set_level(logging.ERROR)
+    caplog.set_level(logging.WARNING)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error querying ipinfo" in caplog.text
+    assert result is not None
+    assert result.success is False
+    assert "IPInfo request failed for" in caplog.text
 
 
 @responses.activate
-def test_analyze_missing_ip_key(secrets_with_key, ipv4_observable, caplog):
-    """Test handling of valid 200 response missing 'ip' key."""
+def test_analyze_missing_ip_key(secrets_with_key, ipv4_observable):
+    """Test handling of valid 200 response missing 'ip' key — returns report with empty ip."""
     engine = IPInfoEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = f"https://ipinfo.io/{ipv4_observable.value}/json?token={secrets_with_key.ipinfo}"
 
@@ -209,15 +212,16 @@ def test_analyze_missing_ip_key(secrets_with_key, ipv4_observable, caplog):
 
     responses.add(responses.GET, url, json=mock_resp, status=200)
 
-    caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert result is not None
+    assert result.success is True
+    assert result.ip == ""
 
 
 @responses.activate
 def test_analyze_no_bogon_and_no_ip(secrets_with_key, ipv4_observable):
-    """Test response with neither bogon nor ip key."""
+    """Test response with an 'error' key causes success=False."""
     engine = IPInfoEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = f"https://ipinfo.io/{ipv4_observable.value}/json?token={secrets_with_key.ipinfo}"
 
@@ -227,11 +231,13 @@ def test_analyze_no_bogon_and_no_ip(secrets_with_key, ipv4_observable):
 
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert result is not None
+    assert result.success is False
 
 
 @responses.activate
-def test_analyze_request_timeout(secrets_with_key, ipv4_observable, caplog):
+@patch("time.sleep")
+def test_analyze_request_timeout(mock_sleep, secrets_with_key, ipv4_observable, caplog):
     """Test handling of request timeout."""
     engine = IPInfoEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = f"https://ipinfo.io/{ipv4_observable.value}/json?token={secrets_with_key.ipinfo}"
@@ -239,15 +245,17 @@ def test_analyze_request_timeout(secrets_with_key, ipv4_observable, caplog):
     timeout_error = requests.exceptions.ConnectTimeout("Connection timed out")
     responses.add(responses.GET, url, body=timeout_error)
 
-    caplog.set_level(logging.ERROR)
+    caplog.set_level(logging.WARNING)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error querying ipinfo" in caplog.text
+    assert result is not None
+    assert result.success is False
+    assert "IPInfo request failed for" in caplog.text
 
 
 @responses.activate
-def test_analyze_request_connection_error(secrets_with_key, ipv4_observable, caplog):
+@patch("time.sleep")
+def test_analyze_request_connection_error(mock_sleep, secrets_with_key, ipv4_observable, caplog):
     """Test handling of connection error."""
     engine = IPInfoEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = f"https://ipinfo.io/{ipv4_observable.value}/json?token={secrets_with_key.ipinfo}"
@@ -255,11 +263,12 @@ def test_analyze_request_connection_error(secrets_with_key, ipv4_observable, cap
     conn_error = requests.exceptions.ConnectionError("Connection failed")
     responses.add(responses.GET, url, body=conn_error)
 
-    caplog.set_level(logging.ERROR)
+    caplog.set_level(logging.WARNING)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error querying ipinfo" in caplog.text
+    assert result is not None
+    assert result.success is False
+    assert "IPInfo request failed for" in caplog.text
 
 
 @responses.activate
@@ -270,11 +279,12 @@ def test_analyze_invalid_json_response(secrets_with_key, ipv4_observable, caplog
 
     responses.add(responses.GET, url, body="invalid json{", status=200)
 
-    caplog.set_level(logging.ERROR)
+    caplog.set_level(logging.WARNING)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error querying ipinfo" in caplog.text
+    assert result is not None
+    assert result.success is False
+    assert "IPInfo request failed for" in caplog.text
 
 
 # ============================================================================
@@ -295,12 +305,12 @@ def test_analyze_missing_optional_fields(secrets_with_key, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["ip"] == ipv4_observable.value
-    assert result["geolocation"] == "Unknown, Unknown"
-    assert result["country_code"] == "Unknown"
-    assert result["country_name"] == "Unknown"
-    assert result["hostname"] == "Unknown"
-    assert result["asn"] == "Unknown"
+    assert result.ip == ipv4_observable.value
+    assert result.geolocation == "Unknown"
+    assert result.country_code == ""
+    assert result.country_name == "Unknown"
+    assert result.hostname == "Unknown"
+    assert result.asn == "Unknown"
 
 
 @responses.activate
@@ -322,8 +332,8 @@ def test_analyze_missing_hostname(secrets_with_key, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["hostname"] == "Unknown"
-    assert result["geolocation"] == "San Francisco, California"
+    assert result.hostname == "Unknown"
+    assert result.geolocation == "San Francisco, California"
 
 
 @responses.activate
@@ -345,7 +355,7 @@ def test_analyze_asn_parsing(secrets_with_key, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["asn"] == "15169 Google LLC"
+    assert result.asn == "15169 Google LLC"
 
 
 # ============================================================================
@@ -357,15 +367,15 @@ def test_create_export_row_complete():
     """Test export row with complete analysis result."""
     engine = IPInfoEngine(Secrets(), proxies={}, ssl_verify=True)
 
-    analysis_result = {
-        "ip": "1.1.1.1",
-        "geolocation": "Los Angeles, California",
-        "country_code": "US",
-        "country_name": "United States",
-        "hostname": "one.one.one.one",
-        "asn": "15169 Google LLC",
-        "link": "https://ipinfo.io/1.1.1.1",
-    }
+    analysis_result = IpInfoReport(
+        ip="1.1.1.1",
+        geolocation="Los Angeles, California",
+        country="US",
+        country_name="United States",
+        hostname="one.one.one.one",
+        org="15169 Google LLC",
+        link="https://ipinfo.io/1.1.1.1",
+    )
 
     row = engine.create_export_row(analysis_result)
 
@@ -393,15 +403,15 @@ def test_create_export_row_asn_number_only():
     """Test export row with ASN number but no organization."""
     engine = IPInfoEngine(Secrets(), proxies={}, ssl_verify=True)
 
-    analysis_result = {
-        "ip": "1.1.1.1",
-        "geolocation": "Los Angeles, California",
-        "country_code": "US",
-        "country_name": "United States",
-        "hostname": "one.one.one.one",
-        "asn": "15169",
-        "link": "https://ipinfo.io/1.1.1.1",
-    }
+    analysis_result = IpInfoReport(
+        ip="1.1.1.1",
+        geolocation="Los Angeles, California",
+        country="US",
+        country_name="United States",
+        hostname="one.one.one.one",
+        org="15169",
+        link="https://ipinfo.io/1.1.1.1",
+    )
 
     row = engine.create_export_row(analysis_result)
 
@@ -413,15 +423,15 @@ def test_create_export_row_asn_unknown():
     """Test export row with 'Unknown' ASN value."""
     engine = IPInfoEngine(Secrets(), proxies={}, ssl_verify=True)
 
-    analysis_result = {
-        "ip": "1.1.1.1",
-        "geolocation": "Los Angeles, California",
-        "country_code": "US",
-        "country_name": "United States",
-        "hostname": "one.one.one.one",
-        "asn": "Unknown",
-        "link": "https://ipinfo.io/1.1.1.1",
-    }
+    analysis_result = IpInfoReport(
+        ip="1.1.1.1",
+        geolocation="Los Angeles, California",
+        country="US",
+        country_name="United States",
+        hostname="one.one.one.one",
+        org="Unknown",
+        link="https://ipinfo.io/1.1.1.1",
+    )
 
     row = engine.create_export_row(analysis_result)
 
@@ -433,21 +443,16 @@ def test_create_export_row_bogon():
     """Test export row from bogon analysis result."""
     engine = IPInfoEngine(Secrets(), proxies={}, ssl_verify=True)
 
-    analysis_result = {
-        "ip": "10.0.0.1",
-        "geolocation": "",
-        "country_code": "",
-        "country_name": "Bogon",
-        "hostname": "Private IP",
-        "asn": "BOGON",
-        "link": "https://ipinfo.io/10.0.0.1",
-    }
+    analysis_result = IpInfoReport(
+        ip="10.0.0.1",
+        bogon=True,
+    )
 
     row = engine.create_export_row(analysis_result)
 
     assert row["ipinfo_cn"] == ""
     assert row["ipinfo_country"] == "Bogon"
-    assert row["ipinfo_geo"] == ""
+    assert row["ipinfo_geo"] == "Unknown"
     assert row["ipinfo_asn"] == "BOGON"
     assert row["ipinfo_org"] is None
 
