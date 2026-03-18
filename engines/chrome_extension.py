@@ -4,15 +4,11 @@ from bs4 import BeautifulSoup
 from bs4.exceptions import ParserRejectedMarkup
 from requests.exceptions import RequestException
 
-from models.base_engine import BaseEngine, BaseReport
+from models.base_engine import BaseEngine
+from models.chrome_extension import ChromeExtensionReport
 from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
-
-
-class ChromeExtensionReport(BaseReport):
-    name: str = ""
-    url: str = ""
 
 
 class ChromeExtensionEngine(BaseEngine[ChromeExtensionReport]):
