@@ -101,7 +101,14 @@ class BaseEngine(ABC, Generic[R]):
         After each attempt, the delay between requests is exponentially increased
         and a DEBUG level log message is emitted.
         """
-        response = requests.get(url, proxies=self.proxies, verify=self.ssl_verify, timeout=timeout)
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params,
+            proxies=self.proxies,
+            verify=self.ssl_verify,
+            timeout=timeout,
+        )
         response.raise_for_status()
         return response
 
