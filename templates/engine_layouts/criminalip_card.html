@@ -33,10 +33,10 @@
     </div>
 {% endif %}
 
-{% if criminalip.issues is defined %}
+{% if criminalip.issues %}
     <div><h4>Issues</h4>
     <p><ul>
-    {% for issue_name, value in criminalip.issues.items() %}
+    {% for issue_name, value in criminalip.issues %}
         {% set font_class = good_value if value == false else bad_value %}
         <li> {{ issue_name }}: <span class="{{ font_class }}">{{ value }}</span></li>
     {% endfor %}
@@ -75,7 +75,7 @@
     </div>
 {% endif %}
 
-{% if criminalip.represenative_domain %}
-    <div><strong>Representative Domain</strong>: {{ criminalip.represenative_domain }}</div>
+{% if criminalip.representative_domain %}
+    <div><strong>Representative Domain</strong>: {{ criminalip.representative_domain }}</div>
 {% endif %}
 </div>

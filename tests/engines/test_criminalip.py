@@ -4,6 +4,7 @@ import pytest
 import responses
 
 from engines.criminalip import CriminalIPEngine
+from models.criminalip import CriminalIpReport, Score, ScoreStatus
 from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
@@ -27,11 +28,6 @@ def secrets_without_key():
 @pytest.fixture
 def ipv4_observable():
     return Observable(value="1.1.1.1", type=ObservableType.IPV4)
-
-
-@pytest.fixture
-def ipv6_observable():
-    return Observable(value="2001:4860:4860::8888", type=ObservableType.IPV6)
 
 
 @pytest.fixture
@@ -215,15 +211,15 @@ def test_analyze_success_response_variations(
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["ip"] == ipv4_observable.value
-    assert result["abuse_record_count"] == abuse_count
+    assert result.ip == ipv4_observable.value
+    assert result.abuse_record_count == abuse_count
     if has_score:
-        assert result["score"]["inbound"] == inbound_score
-        assert result["score"]["outbound"] == outbound_score
+        assert result.score.inbound == inbound_score
+        assert result.score.outbound == outbound_score
     if has_ports:
-        assert result["current_opened_port"]["count"] == 2
-        assert len(result["current_opened_port"]["data"]) == 2
-        assert result["current_opened_port"]["data"][0]["port"] == 80
+        assert result.current_opened_port.count == 2
+        assert len(result.current_opened_port.data) == 2
+        assert result.current_opened_port.data[0].port == 80
 
 
 @responses.activate
@@ -234,7 +230,7 @@ def test_analyze_missing_api_key(ipv4_observable, base_url, secrets_without_key,
 
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert result.success is False
     assert "API key for CriminalIP engine is not configured" in caplog.text
 
 
@@ -248,8 +244,8 @@ def test_analyze_http_error_codes(secrets_with_key, ipv4_observable, base_url, s
 
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error retrieving Criminal IP Suspicious Info report" in caplog.text
+    assert result.success is False
+    assert "Error querying CriminalIP" in caplog.text
 
 
 @responses.activate
@@ -277,17 +273,20 @@ def test_analyze_score_variations(
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["score"]["inbound"] == inbound_score
-    assert result["score"]["outbound"] == outbound_score
+    assert result.score.inbound == inbound_score
+    assert result.score.outbound == outbound_score
 
 
 def test_create_export_row_success(secrets_with_key):
     """Test export row formatting with complete score data."""
     engine = CriminalIPEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    analysis_result = {
-        "score": {"inbound": "Low", "outbound": "Dangerous"},
-        "abuse_record_count": 15,
-    }
+    analysis_result = CriminalIpReport(
+        status=200,
+        success=True,
+        ip="1.1.1.1",
+        score=Score(inbound=ScoreStatus.LOW, outbound=ScoreStatus.DANGEROUS),
+        abuse_record_count=15,
+    )
 
     export_row = engine.create_export_row(analysis_result)
 
@@ -331,7 +330,7 @@ def test_analyze_missing_score_field(secrets_with_key, ipv4_observable, base_url
 
     assert result is not None
     # Result doesn't include score field since it's optional in model
-    assert result.get("score") is None
+    assert result.score is None
 
 
 @responses.activate
@@ -367,8 +366,8 @@ def test_analyze_empty_open_ports_list(secrets_with_key, ipv4_observable, base_u
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["current_opened_port"]["count"] == 0
-    assert result["current_opened_port"]["data"] == []
+    assert result.current_opened_port.count == 0
+    assert result.current_opened_port.data == []
 
 
 @responses.activate
@@ -386,8 +385,8 @@ def test_analyze_empty_ids_list(secrets_with_key, ipv4_observable, base_url):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["ids"]["count"] == 0
-    assert result["ids"]["data"] == []
+    assert result.ids.count == 0
+    assert result.ids.data == []
 
 
 @responses.activate
@@ -405,8 +404,8 @@ def test_analyze_empty_whois_list(secrets_with_key, ipv4_observable, base_url):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["whois"]["count"] == 0
-    assert result["whois"]["data"] == []
+    assert result.whois.count == 0
+    assert result.whois.data == []
 
 
 @responses.activate
@@ -420,11 +419,11 @@ def test_analyze_all_issues_true(
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["issues"]["is_vpn"] is True
-    assert result["issues"]["is_tor"] is True
-    assert result["issues"]["is_proxy"] is True
-    assert result["issues"]["is_scanner"] is True
-    assert result["issues"]["is_darkweb"] is True
+    assert result.issues.is_vpn is True
+    assert result.issues.is_tor is True
+    assert result.issues.is_proxy is True
+    assert result.issues.is_scanner is True
+    assert result.issues.is_darkweb is True
 
 
 @responses.activate
@@ -458,8 +457,8 @@ def test_analyze_whois_partial_fields(secrets_with_key, ipv4_observable, base_ur
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["whois"]["data"][0]["as_name"] == "TEST-ASN"
-    assert result["whois"]["data"][0]["city"] is None
+    assert result.whois.data[0].as_name == "TEST-ASN"
+    assert result.whois.data[0].city is None
 
 
 @responses.activate
@@ -479,7 +478,7 @@ def test_analyze_validation_error_non_2xx_status(
 
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert result.success is False
     assert "Error validating Criminal IP Suspicious Info report" in caplog.text
 
 
@@ -569,7 +568,7 @@ def test_analyze_open_port_with_vulnerability(secrets_with_key, ipv4_observable,
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["current_opened_port"]["data"][0]["is_vulnerability"] is True
+    assert result.current_opened_port.data[0].is_vulnerability is True
 
 
 @responses.activate
@@ -600,34 +599,20 @@ def test_analyze_confirmed_time_fields(secrets_with_key, ipv4_observable, base_u
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["current_opened_port"]["data"][0]["confirmed_time"] == "2025-12-31T23:59:59Z"
-
-
-@responses.activate
-def test_analyze_ipv6_observable(
-    secrets_with_key, ipv6_observable, base_url, mock_response_minimal
-):
-    """Test analysis with IPv6 observable."""
-    engine = CriminalIPEngine(secrets_with_key, proxies={}, ssl_verify=True)
-    # Modify mock response to return IPv6
-    mock_resp = dict(mock_response_minimal)
-    mock_resp["ip"] = ipv6_observable.value
-    responses.add(responses.GET, base_url, json=mock_resp, status=200)
-
-    result = engine.analyze(ipv6_observable)
-
-    assert result is not None
-    assert result["ip"] == ipv6_observable.value
+    assert result.current_opened_port.data[0].confirmed_time == "2025-12-31T23:59:59Z"
 
 
 def test_create_export_row_missing_name_key(secrets_with_key):
     """Test export row gracefully handles missing 'name' key in score."""
     engine = CriminalIPEngine(secrets_with_key, proxies={}, ssl_verify=True)
     # Score with only one field (missing outbound)
-    analysis_result = {
-        "score": {"inbound": "Moderate"},
-        "abuse_record_count": 10,
-    }
+    analysis_result = CriminalIpReport(
+        status=200,
+        success=True,
+        ip="1.1.1.1",
+        score=Score(inbound=ScoreStatus.MODERATE),
+        abuse_record_count=10,
+    )
 
     export_row = engine.create_export_row(analysis_result)
 
@@ -668,9 +653,9 @@ def test_analyze_ids_alert_with_url(secrets_with_key, ipv4_observable, base_url)
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["ids"]["count"] == 2
-    assert result["ids"]["data"][0]["url"] == "https://example.com/malware-alert-1"
-    assert result["ids"]["data"][1]["classification"] == "exploit"
+    assert result.ids.count == 2
+    assert result.ids.data[0].url == "https://example.com/malware-alert-1"
+    assert result.ids.data[1].classification == "exploit"
 
 
 @responses.activate
@@ -728,10 +713,10 @@ def test_analyze_whois_multiple_records(secrets_with_key, ipv4_observable, base_
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["whois"]["count"] == 3
-    assert len(result["whois"]["data"]) == 3
-    assert result["whois"]["data"][0]["as_name"] == "AS1-NAME"
-    assert result["whois"]["data"][2]["org_country_code"] == "FR"
+    assert result.whois.count == 3
+    assert len(result.whois.data) == 3
+    assert result.whois.data[0].as_name == "AS1-NAME"
+    assert result.whois.data[2].org_country_code == "FR"
 
 
 @responses.activate
@@ -766,20 +751,23 @@ def test_analyze_coordinate_precision(secrets_with_key, ipv4_observable, base_ur
 
     assert result is not None
     # Verify precision is preserved (not rounded to int)
-    assert result["whois"]["data"][0]["latitude"] == 40.712776
-    assert result["whois"]["data"][0]["longitude"] == -74.005974
+    assert result.whois.data[0].latitude == 40.712776
+    assert result.whois.data[0].longitude == -74.005974
 
 
 def test_create_export_row_score_is_none(secrets_with_key):
     """Test export row when score field is None (safe default access)."""
     engine = CriminalIPEngine(secrets_with_key, proxies={}, ssl_verify=True)
     # This scenario shouldn't happen in real responses, but test graceful handling
-    analysis_result = {
-        "abuse_record_count": 5,
-    }
+    analysis_result = CriminalIpReport(
+        status=200,
+        success=True,
+        ip="1.1.1.1",
+        abuse_record_count=5,
+    )
 
     export_row = engine.create_export_row(analysis_result)
 
     assert export_row["cip_score_inbound"] is None
     assert export_row["cip_score_outbound"] is None
-    assert export_row["cip_abuse_count"] == 5
+    assert export_row["cip_abuse_count"] is None

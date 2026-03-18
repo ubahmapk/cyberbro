@@ -7,7 +7,7 @@
     {# --> #}
 
 <td>
-{% if result.criminalip and result.criminalip.status == 200 %}
+{% if result.criminalip and result.criminalip.success %}
 
     {% set font_class = bad_value if result.criminalip.abuse_record_count > 0 else good_value %}
     <strong>Abuse Record Count: </strong><span class="{{ font_class }}">{{ result.criminalip.abuse_record_count }}</span><br/>
@@ -37,7 +37,7 @@
 
     {% if result.criminalip.issues %}
         <strong>Issues:</strong><br/>
-        {% for issue_name, value in result.criminalip.issues | dictsort %}
+        {% for issue_name, value in result.criminalip.issues %}
             {% set font_class = good_value if value == false else bad_value %}
             {{ issue_name }}: <span class="{{ font_class }}">{{ value }}</span><br/>
         {% endfor %}
@@ -51,20 +51,8 @@
         {% endfor %}
     {% endif %}
 
-    {% if result.criminalip.reputation and result.criminalip.reputation.count > 0 %}
-        <strong>Reputation:</strong><br/>
-        {% for reputation in result.criminalip.reputation %}
-            <strong>Source: </strong>{{ reputation.source }}<br/>
-            <strong>Score: </strong>{{ reputation.score }}<br/>
-        {% endfor %}
-    {% endif %}
-
-    {% if result.criminalip.represenative_ip %}
-        <strong>Representative IP: </strong>{{ result.criminalip.represenative_ip }}<br/>
-
-    {% endif %}
-    {% if result.criminalip.represenative_domain %}
-        <strong>Representative Domain: </strong>{{ result.criminalip.represenative_domain }}<br/>
+    {% if result.criminalip.representative_domain %}
+        <strong>Representative Domain: </strong>{{ result.criminalip.representative_domain }}<br/>
     {% endif %}
 
 {% else %}
