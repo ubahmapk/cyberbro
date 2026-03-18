@@ -308,7 +308,7 @@ class BadASNEngine(BaseEngine[BadAsnReport]):
         return {
             "bad_asn_status": analysis_result.status,
             "bad_asn_asn": analysis_result.asn,
-            "bad_asn_source": analysis_result.source,
+            "bad_asn_source": analysis_result.sources,
             "bad_asn_details": analysis_result.details,
             "bad_asn_legitimate_but_abused": analysis_result.legitimate_but_abused,
             "bad_asn_risk_score": analysis_result.risk_score,
