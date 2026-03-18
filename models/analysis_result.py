@@ -39,7 +39,7 @@ class JSONEncodedResults(TypeDecorator):
         if isinstance(obj, ObservableFlag):
             return {"__flag__": str(obj)}
         if isinstance(obj, BaseReport):
-            return obj.model_dump()
+            return obj.model_dump(mode="json")
         raise TypeError(f"Not JSON serializable: {type(obj)}")
 
     @staticmethod

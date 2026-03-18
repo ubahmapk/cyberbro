@@ -4,32 +4,37 @@ Downloads and maintains a local cache of known malicious ASNs from public blackl
 """
 
 import csv
-import json
 import logging
 import time
 from pathlib import Path
 
+import orjson
 import requests
+from pydantic import ValidationError
+from requests.exceptions import RequestException
 
-from utils.config import get_config
+from models.bad_asn import AsnEntry, AsnSource
+from utils.config import Secrets, get_config
 
 logger = logging.getLogger(__name__)
 
 # Load configuration
-secrets = get_config()
+secrets: Secrets = get_config()
 
 # Network configuration
-PROXIES = {"https": secrets.proxy_url, "http": secrets.proxy_url}
-SSL_VERIFY = secrets.ssl_verify
+PROXIES: dict[str, str] = {"https": secrets.proxy_url, "http": secrets.proxy_url}
+SSL_VERIFY: bool = secrets.ssl_verify
 
 # Cache file location
-CACHE_FILE = Path("data/bad_asn_cache.json")
-CACHE_MAX_AGE = 24 * 60 * 60  # 24 hours in seconds
+CACHE_FILE: Path = Path("data/bad_asn_cache.json")
+CACHE_MAX_AGE: int = 24 * 60 * 60  # 24 hours in seconds
 
 # Data sources
-SPAMHAUS_URL = "https://www.spamhaus.org/drop/asndrop.json"
-BRIANHAMA_URL = "https://raw.githubusercontent.com/brianhama/bad-asn-list/master/bad-asn-list.csv"
-LETHAL_FORENSICS_URL = "https://raw.githubusercontent.com/LETHAL-FORENSICS/Microsoft-Analyzer-Suite/refs/heads/main/Blacklists/ASN-Blacklist.csv"
+SPAMHAUS_URL: str = "https://www.spamhaus.org/drop/asndrop.json"
+BRIANHAMA_URL: str = (
+    "https://raw.githubusercontent.com/brianhama/bad-asn-list/master/bad-asn-list.csv"
+)
+LETHAL_FORENSICS_URL: str = "https://raw.githubusercontent.com/LETHAL-FORENSICS/Microsoft-Analyzer-Suite/refs/heads/main/Blacklists/ASN-Blacklist.csv"
 
 
 def normalize_asn(asn_value: str | int) -> str:
@@ -42,13 +47,13 @@ def normalize_asn(asn_value: str | int) -> str:
     Returns:
         Normalized ASN as string (e.g., "12345")
     """
-    asn_str = str(asn_value).strip().upper()
+    asn_str: str = str(asn_value).strip().upper()
     if asn_str.startswith("AS"):
         asn_str = asn_str[2:]
     return asn_str
 
 
-def download_spamhaus_asndrop() -> dict[str, str]:
+def download_spamhaus_asndrop() -> dict[str, AsnEntry]:
     """
     Download and parse Spamhaus ASNDROP list (JSONL format).
 
@@ -56,44 +61,49 @@ def download_spamhaus_asndrop() -> dict[str, str]:
         Dictionary mapping ASN (string) to source description
     """
     logger.info("Downloading Spamhaus ASNDROP list...")
-    result = {}
+    result: dict[str, AsnEntry] = {}
 
     try:
         response = requests.get(SPAMHAUS_URL, proxies=PROXIES, verify=SSL_VERIFY, timeout=30)
         response.raise_for_status()
-
-        # Parse JSONL format (one JSON object per line)
-        lines = response.text.strip().split("\n")
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-
-            try:
-                entry = json.loads(line)
-
-                # Skip metadata line
-                if entry.get("type") == "metadata":
-                    continue
-
-                asn = normalize_asn(entry.get("asn", ""))
-                if asn:
-                    domain = entry.get("domain", "Unknown")
-                    cc = entry.get("cc", "??")
-                    asname = entry.get("asname", "Unknown")
-                    result[asn] = f"Spamhaus ASNDROP ({asname}, {domain}, {cc})"
-            except json.JSONDecodeError as e:
-                logger.warning(f"Failed to parse Spamhaus ASNDROP line: {line[:100]}... Error: {e}")
-                continue
-
-        logger.info(f"Loaded {len(result)} ASNs from Spamhaus ASNDROP")
-    except Exception as e:
+    except RequestException as e:
         logger.error(f"Failed to download Spamhaus ASNDROP: {e}")
+        return result
+
+    # Parse JSONL format (one JSON object per line)
+    lines: list[str] = response.text.strip().split("\n")
+
+    for idx, line in enumerate(lines):
+        try:
+            entry: dict = orjson.loads(line)
+        except orjson.JSONDecodeError as e:
+            logger.warning(f"Failed to parse Spamhaus ASNDROP line: {idx}:{line}\nError: {e!s}")
+            continue
+
+        if entry.get("type") == "metadata":
+            continue
+
+        try:
+            new_asn: AsnEntry = AsnEntry(**entry)
+            new_asn.sources.add(AsnSource.SPAMHAUS)
+        except ValidationError as e:
+            logger.warning(f"Failed to validate Spamhaus ASNDROP line: {idx}:{line}\nError: {e!s}")
+            continue
+
+        # SPAMHAUS seems to always return ASNs as ints?
+        # Not sure yet why we're "normalizing" to a string here
+        # asn = normalize_asn(entry.get("asn", ""))
+
+        if not new_asn.asn:
+            continue
+        result[new_asn.asn] = new_asn
+
+    logger.info(f"Loaded {len(result)} ASNs from Spamhaus ASNDROP")
 
     return result
 
 
-def download_brianhama_bad_asn() -> dict[str, str]:
+def download_brianhama_bad_asn() -> dict[str, AsnEntry]:
     """
     Download and parse Brianhama Bad ASN List (CSV).
 
@@ -101,30 +111,37 @@ def download_brianhama_bad_asn() -> dict[str, str]:
         Dictionary mapping ASN (string) to source description
     """
     logger.info("Downloading Brianhama Bad ASN List...")
-    result = {}
+    result: dict[str, AsnEntry] = {}
 
     try:
         response = requests.get(BRIANHAMA_URL, proxies=PROXIES, verify=SSL_VERIFY, timeout=30)
         response.raise_for_status()
+    except RequestException as e:
+        logger.error(f"Failed to Brianhama ASN list: {e}")
+        return result
 
-        # Parse CSV
-        lines = response.text.splitlines()
-        reader = csv.DictReader(lines)
+    # Parse CSV
+    lines: list[str] = response.text.splitlines()
+    reader: csv.DictReader[str] = csv.DictReader(lines)
 
-        for row in reader:
-            asn = normalize_asn(row.get("ASN", ""))
-            entity = row.get("Entity", "Unknown").strip()
-            if asn:
-                result[asn] = f"Brianhama Bad ASN List ({entity})"
+    for row in reader:
+        try:
+            entity: AsnEntry = AsnEntry(asn=row.get("ASN"), name=row.get("Entity", ""))
+            entity.sources.add(AsnSource.BRIANHAMA)
+        except ValidationError as e:
+            logger.warning(f"Failed to parse Brianhama ASN entry: {row}\nError: {e!s}")
+            continue
 
-        logger.info(f"Loaded {len(result)} ASNs from Brianhama Bad ASN List")
-    except Exception as e:
-        logger.error(f"Failed to download Brianhama Bad ASN List: {e}")
+        if not entity.asn:
+            continue
+        result[entity.asn] = entity
+
+    logger.info(f"Loaded {len(result)} ASNs from Brianhama Bad ASN List")
 
     return result
 
 
-def download_lethal_forensics_asn() -> dict[str, str]:
+def download_lethal_forensics_asn() -> dict[str, AsnEntry]:
     """
     Download and parse LETHAL-FORENSICS ASN Blacklist (CSV).
 
@@ -132,37 +149,46 @@ def download_lethal_forensics_asn() -> dict[str, str]:
         Dictionary mapping ASN (string) to source description
     """
     logger.info("Downloading LETHAL-FORENSICS ASN Blacklist...")
-    result = {}
+    result: dict[str, AsnEntry] = {}
 
     try:
         response = requests.get(
             LETHAL_FORENSICS_URL, proxies=PROXIES, verify=SSL_VERIFY, timeout=30
         )
         response.raise_for_status()
+    except RequestException as e:
+        logger.error(f"Failed to download Lethal-Forensics ASN Blacklist: {e}")
+        return result
 
-        # Parse CSV
-        lines = response.text.splitlines()
-        reader = csv.DictReader(lines)
+    # Parse CSV
+    lines: list[str] = response.text.splitlines()
+    reader: csv.DictReader[str] = csv.DictReader(lines)
 
-        for row in reader:
-            asn = normalize_asn(row.get("ASN", ""))
-            org_name = row.get("OrgName", "Unknown").strip()
-            info = row.get("Info", "").strip()
-            date = row.get("Date", "").strip()
+    for row in reader:
+        try:
+            asn: AsnEntry = AsnEntry(asn=row.get("ASN"))
+        except ValidationError as e:
+            logger.warning(f"Validation error for ASN row: {e}")
+            continue
 
-            if asn:
-                # Format the source description with all available information
-                description = f"LETHAL-FORENSICS ASN Blacklist ({org_name}"
-                if info:
-                    description += f", {info}"
-                if date:
-                    description += f", {date}"
-                description += ")"
-                result[asn] = description
+        org_name = row.get("OrgName", "Unknown").strip()
+        info = row.get("Info", "").strip()
+        date = row.get("Date", "").strip()
 
-        logger.info(f"Loaded {len(result)} ASNs from LETHAL-FORENSICS ASN Blacklist")
-    except Exception as e:
-        logger.error(f"Failed to download LETHAL-FORENSICS ASN Blacklist: {e}")
+        # Format the source description with all available information
+        description = f"LETHAL-FORENSICS ASN Blacklist ({org_name}"
+        if info:
+            description += f", {info}"
+        if date:
+            description += f", {date}"
+        description += ")"
+        asn.name = description
+        asn.sources.add(AsnSource.LETHAL_FORENSICS)
+
+        if not asn.asn:
+            continue
+        result[asn.asn] = asn
+    logger.info(f"Loaded {len(result)} ASNs from LETHAL-FORENSICS ASN Blacklist")
 
     return result
 
@@ -198,30 +224,26 @@ def update_bad_asn_cache() -> bool:
 
     # Brianhama Bad ASN List (merge intelligently, don't overwrite)
     brianhama_data = download_brianhama_bad_asn()
-    for asn, source_description in brianhama_data.items():
+    for asn, entry in brianhama_data.items():
         if asn in merged_data:
-            # ASN exists in both lists - combine the information
-            merged_data[asn] = f"{merged_data[asn]} + {source_description}"
+            merged_data[asn] = merged_data[asn] + entry
         else:
-            # ASN only in Brianhama - add it
-            merged_data[asn] = source_description
+            merged_data[asn] = entry
 
     # LETHAL-FORENSICS ASN Blacklist (merge intelligently, don't overwrite)
     lethal_forensics_data = download_lethal_forensics_asn()
-    for asn, source_description in lethal_forensics_data.items():
+    for asn, entry in lethal_forensics_data.items():
         if asn in merged_data:
-            # ASN exists in other lists - combine the information
-            merged_data[asn] = f"{merged_data[asn]} + {source_description}"
+            merged_data[asn] = merged_data[asn] + entry
         else:
-            # ASN only in LETHAL-FORENSICS - add it
-            merged_data[asn] = source_description
+            merged_data[asn] = entry
 
     # Save to cache
-    cache_data = {"last_updated": time.time(), "asns": merged_data}
+    serialized_asns = {asn: entry.model_dump(mode="json") for asn, entry in merged_data.items()}
+    cache_data = {"last_updated": time.time(), "asns": serialized_asns}
 
     try:
-        with CACHE_FILE.open("w", encoding="utf-8") as f:
-            json.dump(cache_data, f, indent=2)
+        CACHE_FILE.write_bytes(orjson.dumps(cache_data, option=orjson.OPT_INDENT_2))
         logger.info(f"Bad ASN cache updated successfully with {len(merged_data)} ASNs")
         return True
     except Exception as e:
@@ -229,27 +251,33 @@ def update_bad_asn_cache() -> bool:
         return False
 
 
-def load_bad_asn_cache() -> dict[str, str]:
+def load_bad_asn_cache() -> dict[str, AsnEntry]:
     """
     Load the bad ASN cache from disk.
 
     Returns:
-        Dictionary mapping ASN (string) to source description
+        Dictionary mapping ASN (string) to AsnEntry
     """
     if not CACHE_FILE.exists():
         logger.warning("Bad ASN cache file not found, returning empty cache")
         return {}
 
     try:
-        with CACHE_FILE.open(encoding="utf-8") as f:
-            cache_data = json.load(f)
-            return cache_data.get("asns", {})
+        cache_data = orjson.loads(CACHE_FILE.read_bytes())
+        raw_asns: dict = cache_data.get("asns", {})
+        result = {}
+        for asn, entry_data in raw_asns.items():
+            try:
+                result[asn] = AsnEntry.model_validate(entry_data)
+            except ValidationError as e:
+                logger.warning(f"Failed to deserialize ASN {asn} from cache: {e}")
+        return result
     except Exception as e:
         logger.error(f"Failed to load Bad ASN cache: {e}")
         return {}
 
 
-def check_asn(asn_value: str | int) -> dict | None:
+def check_asn(asn_value: str | int) -> AsnEntry | None:
     """
     Check if an ASN is in the bad ASN cache.
 
@@ -257,20 +285,11 @@ def check_asn(asn_value: str | int) -> dict | None:
         asn_value: ASN to check (string or integer)
 
     Returns:
-        Dictionary with status, source, and details if ASN is listed, None otherwise
+        AsnEntry if ASN is listed, None otherwise
     """
-    asn = normalize_asn(asn_value)
-    cache = load_bad_asn_cache()
-
-    if asn in cache:
-        return {
-            "status": "malicious",
-            "source": cache[asn],
-            "details": f"ASN {asn} is listed in bad ASN databases",
-            "asn": asn,
-        }
-
-    return None
+    asn: str = normalize_asn(asn_value)
+    cache: dict[str, AsnEntry] = load_bad_asn_cache()
+    return cache.get(asn)
 
 
 def background_updater():

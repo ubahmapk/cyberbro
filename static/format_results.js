@@ -64,7 +64,7 @@ function formatResults(data) {
             if (result.bad_asn.asn) plainText += `, ASN: ${result.bad_asn.asn}`;
             if (result.bad_asn.asn_org_name) plainText += ` (${result.bad_asn.asn_org_name})`;
             plainText += `\n`;
-            if (result.bad_asn.source) plainText += `- Source: ${result.bad_asn.source}\n`;
+            if (result.bad_asn.sources?.length) plainText += `- Sources: ${result.bad_asn.sources.join(', ')}\n`;
             if (result.bad_asn.details) plainText += `- Details: ${result.bad_asn.details}\n`;
         }
         if (result.abuseipdb) {

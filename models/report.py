@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, model_serializer
+from pydantic import BaseModel, SerializerFunctionWrapHandler, model_serializer
 
 """Registry of report classes for serialization/deserialization."""
 _REPORT_REGISTRY: dict[str, type] = {}
@@ -24,9 +24,9 @@ class BaseReport(BaseModel):
         klass = _REPORT_REGISTRY.get(cls_name, cls)
         return klass(**data)
 
-    @model_serializer
-    def __json__(self) -> dict:
-        d = {name: getattr(self, name) for name in type(self).model_fields}
+    @model_serializer(mode="wrap")
+    def __json__(self, handler: SerializerFunctionWrapHandler) -> dict:
+        d = handler(self)
         d["__cls__"] = type(self).__name__
         return d
 

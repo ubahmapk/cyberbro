@@ -20,7 +20,7 @@
             {% if analysis_results.results[0].bad_asn.asn_org_name %}
             <p><strong>Organization: </strong>{{ analysis_results.results[0].bad_asn.asn_org_name }}</p>
             {% endif %}
-            <p><strong>Source: </strong>{{ analysis_results.results[0].bad_asn.source | default('Unknown') }}</p>
+            <p><strong>Source: </strong>{{ analysis_results.results[0].bad_asn.sources | join(', ') | default('Unknown') }}</p>
             <p><strong>Details: </strong>{{ analysis_results.results[0].bad_asn.details | default('No details
                 available') }}</p>
             {% elif analysis_results.results[0].bad_asn.status == 'potentially_legitimate' %}
@@ -34,7 +34,7 @@
             {% if analysis_results.results[0].bad_asn.asn_org_name %}
             <p><strong>Organization: </strong>{{ analysis_results.results[0].bad_asn.asn_org_name }}</p>
             {% endif %}
-            <p><strong>Source: </strong>{{ analysis_results.results[0].bad_asn.source | default('Unknown') }}</p>
+            <p><strong>Source: </strong>{{ analysis_results.results[0].bad_asn.sources | join(', ') | default('Unknown') }}</p>
             <p><strong>Details: </strong>{{ analysis_results.results[0].bad_asn.details | default('No details
                 available') }}</p>
             <p
