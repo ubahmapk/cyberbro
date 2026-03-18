@@ -1,12 +1,11 @@
 import logging
 from datetime import datetime, timezone
-from typing import Any
 from urllib.parse import urljoin
 
 from falconpy import APIHarnessV2, Result, SDKError  # Assuming falconpy is installed
-from pydantic import Field
 
-from models.base_engine import BaseEngine, BaseReport
+from models.base_engine import BaseEngine
+from models.crowdstrike import CrowdstrikeReport
 from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
@@ -16,21 +15,7 @@ def _format_time(timestamp: int) -> str:
     return datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime("%Y-%m-%d")
 
 
-class CrowdstrikeReport(BaseReport):
-    device_count: int = 0
-    link: str = ""
-    indicator_found: bool = False
-    published_date: str = ""
-    last_updated: str = ""
-    actors: list[str] = Field(default_factory=list)
-    malicious_confidence: str = ""
-    threat_types: list[str] = Field(default_factory=list)
-    kill_chain: list[str] = Field(default_factory=list)
-    malware_families: list[str] = Field(default_factory=list)
-    vulnerabilities: list[str] = Field(default_factory=list)
-
-
-class CrowdstrikeEngine(BaseEngine):
+class CrowdstrikeEngine(BaseEngine[CrowdstrikeReport]):
     @property
     def name(self):
         return "crowdstrike"
@@ -76,6 +61,8 @@ class CrowdstrikeEngine(BaseEngine):
                 prefix = "hash_sha256_"
             case "sha1":
                 prefix = "hash_sha1_"
+            case _:
+                raise ValueError(f"Unsupported mapped type: {mapped_type}")
 
         return f"{prefix}{observable_value}"
 
@@ -166,7 +153,7 @@ class CrowdstrikeEngine(BaseEngine):
 
         return report
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    def create_export_row(self, analysis_result: CrowdstrikeReport | None) -> dict:
         if not analysis_result:
             return {
                 f"cs_{k}": None
@@ -182,11 +169,11 @@ class CrowdstrikeEngine(BaseEngine):
             }
 
         return {
-            "cs_device_count": analysis_result.get("device_count"),
-            "cs_actor": ", ".join(analysis_result.get("actors", [])),
-            "cs_confidence": analysis_result.get("malicious_confidence"),
-            "cs_threat_types": ", ".join(analysis_result.get("threat_types", [])),
-            "cs_malwares": ", ".join(analysis_result.get("malware_families", [])),
-            "cs_kill_chain": ", ".join(analysis_result.get("kill_chain", [])),
-            "cs_vulns": ", ".join(analysis_result.get("vulnerabilities", [])),
+            "cs_device_count": analysis_result.device_count,
+            "cs_actor": ", ".join(analysis_result.actors),
+            "cs_confidence": analysis_result.malicious_confidence,
+            "cs_threat_types": ", ".join(analysis_result.threat_types),
+            "cs_malwares": ", ".join(analysis_result.malware_families),
+            "cs_kill_chain": ", ".join(analysis_result.kill_chain),
+            "cs_vulns": ", ".join(analysis_result.vulnerabilities),
         }

@@ -53,7 +53,7 @@
     {% if analysis_results.results[0].mde %}
     {% include "engine_layouts/mde_card.html" %}
     {% endif %}
-    {% if analysis_results.results[0].crowdstrike %}
+    {% if analysis_results.results[0].crowdstrike and analysis_results.results[0].crowdstrike.success %}
     {% include "engine_layouts/crowdstrike_card.html" %}
     {% endif %}
     {% if analysis_results.results[0].threatfox %}

@@ -1,5 +1,5 @@
 <td>
-{% if result.crowdstrike %}
+{% if result.crowdstrike and result.crowdstrike.success %}
     <strong>Device Count:</strong> {{ result.crowdstrike.device_count }}<br/>
     <strong>Link:</strong> <a href="{{ result.crowdstrike.link }}" target="_blank">See on CrowdStrike</a><br/>
 
