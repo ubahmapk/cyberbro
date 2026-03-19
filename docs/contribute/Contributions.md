@@ -13,7 +13,7 @@ Before writing code, read the **[Engine Design Guide](Engine-Design.md)** for a 
 
 ### Engine Implementation
 * Make sure the engine is added to `engines/engine_name.py` (use `engines/abuseipdb.py` as a template).
-* Make sure the engine is added to `engines/__init__.py`.
+* Make sure sufficient pytest coverage is added to `tests/engines/test_engine_name.py` for ongoing support.
 * Make sure that your engine config/secret variable (if relevant) is added to `utils/config.py`.
 
 ### Configuration & Secrets
