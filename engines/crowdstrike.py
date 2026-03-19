@@ -158,13 +158,13 @@ class CrowdstrikeEngine(BaseEngine[CrowdstrikeReport]):
             return {
                 f"cs_{k}": None
                 for k in [
-                    "device_count",
-                    "actor",
-                    "confidence",
-                    "threat_types",
-                    "malwares",
-                    "kill_chain",
-                    "vulns",
+                    "cs_device_count",
+                    "cs_actor",
+                    "cs_confidence",
+                    "cs_threat_types",
+                    "cs_malwares",
+                    "cs_kill_chain",
+                    "cs_vulns",
                 ]
             }
 
