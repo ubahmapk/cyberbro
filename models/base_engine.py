@@ -112,6 +112,41 @@ class BaseEngine(ABC, Generic[R]):
         response.raise_for_status()
         return response
 
+    @retry(
+        reraise=True,
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_exception_type((ConnectionError, Timeout)),
+        after=after_log(logger, logging.DEBUG),
+    )
+    def _make_request_post(
+        self,
+        url: str,
+        headers: dict | None = None,
+        params: dict | None = None,
+        data: str | None = None,
+        timeout: int = 10,
+    ) -> requests.Response:
+        """POST data from the engine API.
+
+        Up to 3 posts can be made before reraising the resulting
+        API exception to the calling function.
+
+        After each attempt, the delay between requests is exponentially increased
+        and a DEBUG level log message is emitted.
+        """
+        response = requests.post(
+            url,
+            headers=headers,
+            params=params,
+            data=data,
+            proxies=self.proxies,
+            verify=self.ssl_verify,
+            timeout=timeout,
+        )
+        response.raise_for_status()
+        return response
+
     @abstractmethod
     def create_export_row(self, analysis_result: R | None) -> dict:
         """
