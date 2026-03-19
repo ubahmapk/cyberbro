@@ -1,11 +1,13 @@
 import json
 import logging
+from unittest.mock import patch
 
 import pytest
 import requests
 import responses
 
 from engines.dfir_iris import DFIRIrisEngine
+from models.dfir_iris import DFIRIrisReport
 from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
@@ -99,41 +101,31 @@ def test_analyze_success_ipv4_with_credentials(secrets_with_both_keys, ipv4_obse
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["reports"] == 2
-    assert len(result["links"]) == 2
+    assert result.reports == 2
+    assert len(result.links) == 2
     # Verify both case IDs appear in the links
     for cid in [1, 2]:
-        assert any(f"cid={cid}" in link for link in result["links"])
+        assert any(f"cid={cid}" in link for link in result.links)
 
 
-@responses.activate
-def test_analyze_missing_api_key(secrets_without_api_key, ipv4_observable, caplog):
+def test_analyze_missing_api_key(secrets_without_api_key, ipv4_observable):
     """Test behavior when API key is missing."""
     engine = DFIRIrisEngine(secrets_without_api_key, proxies={}, ssl_verify=True)
-    url = f"{secrets_without_api_key.dfir_iris_url}/search?cid=1"
 
-    # With empty API key, auth header will be "Bearer " (invalid)
-    # API should reject it with 401
-    responses.add(responses.POST, url, json={"error": "unauthorized"}, status=401)
-
-    caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error querying DFIR-IRIS" in caplog.text
+    assert result.success is False
+    assert result.error == "DFIR-IRIS URL and API key must be set."
 
 
-@responses.activate
-def test_analyze_missing_iris_url(secrets_without_url, ipv4_observable, caplog):
+def test_analyze_missing_iris_url(secrets_without_url, ipv4_observable):
     """Test behavior when DFIR-IRIS URL is missing."""
     engine = DFIRIrisEngine(secrets_without_url, proxies={}, ssl_verify=True)
 
-    caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable)
 
-    # URL construction will fail with empty URL
-    assert result is None
-    assert "Error querying DFIR-IRIS" in caplog.text
+    assert result.success is False
+    assert result.error == "DFIR-IRIS URL and API key must be set."
 
 
 @responses.activate
@@ -147,7 +139,8 @@ def test_analyze_unauthorized_401(secrets_with_both_keys, ipv4_observable, caplo
     caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert result.success is False
+    assert result.error is not None
     assert "Error querying DFIR-IRIS" in caplog.text
 
 
@@ -162,7 +155,8 @@ def test_analyze_forbidden_403(secrets_with_both_keys, ipv4_observable, caplog):
     caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert result.success is False
+    assert result.error is not None
     assert "Error querying DFIR-IRIS" in caplog.text
 
 
@@ -177,7 +171,8 @@ def test_analyze_response_missing_data_key(secrets_with_both_keys, ipv4_observab
 
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert result.success is False
+    assert result.error is not None
 
 
 @responses.activate
@@ -191,7 +186,9 @@ def test_analyze_response_empty_data(secrets_with_both_keys, ipv4_observable):
 
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert result.success is True
+    assert result.reports == 0
+    assert result.links == []
 
 
 @responses.activate
@@ -214,8 +211,8 @@ def test_analyze_success_with_duplicate_links(secrets_with_both_keys, ipv4_obser
 
     assert result is not None
     # Should only have 2 unique links even though 3 case_ids
-    assert result["reports"] == 2
-    assert len(result["links"]) == 2
+    assert result.reports == 2
+    assert len(result.links) == 2
 
 
 # ============================================================================
@@ -371,7 +368,8 @@ def test_analyze_http_error_500(secrets_with_both_keys, ipv4_observable, caplog)
     caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert result.success is False
+    assert result.error is not None
     assert "Error querying DFIR-IRIS" in caplog.text
 
 
@@ -386,12 +384,14 @@ def test_analyze_invalid_json_response(secrets_with_both_keys, ipv4_observable, 
     caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error querying DFIR-IRIS" in caplog.text
+    assert result.success is False
+    assert result.error is not None
+    assert "Error decoding JSON response from DFIR-IRIS" in caplog.text
 
 
 @responses.activate
-def test_analyze_connection_error(secrets_with_both_keys, ipv4_observable, caplog):
+@patch("time.sleep")
+def test_analyze_connection_error(mock_sleep, secrets_with_both_keys, ipv4_observable, caplog):
     """Test handling of connection timeout."""
     engine = DFIRIrisEngine(secrets_with_both_keys, proxies={}, ssl_verify=True)
     url = f"{secrets_with_both_keys.dfir_iris_url}/search?cid=1"
@@ -402,8 +402,9 @@ def test_analyze_connection_error(secrets_with_both_keys, ipv4_observable, caplo
     caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error querying DFIR-IRIS" in caplog.text
+    assert result.success is False
+    assert result.error is not None
+    assert "Timeout occurred" in caplog.text
 
 
 @responses.activate
@@ -427,14 +428,15 @@ def test_analyze_multiple_cases_sorted(secrets_with_both_keys, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["reports"] == 4
+    assert result.reports == 4
     # Links should be sorted alphabetically
-    links = result["links"]
+    links = result.links
     assert links == sorted(links)
 
 
 @responses.activate
-def test_analyze_request_timeout(secrets_with_both_keys, ipv4_observable, caplog):
+@patch("time.sleep")
+def test_analyze_request_timeout(mock_sleep, secrets_with_both_keys, ipv4_observable, caplog):
     """Test handling of request timeout."""
     engine = DFIRIrisEngine(secrets_with_both_keys, proxies={}, ssl_verify=True)
     url = f"{secrets_with_both_keys.dfir_iris_url}/search?cid=1"
@@ -445,8 +447,9 @@ def test_analyze_request_timeout(secrets_with_both_keys, ipv4_observable, caplog
     caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error querying DFIR-IRIS" in caplog.text
+    assert result.success is False
+    assert result.error is not None
+    assert "Timeout occurred" in caplog.text
 
 
 # ============================================================================
@@ -459,14 +462,15 @@ def test_create_export_row_with_data(secrets_with_both_keys):
     """Test export row with analysis results."""
     engine = DFIRIrisEngine(secrets_with_both_keys, proxies={}, ssl_verify=True)
 
-    analysis_result = {
-        "reports": 3,
-        "links": [
+    analysis_result = DFIRIrisReport(
+        success=True,
+        reports=3,
+        links=[
             "https://dfir-iris.example.com/case/ioc?cid=1",
             "https://dfir-iris.example.com/case/ioc?cid=2",
             "https://dfir-iris.example.com/case/ioc?cid=3",
         ],
-    }
+    )
 
     row = engine.create_export_row(analysis_result)
 
@@ -484,7 +488,7 @@ def test_create_export_row_with_none():
 
     row = engine.create_export_row(None)
 
-    assert row["dfir_iris_total_count"] is None
+    assert row["dfir_iris_total_count"] == 0
     assert row["dfir_iris_link"] is None
 
 
@@ -492,10 +496,7 @@ def test_create_export_row_empty_links():
     """Test export row with empty links list."""
     engine = DFIRIrisEngine(Secrets(), proxies={}, ssl_verify=True)
 
-    analysis_result = {
-        "reports": 0,
-        "links": [],
-    }
+    analysis_result = DFIRIrisReport(success=True, reports=0, links=[])
 
     row = engine.create_export_row(analysis_result)
 
