@@ -16,7 +16,7 @@ from models.observable import Observable, ObservableType
 logger = logging.getLogger(__name__)
 
 
-class DFIRIrisEngine(BaseEngine):
+class DFIRIrisEngine(BaseEngine[DFIRIrisReport]):
     @property
     def name(self):
         return "dfir_iris"
