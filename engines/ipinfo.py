@@ -54,7 +54,10 @@ class IPInfoEngine(BaseEngine[IpInfoReport]):
 
     def create_export_row(self, analysis_result: IpInfoReport | None) -> dict:
         if not analysis_result:
-            return {f"ipinfo_{k}": None for k in ["cn", "country", "geo", "asn", "org"]}
+            return {
+                f"ipinfo_{k}": None
+                for k in ["ipinfo_cn", "ipinfo_country", "ipinfo_geo", "ipinfo_asn", "ipinfo_org"]
+            }
 
         asn_data = analysis_result.asn.split(" ", 1) if analysis_result.asn else []
 
