@@ -12,7 +12,7 @@ from utils.config import QueryError
 logger = logging.getLogger(__name__)
 
 
-class AlienVaultEngine(BaseEngine):
+class AlienVaultEngine(BaseEngine[AlienvaultReport]):
     @property
     def name(self):
         return "alienvault"
