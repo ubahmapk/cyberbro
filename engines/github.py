@@ -1,15 +1,16 @@
 import logging
-from typing import Any
 
-import requests
+from pydantic import ValidationError
+from requests.exceptions import ConnectTimeout, HTTPError, JSONDecodeError, ReadTimeout
 
 from models.base_engine import BaseEngine
+from models.github import GithubReport, GrepAppResponse, SearchResults
 from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
 
-class GitHubEngine(BaseEngine):
+class GitHubEngine(BaseEngine[GithubReport]):
     @property
     def name(self):
         return "github"
@@ -28,46 +29,47 @@ class GitHubEngine(BaseEngine):
             | ObservableType.EMAIL
         )
 
-    def analyze(self, observable: Observable) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> GithubReport:
+        params: dict[str, str] = {"q": observable.value}
+
         try:
-            params: dict[str, str] = {"q": observable.value}
-            response = requests.get(
+            response = self._make_request(
                 url="https://grep.app/api/search",
                 params=params,
-                proxies=self.proxies,
-                verify=self.ssl_verify,
                 timeout=5,
             )
             response.raise_for_status()
-            data = response.json()
+            app_response: GrepAppResponse = GrepAppResponse(**response.json())
+        except (ReadTimeout, ConnectTimeout):
+            msg: str = f"Timeout occurred while querying grep.app for {observable.value}."
+            logger.error(msg)
+            return GithubReport(success=False, error=msg)
+        except HTTPError as e:
+            msg: str = f"Error querying grep.app for {observable.value}: {e!s}"
+            logger.error(msg, exc_info=True)
+            return GithubReport(success=False, error=msg)
+        except (JSONDecodeError, ValidationError) as e:
+            msg: str = f"Error decoding JSON response from grep.app for {observable.value}: {e!s}"
+            logger.error(msg, exc_info=True)
+            return GithubReport(success=False, error=msg)
 
-            if data["hits"]["total"] == 0:
-                return {"results": []}
+        report: GithubReport = GithubReport(success=True)
 
-            search_results = []
-            seen_repos = set()
-            for hit in data["hits"]["hits"]:
-                repo_name = hit["repo"]
-                if repo_name not in seen_repos:
-                    seen_repos.add(repo_name)
-                    search_results.append(
-                        {
-                            "title": repo_name,
-                            "url": f"https://github.com/{repo_name}/blob/{hit['branch']}/{hit['path']}",
-                            "description": hit["path"],
-                        }
-                    )
-                if len(search_results) >= 5:
-                    break
+        if not app_response.hits.total:
+            # Report variables default to 0, so an empty result is just fine
+            return report
 
-            return {"results": search_results, "total": data["hits"]["total"]}
+        report.total = app_response.hits.total
+        seen_repos = set()
+        for hit in app_response.hits.hits:
+            if hit.repo not in seen_repos:
+                seen_repos.add(hit.repo)
+                report.search_results.append(SearchResults(hit=hit))
+            if len(report.search_results) >= 5:
+                break
 
-        except Exception as e:
-            logger.error(
-                "Error while querying GitHub for '%s': %s", observable.value, e, exc_info=True
-            )
-            return None
+        return report
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+    def create_export_row(self, analysis_result: GithubReport | None) -> dict:
         # Since original export fields are missing, provide a count
-        return {"github_results_count": analysis_result.get("total") if analysis_result else None}
+        return {"github_results_count": analysis_result.total if analysis_result else None}

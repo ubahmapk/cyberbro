@@ -1,10 +1,12 @@
 import logging
+from unittest.mock import patch
 
 import pytest
 import requests
 import responses
 
 from engines.github import GitHubEngine
+from models.github import GithubReport, GrepAppHit, SearchResults
 from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
@@ -71,11 +73,11 @@ def test_analyze_success_complete(secrets, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["total"] == 3
-    assert len(result["results"]) == 3
-    assert result["results"][0]["title"] == "owner1/repo1"
-    assert result["results"][1]["title"] == "owner2/repo2"
-    assert result["results"][2]["title"] == "owner3/repo3"
+    assert result.total == 3
+    assert len(result.search_results) == 3
+    assert result.search_results[0].title == "owner1/repo1"
+    assert result.search_results[1].title == "owner2/repo2"
+    assert result.search_results[2].title == "owner3/repo3"
 
 
 @responses.activate
@@ -102,10 +104,10 @@ def test_analyze_success_minimal(secrets, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["total"] == 1
-    assert len(result["results"]) == 1
-    assert result["results"][0]["title"] == "owner1/repo1"
-    assert result["results"][0]["description"] == "file.txt"
+    assert result.total == 1
+    assert len(result.search_results) == 1
+    assert result.search_results[0].title == "owner1/repo1"
+    assert result.search_results[0].description == "file.txt"
 
 
 @responses.activate
@@ -126,7 +128,7 @@ def test_analyze_zero_results(secrets, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["results"] == []
+    assert result.search_results == []
 
 
 @responses.activate
@@ -157,8 +159,8 @@ def test_analyze_result_limiting_5_repos(secrets, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["total"] == 10
-    assert len(result["results"]) == 5
+    assert result.total == 10
+    assert len(result.search_results) == 5
 
 
 @responses.activate
@@ -191,9 +193,9 @@ def test_analyze_duplicate_repo_deduplication(secrets, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["total"] == 2
-    assert len(result["results"]) == 1
-    assert result["results"][0]["title"] == "owner1/repo1"
+    assert result.total == 2
+    assert len(result.search_results) == 1
+    assert result.search_results[0].title == "owner1/repo1"
 
 
 @responses.activate
@@ -246,11 +248,11 @@ def test_analyze_multiple_duplicates_with_limiting(secrets, ipv4_observable):
     result = engine.analyze(ipv4_observable)
 
     assert result is not None
-    assert result["total"] == 6
-    assert len(result["results"]) == 3
-    assert result["results"][0]["title"] == "owner1/repo1"
-    assert result["results"][1]["title"] == "owner2/repo2"
-    assert result["results"][2]["title"] == "owner3/repo3"
+    assert result.total == 6
+    assert len(result.search_results) == 3
+    assert result.search_results[0].title == "owner1/repo1"
+    assert result.search_results[1].title == "owner2/repo2"
+    assert result.search_results[2].title == "owner3/repo3"
 
 
 @responses.activate
@@ -264,8 +266,8 @@ def test_analyze_http_401_unauthorized(secrets, ipv4_observable, caplog):
     with caplog.at_level(logging.ERROR):
         result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error while querying GitHub" in caplog.text
+    assert result.success is False
+    assert "grep.app" in caplog.text
 
 
 @responses.activate
@@ -279,12 +281,13 @@ def test_analyze_http_500_server_error(secrets, ipv4_observable, caplog):
     with caplog.at_level(logging.ERROR):
         result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error while querying GitHub" in caplog.text
+    assert result.success is False
+    assert "grep.app" in caplog.text
 
 
+@patch("time.sleep")
 @responses.activate
-def test_analyze_connection_timeout(secrets, ipv4_observable, caplog):
+def test_analyze_connection_timeout(mock_sleep, secrets, ipv4_observable, caplog):
     """Test handling of connection timeout."""
     engine = GitHubEngine(secrets, proxies={}, ssl_verify=True)
     url = f"https://grep.app/api/search?q={ipv4_observable.value}"
@@ -298,8 +301,8 @@ def test_analyze_connection_timeout(secrets, ipv4_observable, caplog):
     with caplog.at_level(logging.ERROR):
         result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error while querying GitHub" in caplog.text
+    assert result.success is False
+    assert "grep.app" in caplog.text
 
 
 @responses.activate
@@ -313,8 +316,8 @@ def test_analyze_json_decode_error(secrets, ipv4_observable, caplog):
     with caplog.at_level(logging.ERROR):
         result = engine.analyze(ipv4_observable)
 
-    assert result is None
-    assert "Error while querying GitHub" in caplog.text
+    assert result.success is False
+    assert "grep.app" in caplog.text
 
 
 # ============================================================================
@@ -441,7 +444,7 @@ def test_analyze_empty_observable_value(secrets, caplog):
 
     result = engine.analyze(observable)
     assert result is not None
-    assert result["results"] == []
+    assert result.search_results == []
 
 
 @responses.activate
@@ -480,7 +483,7 @@ def test_create_export_row_with_results(secrets):
     """Test export row formatting with results data."""
     engine = GitHubEngine(secrets, proxies={}, ssl_verify=True)
 
-    analysis_result = {"results": [{"title": "repo1"}], "total": 50}
+    analysis_result = GithubReport(success=True, total=50)
 
     export_row = engine.create_export_row(analysis_result)
 
@@ -491,7 +494,7 @@ def test_create_export_row_zero_results(secrets):
     """Test export row formatting with zero results."""
     engine = GitHubEngine(secrets, proxies={}, ssl_verify=True)
 
-    analysis_result = {"results": [], "total": 0}
+    analysis_result = GithubReport(success=True, total=0)
 
     export_row = engine.create_export_row(analysis_result)
 
