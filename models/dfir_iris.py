@@ -1,5 +1,3 @@
-from typing import Annotated
-
 from pydantic import BaseModel, Field
 
 from models.report import BaseReport
@@ -16,4 +14,4 @@ class DFIRAPIResponse(BaseModel):
 
 class DFIRIrisReport(BaseReport):
     reports: int = 0
-    links: Annotated[list[str], Field(default_factory=list)]
+    links: list[str] = Field(default_factory=list)

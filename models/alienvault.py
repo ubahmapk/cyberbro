@@ -1,4 +1,4 @@
-from typing import Annotated, Self
+from typing import Self
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -49,31 +49,31 @@ class Pulse(BaseModel, extra="ignore"):
     name: str = "Unknown"
     description: str = ""
     created: str = ""
-    references: Annotated[list[str], Field(default_factory=list)]
+    references: list[str] = Field(default_factory=list)
     adversary: str = ""
-    malware_families: Annotated[list[MalwareFamily], Field(default_factory=list)]
+    malware_families: list[MalwareFamily] = Field(default_factory=list)
 
 
 class Alienvault(BaseModel, extra="ignore"):
-    adversary: Annotated[list[str], Field(default_factory=list)]
-    malware_families: Annotated[list[str], Field(default_factory=list)]
+    adversary: list[str] = Field(default_factory=list)
+    malware_families: list[str] = Field(default_factory=list)
 
 
 class Other(BaseModel, extra="ignore"):
-    adversary: Annotated[list[str], Field(default_factory=list)]
-    malware_families: Annotated[list[str], Field(default_factory=list)]
+    adversary: list[str] = Field(default_factory=list)
+    malware_families: list[str] = Field(default_factory=list)
 
 
 class Related(BaseModel, extra="ignore"):
-    alienvault: Annotated[Alienvault, Field(default_factory=default_alienvault_factory)]
-    other: Annotated[Other, Field(default_factory=default_other_factory)]
+    alienvault: Alienvault = Field(default_factory=default_alienvault_factory)
+    other: Other = Field(default_factory=default_other_factory)
 
 
 class PulseInfo(BaseModel, extra="ignore"):
     count: int = 0
-    pulses: Annotated[list[Pulse], Field(default_factory=list)]
-    references: Annotated[list[str], Field(default_factory=list)]
-    related: Annotated[Related, Field(default_factory=default_related_factory)]
+    pulses: list[Pulse] = Field(default_factory=list)
+    references: list[str] = Field(default_factory=list)
+    related: Related = Field(default_factory=default_related_factory)
 
     @model_validator(mode="after")
     def _model_validator(self) -> Self:
@@ -83,14 +83,14 @@ class PulseInfo(BaseModel, extra="ignore"):
 
 class OTXReport(BaseModel, extra="ignore"):
     indicator: str
-    pulse_info: Annotated[PulseInfo, Field(default_factory=default_pulse_info_factory)]
+    pulse_info: PulseInfo = Field(default_factory=default_pulse_info_factory)
 
 
 class PulseData(BaseModel):
     title: str = ""
     url: str = ""
-    malware_families: Annotated[set[str], Field(default_factory=set)]
-    adversary: Annotated[list[str], Field(default_factory=list)]
+    malware_families: set[str] = Field(default_factory=set)
+    adversary: list[str] = Field(default_factory=list)
 
     def __hash__(self):
         return hash((self.title, self.url))
@@ -103,7 +103,7 @@ class PulseData(BaseModel):
 
 class AlienvaultReport(BaseReport):
     count: int = 0
-    pulse_data: Annotated[set[PulseData], Field(default_factory=set)]
-    malware_families: Annotated[set[str], Field(default_factory=set)]
-    adversary: Annotated[set[str], Field(default_factory=set)]
+    pulse_data: set[PulseData] = Field(default_factory=set)
+    malware_families: set[str] = Field(default_factory=set)
+    adversary: set[str] = Field(default_factory=set)
     link: str = ""

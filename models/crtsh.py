@@ -1,5 +1,3 @@
-from typing import Annotated
-
 from pydantic import BaseModel, Field, field_validator
 
 from models.base_engine import BaseReport
@@ -7,7 +5,7 @@ from models.base_engine import BaseReport
 
 class CrtShAPIResponseEntry(BaseModel):
     common_name: str = ""
-    name_value: Annotated[list[str], Field(default_factory=list)]
+    name_value: list[str] = Field(default_factory=list)
     """The following attributes are also present in the API response"""
     # issuer_ca_id: int
     # issuer_name: str
@@ -36,5 +34,5 @@ class DomainCount(BaseModel):
 
 
 class CrtShReport(BaseReport):
-    top_domains: Annotated[list[DomainCount], Field(default_factory=list)]
+    top_domains: list[DomainCount] = Field(default_factory=list)
     link: str = ""
