@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import StrEnum, auto
-from typing import Any
+from typing import Annotated, Any
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
@@ -74,8 +74,8 @@ class AsnEntry(BaseModel):
     # rir: str
     domain: str = ""
     cc: str = ""
-    name: str = Field(validation_alias="asname", default="")
-    sources: set[AsnSource] = Field(init=False, default_factory=set)
+    name: Annotated[str, Field(validation_alias="asname")] = ""
+    sources: Annotated[set[AsnSource], Field(init=False, default_factory=set)]
 
     @computed_field
     @property
@@ -167,7 +167,7 @@ class BadAsnStatus(StrEnum):
 class BadAsnReport(BaseReport):
     status: BadAsnStatus = BadAsnStatus.UNKNOWN
     asn: str = ""
-    sources: set[AsnSource] = Field(default_factory=set)
+    sources: Annotated[set[AsnSource], Field(default_factory=set)]
     details: str = ""
     legitimate_but_abused: bool = False
     risk_score: int = 0

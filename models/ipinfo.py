@@ -1,4 +1,5 @@
 from contextlib import suppress
+from typing import Annotated
 
 import pycountry
 from pydantic import ConfigDict, Field, model_validator
@@ -29,14 +30,14 @@ class IpInfoReport(BaseReport):
     model_config = ConfigDict(validate_by_alias=True, validate_by_name=True)
     ip: str = ""
     bogon: bool = False
-    city: str = Field(init_var=True, default="")
-    region: str = Field(init_var=True, default="")
-    country_code: str = Field(validation_alias="country", default="")
-    asn: str = Field(validation_alias="org", default="Unknown")
-    geolocation: str = Field(init=False, default="Unknown")
+    city: Annotated[str, Field(init_var=True)] = ""
+    region: Annotated[str, Field(init_var=True)] = ""
+    country_code: Annotated[str, Field(validation_alias="country")] = ""
+    asn: Annotated[str, Field(validation_alias="org")] = "Unknown"
+    geolocation: Annotated[str, Field(init=False)] = "Unknown"
     country_name: str = ""
     hostname: str = "Unknown"
-    link: str = Field(init=False, default="")
+    link: Annotated[str, Field(init=False)] = ""
 
     @model_validator(mode="after")
     def __validate_model__(self):

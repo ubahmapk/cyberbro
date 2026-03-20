@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Self
+from typing import Annotated, Self
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -26,12 +26,12 @@ class IDSAlert(BaseModel):
 
 class CurrentOpenedPorts(BaseModel):
     count: int
-    data: list[OpenPort] = Field(default_factory=list)
+    data: Annotated[list[OpenPort], Field(default_factory=list)]
 
 
 class IDSAlerts(BaseModel):
     count: int
-    data: list[IDSAlert] = Field(default_factory=list)
+    data: Annotated[list[IDSAlert], Field(default_factory=list)]
 
 
 class Issues(BaseModel):
@@ -66,7 +66,7 @@ class WhoisRecord(BaseModel):
 
 class Whois(BaseModel):
     count: int = 0
-    data: list[WhoisRecord] = Field(default_factory=list)
+    data: Annotated[list[WhoisRecord], Field(default_factory=list)]
 
 
 class ScoreStatus(StrEnum):
