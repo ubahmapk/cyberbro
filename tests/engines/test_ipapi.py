@@ -5,6 +5,7 @@ import requests
 import responses
 
 from engines.ipapi import IPAPIEngine
+from models.ipapi import IpapiAsn, IpapiLocation, IpapiReport, IpapiVpn
 from models.observable import Observable, ObservableType
 from utils.config import Secrets
 
@@ -55,9 +56,10 @@ def test_analyze_success_complete(secrets_with_key, ipv4_observable):
 
     result = engine.analyze(ipv4_observable)
 
-    assert result is not None
-    assert result["ip"] == ipv4_observable.value
-    assert result["asn"]["asn"] == "AS15169"
+    assert isinstance(result, IpapiReport)
+    assert result.success is True
+    assert result.ip == ipv4_observable.value
+    assert result.asn.asn == "AS15169"
 
 
 @responses.activate
@@ -70,8 +72,9 @@ def test_analyze_minimal_and_asn_missing(secrets_without_key, ipv4_observable):
 
     result = engine.analyze(ipv4_observable)
 
-    assert result is not None
-    assert result["asn"]["asn"] == "Unknown"
+    assert isinstance(result, IpapiReport)
+    assert result.success is True
+    assert result.asn.asn == "Unknown"
 
 
 @responses.activate
@@ -85,8 +88,10 @@ def test_analyze_missing_credentials_error(secrets_with_key, ipv4_observable):
 
     result = engine.analyze(ipv4_observable)
 
-    # When 'ip' key is missing from response, analyze returns None
-    assert result is None
+    # When 'ip' key is missing from response, analyze returns a failed report
+    assert isinstance(result, IpapiReport)
+    assert result.success is False
+    assert result.error is not None
 
 
 @responses.activate
@@ -101,24 +106,24 @@ def test_analyze_http_error_codes(secrets_with_key, ipv4_observable, status_code
     caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert isinstance(result, IpapiReport)
+    assert result.success is False
     assert "Error querying ipapi" in caplog.text
 
 
-@responses.activate
 def test_create_export_row_full():
     engine = IPAPIEngine(Secrets(), proxies={}, ssl_verify=True)
 
-    analysis_result = {
-        "ip": "1.1.1.1",
-        "is_vpn": True,
-        "is_tor": False,
-        "is_proxy": False,
-        "is_abuser": False,
-        "location": {"city": "LA", "state": "CA", "country": "United States", "country_code": "US"},
-        "asn": {"asn": "AS15169", "org": "Google LLC"},
-        "vpn": {"service": "TestVPN", "url": "https://testvpn.example"},
-    }
+    analysis_result = IpapiReport(
+        ip="1.1.1.1",
+        is_vpn=True,
+        is_tor=False,
+        is_proxy=False,
+        is_abuser=False,
+        location=IpapiLocation(city="LA", state="CA", country="United States", country_code="US"),
+        asn=IpapiAsn(asn="AS15169", org="Google LLC"),
+        vpn=IpapiVpn(service="TestVPN", url="https://testvpn.example"),
+    )
 
     row = engine.create_export_row(analysis_result)
 
@@ -164,9 +169,10 @@ def test_analyze_ipv6_success(secrets_with_key, ipv6_observable):
 
     result = engine.analyze(ipv6_observable)
 
-    assert result is not None
-    assert result["ip"] == ipv6_observable.value
-    assert result["asn"]["asn"] == "AS15169"
+    assert isinstance(result, IpapiReport)
+    assert result.success is True
+    assert result.ip == ipv6_observable.value
+    assert result.asn.asn == "AS15169"
 
 
 @responses.activate
@@ -184,9 +190,12 @@ def test_analyze_asn_without_asn_subfield(secrets_with_key, ipv4_observable):
 
     result = engine.analyze(ipv4_observable)
 
-    # Should handle gracefully - either keep structure or default
-    assert result is not None
-    assert result["ip"] == ipv4_observable.value
+    # Should handle gracefully - asn defaults to "Unknown" when subfield is absent
+    assert isinstance(result, IpapiReport)
+    assert result.success is True
+    assert result.ip == ipv4_observable.value
+    assert result.asn.asn == "Unknown"
+    assert result.asn.org == "Google LLC"
 
 
 @responses.activate
@@ -205,13 +214,14 @@ def test_analyze_asn_with_empty_asn_value(secrets_with_key, ipv4_observable):
 
     result = engine.analyze(ipv4_observable)
 
-    assert result is not None
-    # Empty asn dict should trigger default per line 50-51 logic
-    assert result["asn"]["asn"] == "Unknown"
+    assert isinstance(result, IpapiReport)
+    assert result.success is True
+    # Empty asn dict triggers default values
+    assert result.asn.asn == "Unknown"
 
 
 @responses.activate
-def test_analyze_response_missing_ip_key(secrets_with_key, ipv4_observable, caplog):
+def test_analyze_response_missing_ip_key(secrets_with_key, ipv4_observable):
     """Test handling of valid 200 response missing 'ip' key."""
     engine = IPAPIEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = "https://api.ipapi.is"
@@ -220,11 +230,12 @@ def test_analyze_response_missing_ip_key(secrets_with_key, ipv4_observable, capl
 
     responses.add(responses.POST, url, json=mock_resp, status=200)
 
-    caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable)
 
-    # Should return None silently when 'ip' is missing
-    assert result is None
+    # Should return a failed report when 'ip' is missing
+    assert isinstance(result, IpapiReport)
+    assert result.success is False
+    assert result.error is not None
 
 
 @responses.activate
@@ -239,7 +250,8 @@ def test_analyze_request_timeout(secrets_with_key, ipv4_observable, caplog):
     caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert isinstance(result, IpapiReport)
+    assert result.success is False
     assert "Error querying ipapi" in caplog.text
 
 
@@ -255,7 +267,8 @@ def test_analyze_request_connection_error(secrets_with_key, ipv4_observable, cap
     caplog.set_level(logging.ERROR)
     result = engine.analyze(ipv4_observable)
 
-    assert result is None
+    assert isinstance(result, IpapiReport)
+    assert result.success is False
     assert "Error querying ipapi" in caplog.text
 
 
@@ -265,15 +278,15 @@ def test_analyze_request_connection_error(secrets_with_key, ipv4_observable, cap
 
 
 def test_create_export_row_missing_nested_keys():
-    """Test export row when nested dicts have missing keys."""
+    """Test export row when nested models have missing (None) optional fields."""
     engine = IPAPIEngine(Secrets(), proxies={}, ssl_verify=True)
 
-    analysis_result = {
-        "ip": "1.1.1.1",
-        "is_vpn": False,
-        "location": {"city": "LA"},  # Missing state, country, country_code
-        "asn": {"asn": "AS15169"},  # Missing org
-    }
+    analysis_result = IpapiReport(
+        ip="1.1.1.1",
+        is_vpn=False,
+        location=IpapiLocation(city="LA"),  # Missing state, country, country_code
+        asn=IpapiAsn(asn="AS15169"),  # Missing org
+    )
 
     row = engine.create_export_row(analysis_result)
 
@@ -286,15 +299,15 @@ def test_create_export_row_missing_nested_keys():
     assert row["ipapi_org"] is None
 
 
-def test_create_export_row_missing_location_dict():
-    """Test export row when location dict is missing entirely."""
+def test_create_export_row_missing_location():
+    """Test export row when location fields are all absent (default None)."""
     engine = IPAPIEngine(Secrets(), proxies={}, ssl_verify=True)
 
-    analysis_result = {
-        "ip": "1.1.1.1",
-        "is_vpn": False,
-        "asn": {"asn": "AS15169", "org": "Google LLC"},
-    }
+    analysis_result = IpapiReport(
+        ip="1.1.1.1",
+        is_vpn=False,
+        asn=IpapiAsn(asn="AS15169", org="Google LLC"),
+    )
 
     row = engine.create_export_row(analysis_result)
 
@@ -307,29 +320,30 @@ def test_create_export_row_missing_location_dict():
     assert row["ipapi_org"] == "Google LLC"
 
 
-def test_create_export_row_missing_asn_dict():
-    """Test export row when ASN dict is missing entirely."""
+def test_create_export_row_missing_asn():
+    """Test export row when ASN is absent (defaults to 'Unknown')."""
     engine = IPAPIEngine(Secrets(), proxies={}, ssl_verify=True)
 
-    analysis_result = {
-        "ip": "1.1.1.1",
-        "is_vpn": False,
-        "location": {"city": "LA", "state": "CA", "country": "United States", "country_code": "US"},
-    }
+    analysis_result = IpapiReport(
+        ip="1.1.1.1",
+        is_vpn=False,
+        location=IpapiLocation(city="LA", state="CA", country="United States", country_code="US"),
+    )
 
     row = engine.create_export_row(analysis_result)
 
     assert row["ipapi_ip"] == "1.1.1.1"
     assert row["ipapi_city"] == "LA"
-    assert row["ipapi_asn"] is None
+    assert row["ipapi_asn"] == "Unknown"
     assert row["ipapi_org"] is None
 
 
-def test_create_export_row_empty_dict():
-    """Test export row with empty result dict."""
+def test_create_export_row_failed_report():
+    """Test export row when report has failed (success=False)."""
     engine = IPAPIEngine(Secrets(), proxies={}, ssl_verify=True)
 
-    row = engine.create_export_row({})
+    result = IpapiReport(success=False, error="API error")
+    row = engine.create_export_row(result)
 
     assert all(v is None for v in row.values())
 
