@@ -90,6 +90,10 @@ def test_update_bad_asn_cache_creates_file(mocker: MockerFixture, tmp_path: Path
         "utils.bad_asn_manager.download_brianhama_bad_asn",
         return_value=mock_brian,
     )
+    mocker.patch(
+        "utils.bad_asn_manager.download_lethal_forensics_asn",
+        return_value={},
+    )
 
     # Run update
     result = update_bad_asn_cache()
