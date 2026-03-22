@@ -52,9 +52,8 @@ CONFIG_PAGE_ENABLED=true
 SSL_VERIFY=true
 GUI_CACHE_TIMEOUT=1800
 API_CACHE_TIMEOUT=86400
+DISABLE_VERSION_CHECK=false
 ```
-
-## Example of custom docker compose file
 
 !!! tip
     This can be useful when you don't want to build the image yourself. This image is produced by the GitHub actions workflow
@@ -119,6 +118,7 @@ services:
       - FLASK_BIND=${FLASK_BIND:-}
       - API_PREFIX=${API_PREFIX:-}
       - MAX_FORM_MEMORY_SIZE=${MAX_FORM_MEMORY_SIZE:-}
+      - DISABLE_VERSION_CHECK=${DISABLE_VERSION_CHECK:-}
     restart: always
     volumes:
       - ./data:/app/data
@@ -370,3 +370,20 @@ export API_CACHE_TIMEOUT=86400
     The value must be set in seconds, so 1 minute = 60 seconds, 1 hour = 3600 seconds, etc.  
     Don't set it too high, it can cause problems with the database or treatment of the data.  
     This variable is optional, so if it doesn't exist in `secrets.json` or ENV, it will use the default parameter (24 hours).
+
+## Disable version check
+
+You can disable the version check and suppress the "new update available" popup using the following:
+
+**In `secrets.json`:**
+
+Adding `"disable_version_check": true` in `secrets.json` will disable the version check.
+
+**Or using environment variables:**
+
+```bash
+export DISABLE_VERSION_CHECK=true
+```
+
+!!! note
+    This variable is optional, so if it doesn't exist in `secrets.json` or ENV, it will use the default parameter (false) which means version check is enabled.

@@ -206,6 +206,9 @@ def get_latest_version_from_updated_cache_file(cache_file: Path) -> str:
 def check_for_new_version(current_version: str) -> bool:
     """Check if a new version of the application is available."""
 
+    if get_config().disable_version_check:
+        return False
+
     cache_file: Path = DATA_DIR / "version_cache.json"
 
     # Check if cache file exists and is not older than a day

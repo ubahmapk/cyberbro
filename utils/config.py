@@ -54,6 +54,7 @@ class Secrets:
     gunicorn_workers_count: int = 1
     gunicorn_threads_count: int = 1
     gunicorn_timeout: int = 120
+    disable_version_check: bool = False
     ssl_verify: bool = True
     virustotal: str = ""
     webscout: str = ""

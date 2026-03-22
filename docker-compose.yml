@@ -48,6 +48,7 @@ services:
       - THREATFOX=${THREATFOX:-}
       - VIRUSTOTAL=${VIRUSTOTAL:-}
       - WEBSCOUT=${WEBSCOUT:-}
+      - DISABLE_VERSION_CHECK=${DISABLE_VERSION_CHECK:-}
     restart: always
     volumes:
       - ./data:/app/data
