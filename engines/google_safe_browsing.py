@@ -4,6 +4,7 @@ from typing import Any
 import requests
 
 from models.base_engine import BaseEngine
+from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
@@ -14,22 +15,24 @@ class GoogleSafeBrowsingEngine(BaseEngine):
         return "google_safe_browsing"
 
     @property
-    def supported_types(self):
-        return ["FQDN", "IPv4", "IPv6", "URL"]
+    def supported_types(self) -> ObservableType:
+        return ObservableType.FQDN | ObservableType.IPV4 | ObservableType.IPV6 | ObservableType.URL
 
-    def analyze(self, observable_value: str, observable_type: str) -> dict[str, Any] | None:
+    def analyze(self, observable: Observable) -> dict[str, Any] | None:
         api_key = self.secrets.google_safe_browsing
 
         try:
-            url = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={api_key}"
+            url = "https://safebrowsing.googleapis.com/v4/threatMatches:find"
+            params: dict[str, str] = {"key": api_key}
 
             threat_entries = []
-            if observable_type == "URL":
-                threat_entries.append({"url": observable_value})
-            elif observable_type in ["FQDN", "IPv4", "IPv6"]:
-                threat_entries.append({"url": f"http://{observable_value}"})
-            else:
-                return None
+            match observable.type:
+                case ObservableType.URL:
+                    threat_entries.append({"url": observable.value})
+                case ObservableType.FQDN | ObservableType.IPV4 | ObservableType.IPV6:
+                    threat_entries.append({"url": f"http://{observable.value}"})
+                case _:
+                    return None
 
             body = {
                 "threatInfo": {
@@ -47,7 +50,12 @@ class GoogleSafeBrowsingEngine(BaseEngine):
             }
 
             response = requests.post(
-                url, json=body, proxies=self.proxies, verify=self.ssl_verify, timeout=5
+                url,
+                params=params,
+                json=body,
+                proxies=self.proxies,
+                verify=self.ssl_verify,
+                timeout=5,
             )
             response.raise_for_status()
 
@@ -59,7 +67,7 @@ class GoogleSafeBrowsingEngine(BaseEngine):
         except Exception as e:
             logger.error(
                 "Error while querying Google Safe Browsing for '%s': %s",
-                observable_value,
+                observable.value,
                 e,
                 exc_info=True,
             )

@@ -15,6 +15,7 @@ from engines.bad_asn import (
     extract_asn_org_name,
     is_legitimate_provider,
 )
+from models.observable import Observable, ObservableType
 from utils.bad_asn_manager import (
     check_asn,
     download_brianhama_bad_asn,
@@ -178,7 +179,7 @@ def test_bad_asn_engine_analyze_with_context(mocker: MockerFixture):
 
     mocker.patch("engines.bad_asn.check_asn", side_effect=mock_check_asn)
 
-    result = engine.analyze("1.2.3.4", "IPv4", context=context)
+    result = engine.analyze(Observable(value="1.2.3.4", type=ObservableType.IPV4), context=context)
 
     assert result is not None
     assert result["status"] == "malicious"
@@ -192,7 +193,7 @@ def test_bad_asn_engine_analyze_without_context(caplog):
     engine = BadASNEngine(secrets, {}, True)
 
     with caplog.at_level(logging.WARNING):
-        result = engine.analyze("1.2.3.4", "IPv4", context=None)
+        result = engine.analyze(Observable(value="1.2.3.4", type=ObservableType.IPV4), context=None)
 
     assert result is None
     assert "Bad ASN engine called without context" in caplog.text
@@ -206,7 +207,7 @@ def test_bad_asn_engine_analyze_no_asn_in_context():
     # Context without ASN data
     context = {"some_other_engine": {"data": "value"}}
 
-    result = engine.analyze("1.2.3.4", "IPv4", context=context)
+    result = engine.analyze(Observable(value="1.2.3.4", type=ObservableType.IPV4), context=context)
 
     assert result is None
 
@@ -339,7 +340,7 @@ def test_analyze_legitimate_provider_penalty(mocker: MockerFixture):
         },
     )
 
-    result = engine.analyze("1.2.3.4", "IPv4", context=context)
+    result = engine.analyze(Observable(value="1.2.3.4", type=ObservableType.IPV4), context=context)
 
     assert result is not None
     assert result["status"] == "potentially_legitimate"
@@ -364,7 +365,7 @@ def test_analyze_malicious_non_legitimate(mocker: MockerFixture):
         },
     )
 
-    result = engine.analyze("1.2.3.4", "IPv4", context=context)
+    result = engine.analyze(Observable(value="1.2.3.4", type=ObservableType.IPV4), context=context)
 
     assert result is not None
     assert result["status"] == "malicious"
@@ -380,7 +381,7 @@ def test_analyze_unlisted_asn(mocker: MockerFixture):
 
     mocker.patch("engines.bad_asn.check_asn", return_value=None)
 
-    result = engine.analyze("1.2.3.4", "IPv4", context=context)
+    result = engine.analyze(Observable(value="1.2.3.4", type=ObservableType.IPV4), context=context)
 
     assert result is not None
     assert result["status"] == "unlisted"
@@ -403,7 +404,9 @@ def test_analyze_ipv6_observable(mocker: MockerFixture):
         },
     )
 
-    result = engine.analyze("2001:4860:4860::8888", "IPv6", context=context)
+    result = engine.analyze(
+        Observable(value="2001:4860:4860::8888", type=ObservableType.IPV6), context=context
+    )
 
     assert result is not None
     assert result["status"] in ("malicious", "potentially_legitimate", "unlisted")
