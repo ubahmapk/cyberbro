@@ -7,13 +7,11 @@
     You can add these environment variables in a `docker-compose-custom.yml` or just a `docker-compose-custom.yml` with a `.env`.  
     If you don't specify proxy, no proxy will be used.
 
-!!! important
-    Recommended usage:
-    - If you want to change the exposed Docker port, prefer using a `.env` file for **all** configuration values.
-    - If you keep the default Docker port mapping, using `secrets.json` remains sufficient.
-
-!!! note
-    Roadmap: we plan to progressively phase out `secrets.json` support in favor of `.env`-based configuration, which is more standard for container deployments.
+!!! warning
+    Recommended usage:  
+    - If you want to change the exposed Docker port, prefer using a `.env` file for **all** configuration values.  
+    - If you keep the default Docker port mapping, using `secrets.json` remains sufficient.  
+    - Roadmap: we plan to progressively phase out `secrets.json` support in favor of `.env`-based configuration, which is more standard for container deployments.
 
 Here is a list of all available environment variables that can be used with examples:
 
@@ -118,15 +116,15 @@ services:
       - CONFIG_PAGE_ENABLED=${CONFIG_PAGE_ENABLED:-}
       - SSL_VERIFY=${SSL_VERIFY:-}
       - PROXY_URL=${PROXY_URL:-}
-        - GUI_CACHE_TIMEOUT=${GUI_CACHE_TIMEOUT:-1800}
-        - API_CACHE_TIMEOUT=${API_CACHE_TIMEOUT:-86400}
+      - GUI_CACHE_TIMEOUT=${GUI_CACHE_TIMEOUT:-1800}
+      - API_CACHE_TIMEOUT=${API_CACHE_TIMEOUT:-86400}
       - GUI_ENABLED_ENGINES=${GUI_ENABLED_ENGINES:-}
       - GUNICORN_WORKERS_COUNT=${GUNICORN_WORKERS_COUNT:-}
       - GUNICORN_THREADS_COUNT=${GUNICORN_THREADS_COUNT:-}
       - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-}
       - FLASK_DEBUG=${FLASK_DEBUG:-}
-        - FLASK_PORT=${FLASK_PORT:-5000}
-        - FLASK_HOST=${FLASK_HOST:-0.0.0.0}
+      - FLASK_PORT=${FLASK_PORT:-5000}
+      - FLASK_HOST=${FLASK_HOST:-0.0.0.0}
       - API_PREFIX=${API_PREFIX:-}
       - MAX_FORM_MEMORY_SIZE=${MAX_FORM_MEMORY_SIZE:-}
       - DISABLE_VERSION_CHECK=${DISABLE_VERSION_CHECK:-}
