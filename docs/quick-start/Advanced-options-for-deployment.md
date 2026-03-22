@@ -7,6 +7,14 @@
     You can add these environment variables in a `docker-compose-custom.yml` or just a `docker-compose-custom.yml` with a `.env`.  
     If you don't specify proxy, no proxy will be used.
 
+!!! important
+    Recommended usage:
+    - If you want to change the exposed Docker port, prefer using a `.env` file for **all** configuration values.
+    - If you keep the default Docker port mapping, using `secrets.json` remains sufficient.
+
+!!! note
+    Roadmap: we plan to progressively phase out `secrets.json` support in favor of `.env`-based configuration, which is more standard for container deployments.
+
 Here is a list of all available environment variables that can be used with examples:
 
 ```bash
@@ -44,6 +52,7 @@ GUNICORN_THREADS_COUNT=4
 GUNICORN_TIMEOUT=200
 FLASK_DEBUG=false
 FLASK_PORT=5000
+HOST_PORT=5000
 FLASK_HOST=0.0.0.0
 API_PREFIX=my_api
 MAX_FORM_MEMORY_SIZE=1048576
@@ -65,7 +74,9 @@ ghcr.io/stanfrbd/cyberbro:latest
 Example of `docker-compose-custom.yml` (note: no `"` in environment variables)
 
 !!! warning
-    If you change `FLASK_PORT`, update the container-side port in the `ports:` mapping to match (e.g., `"8080:8080"` when `FLASK_PORT=8080`).
+    In Docker, `ports:` is resolved by Docker Compose **before** Cyberbro reads `secrets.json`.
+    To keep networking predictable, use environment variables for Docker networking values (`FLASK_PORT`, `HOST_PORT`, `FLASK_HOST`).
+    Keep `secrets.json` for API keys and app options.
 
 ```
 services:
@@ -73,7 +84,7 @@ services:
     image: ghcr.io/stanfrbd/cyberbro:latest
     container_name: cyberbro
     ports:
-      - "5000:5000"
+        - "${HOST_PORT:-5000}:${FLASK_PORT:-5000}"
     environment:
       - FLASK_ENV=production
       - ABUSEIPDB=${ABUSEIPDB:-}
@@ -107,15 +118,15 @@ services:
       - CONFIG_PAGE_ENABLED=${CONFIG_PAGE_ENABLED:-}
       - SSL_VERIFY=${SSL_VERIFY:-}
       - PROXY_URL=${PROXY_URL:-}
-      - GUI_CACHE_TIMEOUT=${GUI_CACHE_TIMEOUT1800:-}
-      - API_CACHE_TIMEOUT=${API_CACHE_TIMEOUT86400:-}
+        - GUI_CACHE_TIMEOUT=${GUI_CACHE_TIMEOUT:-1800}
+        - API_CACHE_TIMEOUT=${API_CACHE_TIMEOUT:-86400}
       - GUI_ENABLED_ENGINES=${GUI_ENABLED_ENGINES:-}
       - GUNICORN_WORKERS_COUNT=${GUNICORN_WORKERS_COUNT:-}
       - GUNICORN_THREADS_COUNT=${GUNICORN_THREADS_COUNT:-}
       - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-}
       - FLASK_DEBUG=${FLASK_DEBUG:-}
-      - FLASK_PORT=${FLASK_PORT:-}
-    - FLASK_HOST=${FLASK_HOST:-}
+        - FLASK_PORT=${FLASK_PORT:-5000}
+        - FLASK_HOST=${FLASK_HOST:-0.0.0.0}
       - API_PREFIX=${API_PREFIX:-}
       - MAX_FORM_MEMORY_SIZE=${MAX_FORM_MEMORY_SIZE:-}
       - DISABLE_VERSION_CHECK=${DISABLE_VERSION_CHECK:-}
@@ -192,7 +203,8 @@ ______________________________________________________________________
 **`flask_port`** — port that gunicorn/Flask binds to inside the container (default: `5000`).
 
 !!! warning
-    **In Docker**, `flask_port` controls the container-side port. The left side of the `ports:` mapping in `docker-compose.yml` must match this value for external access (e.g., `"5000:5000"` when `flask_port=5000`).
+    **In Docker**, the container-side port is mapped from `FLASK_PORT` in Compose (`"${HOST_PORT:-5000}:${FLASK_PORT:-5000}"`).
+    If you change the internal bind port, set `FLASK_PORT` in `.env` (or shell env) so Compose and app use the same value.
 
 **In `secrets.json`:**
 
@@ -204,6 +216,12 @@ ______________________________________________________________________
 
 ```bash
 export FLASK_PORT=5000
+```
+
+Optional (host side):
+
+```bash
+export HOST_PORT=5000
 ```
 
 ______________________________________________________________________
@@ -227,6 +245,7 @@ export FLASK_HOST=0.0.0.0
 
 !!! note
     All three Flask server settings are optional. If omitted, defaults are `flask_debug=false`, `flask_port=5000`, `flask_host=0.0.0.0`.
+    In Docker, you can also set `HOST_PORT` (default `5000`) for the host-side mapping.
 
 ## API prefix in `app.py` and `index.html` options
 

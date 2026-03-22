@@ -148,6 +148,13 @@ cp secrets-sample.json secrets.json
 
 See [Advanced options for deployment](https://docs.cyberbro.net/quick-start/Advanced-options-for-deployment) in the docs to get all custom option.
 
+> [!IMPORTANT]
+> `secrets.json` support is still fully supported for now for regular application settings and API keys.
+> For Docker **port mapping** changes, prefer `.env` / environment variables (`FLASK_PORT`, optional `HOST_PORT`) because `docker compose` resolves `ports:` before Cyberbro reads `secrets.json`.
+> If you keep the default port mapping (`5000:5000`), `secrets.json` alone is sufficient.
+>
+> Roadmap: configuration is expected to progressively move toward `.env` as the standard deployment method.
+
 # Launch the app
 
 ## Lazy and easy - use docker
