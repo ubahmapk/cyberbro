@@ -485,4 +485,4 @@ def graph(analysis_id: str) -> tuple[str, int]:
 
 
 if __name__ == "__main__":
-    app.run(port=secrets.flask_port, debug=secrets.flask_debug, bind=secrets.flask_bind)
+    app.run(port=secrets.flask_port, debug=secrets.flask_debug, host=secrets.flask_host)

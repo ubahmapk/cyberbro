@@ -119,7 +119,7 @@ gunicorn -c prod/gunicorn.conf.py app:app
 ```
 
 !!! note
-    When running without Docker, gunicorn's behavior is controlled by settings in `secrets.json`: `flask_port` (bind port), `flask_bind` (bind interface), `gunicorn_workers_count`, `gunicorn_threads_count`, and `gunicorn_timeout`.
+    When running without Docker, gunicorn's behavior is controlled by settings in `secrets.json`: `flask_port` (bind port), `flask_host` (bind interface), `gunicorn_workers_count`, `gunicorn_threads_count`, and `gunicorn_timeout`.
 
 * Run the app with in development mode.
 

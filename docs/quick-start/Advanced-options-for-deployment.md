@@ -44,7 +44,7 @@ GUNICORN_THREADS_COUNT=4
 GUNICORN_TIMEOUT=200
 FLASK_DEBUG=false
 FLASK_PORT=5000
-FLASK_BIND=0.0.0.0
+FLASK_HOST=0.0.0.0
 API_PREFIX=my_api
 MAX_FORM_MEMORY_SIZE=1048576
 GUI_ENABLED_ENGINES=reverse_dns,rdap_whois
@@ -115,7 +115,7 @@ services:
       - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-}
       - FLASK_DEBUG=${FLASK_DEBUG:-}
       - FLASK_PORT=${FLASK_PORT:-}
-      - FLASK_BIND=${FLASK_BIND:-}
+    - FLASK_HOST=${FLASK_HOST:-}
       - API_PREFIX=${API_PREFIX:-}
       - MAX_FORM_MEMORY_SIZE=${MAX_FORM_MEMORY_SIZE:-}
       - DISABLE_VERSION_CHECK=${DISABLE_VERSION_CHECK:-}
@@ -208,25 +208,25 @@ export FLASK_PORT=5000
 
 ______________________________________________________________________
 
-**`flask_bind`** — network interface gunicorn binds to (default: `0.0.0.0`).
+**`flask_host`** — network interface gunicorn binds to (default: `0.0.0.0`).
 
 !!! warning
-    **In Docker**, changing `flask_bind` from `0.0.0.0` may prevent the container from being reachable on the mapped port.
+    **In Docker**, changing `flask_host` from `0.0.0.0` may prevent the container from being reachable on the mapped port.
 
 **In `secrets.json`:**
 
 ```json
-"flask_bind": "0.0.0.0"
+"flask_host": "0.0.0.0"
 ```
 
 **Or using environment variables:**
 
 ```bash
-export FLASK_BIND=0.0.0.0
+export FLASK_HOST=0.0.0.0
 ```
 
 !!! note
-    All three Flask server settings are optional. If omitted, defaults are `flask_debug=false`, `flask_port=5000`, `flask_bind=0.0.0.0`.
+    All three Flask server settings are optional. If omitted, defaults are `flask_debug=false`, `flask_port=5000`, `flask_host=0.0.0.0`.
 
 ## API prefix in `app.py` and `index.html` options
 

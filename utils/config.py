@@ -28,7 +28,7 @@ class Secrets:
     dfir_iris_api_key: str = ""
     flask_debug: bool = False
     flask_port: int = 5000
-    flask_bind: str = "0.0.0.0"  # nosec: B104
+    flask_host: str = "0.0.0.0"  # nosec: B104
     google_cse_cx: str = ""
     google_cse_key: str = ""
     google_safe_browsing: str = ""
