@@ -104,6 +104,10 @@ cp .env.sample .env
 
 * Fill values (including proxy if needed) in the `.env` file.
 
+> [!WARNING]
+> `.env` contains sensitive secrets and must never be committed.
+> For production/team deployments, use SOPS, Vault, or an equivalent secret manager workflow.
+
 ```bash
 ABUSEIPDB=token_here
 ALIENVAULT=token_here
@@ -135,21 +139,11 @@ VIRUSTOTAL=token_here
 WEBSCOUT=token_here
 ```
 
-* Obtain API keys from the official documentation of each service.
-* Microsoft Defender for Endpoint (MDE) is a paid service and can be skipped if you don't have an account (unchecked by default).
-
-> [!WARNING]
-> `.env` contains sensitive secrets and must never be committed.
-> For production/team deployments, use SOPS, Vault, or an equivalent secret manager workflow.
-
 > [!IMPORTANT]
+> Starting with version `v0.13.0`, Cyberbro will no longer support `secrets.json` and the `/config` page.
 > If you already have a legacy `secrets.json`, convert it to `.env` with:
 > `python3 scripts/secrets_json_to_env.py`
 > This helper script is available in `scripts/secrets_json_to_env.py` and supports custom paths.
-
-> [!IMPORTANT]
-> Starting with version `v0.13.0`, Cyberbro will no longer support `secrets.json` and the `/config` page.
-> Configuration must be provided through environment variables (`.env` or process environment).
 
 See [Advanced options for deployment](https://docs.cyberbro.net/quick-start/Advanced-options-for-deployment) in the docs.
 
@@ -351,7 +345,7 @@ Your contributions are greatly appreciated!
 ```
 MIT License
 
-Copyright (c) 2025 stanfrbd
+Copyright (c) 2024-2026 stanfrbd
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
