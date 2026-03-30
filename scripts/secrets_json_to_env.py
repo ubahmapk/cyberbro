@@ -115,7 +115,9 @@ def render_env_lines(ordered_keys: list[str], env_values: dict[str, str]) -> lis
     return rendered
 
 
-def validate_samples(secrets: JsonObject, secrets_sample: JsonObject, env_sample_lines: list[str]) -> None:
+def validate_samples(
+    secrets: JsonObject, secrets_sample: JsonObject, env_sample_lines: list[str]
+) -> None:
     """Log key mismatches between secrets.json, secrets-sample.json, and .env.sample."""
 
     current_keys: set[str] = set(secrets)
