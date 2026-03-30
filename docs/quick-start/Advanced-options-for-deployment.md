@@ -1,9 +1,5 @@
 # Advanced options for deployment
 
-!!! tip
-    Cyberbro configuration is environment-variable based.  
-    Use `.env` for local deployments and exported variables for managed runtimes.
-
 !!! danger
     `.env` contains secrets. Never commit it.  
     For production/team use, protect secrets with SOPS, Vault, cloud secret managers, or an equivalent secure workflow.
@@ -208,16 +204,6 @@ export HOST_PORT=5000
 
 !!! warning
     In Docker, keep `FLASK_PORT` and `HOST_PORT` aligned with your `ports:` mapping.
-
-### Network exposure warning (`FLASK_HOST=0.0.0.0`)
-
-By default, Cyberbro now binds to `127.0.0.1:5000` for safer local usage.
-
-If you set `FLASK_HOST=0.0.0.0`, the service is exposed on all network interfaces.
-
-!!! danger
-    Only use `0.0.0.0` when you have proper network protection in place (reverse proxy, firewall filtering, WAF, and restricted source access).
-    Never expose Cyberbro directly to the Internet without filtering and access controls.
 
 ### API prefix
 
