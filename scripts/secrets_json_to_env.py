@@ -99,7 +99,8 @@ def render_env_lines(ordered_keys: list[str], env_values: dict[str, str]) -> lis
 
     rendered: list[str] = [
         "# Docs: https://docs.cyberbro.net/quick-start/Advanced-options-for-deployment/",
-        "# Production security: avoid storing clear-text secrets on disk; prefer secure environment variable injection.",
+        "# Production security: avoid storing clear-text secrets on disk;",
+        "# prefer secure environment variable injection.",
         "",
     ]
     used_keys: set[str] = set()
