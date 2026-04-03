@@ -1,17 +1,19 @@
 import logging
-from typing import Any
 
 import requests
+from pydantic import ValidationError
+from requests.exceptions import JSONDecodeError
 
 from models.base_engine import BaseEngine
+from models.ipapi import IpapiReport
 from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
 
 
-class IPAPIEngine(BaseEngine):
+class IPAPIEngine(BaseEngine[IpapiReport]):
     @property
-    def name(self):
+    def name(self) -> str:
         return "ipapi"
 
     @property
@@ -19,57 +21,56 @@ class IPAPIEngine(BaseEngine):
         return ObservableType.IPV4 | ObservableType.IPV6
 
     @property
-    def execute_after_reverse_dns(self):
+    def execute_after_reverse_dns(self) -> bool:
         return True  # IP-only engine
 
-    def analyze(self, observable: Observable) -> dict[str, Any] | None:
-        try:
-            url = "https://api.ipapi.is"
-            headers = {"Content-Type": "application/json"}
-            data = {"q": observable.value}
+    def analyze(self, observable: Observable) -> IpapiReport:
+        url = "https://api.ipapi.is"
+        params: dict[str, str] = {"q": observable.value}
 
-            # Validate API key (should be non-empty and 20 characters)
-            if self.secrets.ipapi and len(self.secrets.ipapi) == 20:
-                # Use API key if it matches the expected length
-                data["key"] = self.secrets.ipapi
+        # Validate API key (should be non-empty and 20 characters)
+        if self.secrets.ipapi and len(self.secrets.ipapi) == 20:
+            params["key"] = self.secrets.ipapi
+        else:
+            if self.secrets.ipapi:
+                logger.warning(
+                    "ipapi API key format is invalid, querying without API key for '%s'",
+                    observable.value,
+                )
             else:
-                # Don't use API key if it doesn't match the format
-                if self.secrets.ipapi:
-                    logger.warning(
-                        "ipapi API key format is invalid, querying without API key for '%s'",
-                        observable.value,
-                    )
-                else:
-                    logger.warning(
-                        "Be careful, you don't use API key for ipapi, rate limit"
-                        f"can happen more often (query: '{observable.value}')",
-                    )
+                logger.warning(
+                    "Be careful, you don't use an API key for ipapi, rate limiting "
+                    "can happen more often (query: '%s')",
+                    observable.value,
+                )
 
-            response = requests.post(
-                url,
-                json=data,
-                headers=headers,
-                proxies=self.proxies,
-                verify=self.ssl_verify,
-                timeout=5,
-            )
-            response.raise_for_status()
-
+        try:
+            response = self._make_request(url, params=params, timeout=5)
             data = response.json()
-            if "ip" in data:
-                # Reformat ASN field as per original logic
-                if "asn" not in data or not data["asn"]:
-                    data["asn"] = {"asn": "Unknown", "org": "Unknown"}
-                elif "asn" in data["asn"]:
-                    data["asn"]["asn"] = f"AS{data['asn']['asn']}"
-                return data
+        except requests.exceptions.RequestException as e:
+            msg = f"IPAPI request failed for {observable.value}: {e!s}"
+            logger.warning(msg)
+            return IpapiReport(success=False, error=msg)
+        except JSONDecodeError as e:
+            msg = f"Invalid JSON response from IPAPI for {observable.value}: {e!s}"
+            logger.warning(msg)
+            return IpapiReport(success=False, error=msg)
 
-        except Exception as e:
-            logger.error("Error querying ipapi for '%s': %s", observable.value, e, exc_info=True)
+        if "ip" not in data:
+            msg = f"IPAPI response missing 'ip' key for {observable.value}"
+            logger.warning(msg)
+            return IpapiReport(success=False, error=msg)
 
-        return None
+        try:
+            report = IpapiReport(**data)
+        except ValidationError as e:
+            msg = f"Invalid IPAPI response for {observable.value}: {e!s}"
+            logger.warning(msg)
+            return IpapiReport(success=False, error=msg)
 
-    def create_export_row(self, analysis_result: Any) -> dict:
+        return report
+
+    def create_export_row(self, analysis_result: IpapiReport | None) -> dict:
         if not analysis_result:
             return {
                 f"ipapi_{k}": None
@@ -90,22 +91,18 @@ class IPAPIEngine(BaseEngine):
                 ]
             }
 
-        location_data = analysis_result.get("location", {})
-        asn_data = analysis_result.get("asn", {})
-        vpn_data = analysis_result.get("vpn", {})
-
         return {
-            "ipapi_ip": analysis_result.get("ip"),
-            "ipapi_is_vpn": analysis_result.get("is_vpn"),
-            "ipapi_is_tor": analysis_result.get("is_tor"),
-            "ipapi_is_proxy": analysis_result.get("is_proxy"),
-            "ipapi_is_abuser": analysis_result.get("is_abuser"),
-            "ipapi_city": location_data.get("city"),
-            "ipapi_state": location_data.get("state"),
-            "ipapi_country": location_data.get("country"),
-            "ipapi_country_code": location_data.get("country_code"),
-            "ipapi_asn": asn_data.get("asn"),
-            "ipapi_org": asn_data.get("org"),
-            "ipapi_vpn_service": vpn_data.get("service"),
-            "ipapi_vpn_url": vpn_data.get("url"),
+            "ipapi_ip": analysis_result.ip or None,
+            "ipapi_is_vpn": analysis_result.is_vpn,
+            "ipapi_is_tor": analysis_result.is_tor,
+            "ipapi_is_proxy": analysis_result.is_proxy,
+            "ipapi_is_abuser": analysis_result.is_abuser,
+            "ipapi_city": analysis_result.location.city or None,
+            "ipapi_state": analysis_result.location.state or None,
+            "ipapi_country": analysis_result.location.country or None,
+            "ipapi_country_code": analysis_result.location.country_code or None,
+            "ipapi_asn": analysis_result.asn.asn if analysis_result.asn.asn != "Unknown" else None,
+            "ipapi_org": analysis_result.asn.org or None,
+            "ipapi_vpn_service": analysis_result.vpn.service or None,
+            "ipapi_vpn_url": analysis_result.vpn.url or None,
         }
