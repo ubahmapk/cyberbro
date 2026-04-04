@@ -29,7 +29,7 @@ def parse_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(description="Convert secrets.json into a .env file.")
     parser.add_argument("--secrets", type=Path, default=Path("secrets.json"))
-    parser.add_argument("--secrets-sample", type=Path, default=Path("secrets-sample.json"))
+    parser.add_argument("--secrets-sample", type=Path, default=None)
     parser.add_argument("--env-sample", type=Path, default=Path(".env.sample"))
     parser.add_argument("--output", type=Path, default=Path(".env"))
     return parser.parse_args()
@@ -147,10 +147,11 @@ def main() -> int:
     args: argparse.Namespace = parse_args()
 
     secrets: JsonObject = load_json_object(args.secrets)
-    secrets_sample: JsonObject = load_json_object(args.secrets_sample)
     env_sample_lines: list[str] = args.env_sample.read_text(encoding="utf-8").splitlines()
 
-    validate_samples(secrets, secrets_sample, env_sample_lines)
+    if args.secrets_sample is not None:
+        secrets_sample: JsonObject = load_json_object(args.secrets_sample)
+        validate_samples(secrets, secrets_sample, env_sample_lines)
 
     env_values: dict[str, str] = build_env_values(secrets)
     ordered_keys: list[str] = extract_ordered_template_keys(env_sample_lines)

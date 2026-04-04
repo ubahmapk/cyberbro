@@ -158,7 +158,7 @@ def load_env_file(env_file: Path) -> None:
 
 
 def read_secrets_from_env(secrets: Secrets) -> Secrets:
-    """Load secrets from envrionment variables.
+    """Load secrets from environment variables.
 
     Override the config file if the environment variable is set.
     """
