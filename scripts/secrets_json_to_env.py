@@ -21,7 +21,7 @@ from pathlib import Path
 
 LOGGER = logging.getLogger(__name__)
 ENV_ASSIGNMENT_RE = re.compile(r"^(?P<indent>\s*)#?\s*(?P<key>[A-Z0-9_]+)\s*=.*$")
-_NEEDS_QUOTING_RE = re.compile(r"[#\n\r\\\"']|^\s|\s$")
+NEEDS_QUOTING_RE = re.compile(r"[#\n\r\\\"']|^\s|\s$")
 
 JsonPrimitive = str | int | float | bool | None
 JsonValue = JsonPrimitive | list[JsonPrimitive]
@@ -63,7 +63,7 @@ def quote_env_value(value: str) -> str:
     characters, embedded quotes, backslashes, or newlines are double-quoted
     with proper escaping.
     """
-    if not value or not _NEEDS_QUOTING_RE.search(value):
+    if not value or not NEEDS_QUOTING_RE.search(value):
         return value
     escaped = (
         value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r")
