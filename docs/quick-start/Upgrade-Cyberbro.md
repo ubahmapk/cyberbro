@@ -34,7 +34,7 @@ docker-compose up -d --pull always --force-recreate
 * `git pull`
 * `pip install -r requirements.txt`
 * `rm data/version_cache.json`
-* `gunicorn -b 0.0.0.0:5000 app:app --timeout 120` (or using `supervisord.conf`)
+* `gunicorn -b 0.0.0.0:5000 app:app --timeout 120` (or restart via your process manager, e.g. `systemctl restart cyberbro`)
 
 !!! warning
     Be careful that your `.env` or exported environment variables are up to date.

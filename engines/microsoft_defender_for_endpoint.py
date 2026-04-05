@@ -89,7 +89,7 @@ class MDEEngine(BaseEngine):
             aad_token = json_response["access_token"]
 
             with self._token_lock:
-                self._cached_token = aad_token
+                type(self)._cached_token = aad_token
 
             return aad_token
         except KeyError:

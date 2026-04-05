@@ -26,7 +26,7 @@ docker compose up --build
 ## Runtime loading behavior
 
 At startup, Cyberbro tries to load `.env` from the project root.
-If `.env` is missing, Cyberbro falls back to process environment variables and logs a warning.
+If `.env` is missing, Cyberbro falls back to process environment variables and logs a debug-level message (no warning is emitted, so production deployments using injected env vars will not see spurious log noise).
 
 ## Migration from legacy `secrets.json`
 
