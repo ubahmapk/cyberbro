@@ -149,11 +149,16 @@ def load_env_file(env_file: Path) -> None:
 
     if env_file.exists():
         load_dotenv(dotenv_path=env_file, override=False)
-        logger.info("Loaded environment variables from .env file. Don't use in production.")
+        logger.info(
+            "Loaded environment variables from .env file at %s. "
+            "This file is optional and intended for local/dev use; "
+            "in production, inject variables directly into the environment.",
+            env_file,
+        )
         return
 
-    logger.warning(
-        "'.env' not found at %s (expected in production). Falling back to environment variables.",
+    logger.debug(
+        "No .env file found at %s. Relying on environment variables already present in the process.",  # noqa: E501
         env_file,
     )
 
@@ -161,7 +166,7 @@ def load_env_file(env_file: Path) -> None:
 def read_secrets_from_env(secrets: Secrets) -> Secrets:
     """Load secrets from environment variables.
 
-    Override the config file if the environment variable is set.
+    Each secret field is read from the corresponding uppercase environment variable.
     """
 
     # Load secrets from environment variables.

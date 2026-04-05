@@ -8,9 +8,7 @@ if [ "$#" -eq 0 ]; then
 fi
 
 # Remove stale version cache after upgrades so update checks are refreshed.
-if [ -f "data/version_cache.json" ]; then
-    rm "data/version_cache.json"
-fi
+rm -f "data/version_cache.json"
 
 # Bootstrap phase (root): fix ownership on mounted paths when needed.
 # Runtime phase (non-root): execute the app command as cyberbro.
