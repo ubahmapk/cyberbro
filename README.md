@@ -140,7 +140,7 @@ WEBSCOUT=token_here
 ```
 
 > [!IMPORTANT]
-> Starting with version `v0.13.0`, Cyberbro no longer support `secrets.json` and the `/config` page. Cf. [discussion 165](https://github.com/stanfrbd/cyberbro/discussions/165).\
+> Starting with version `v0.13.0`, Cyberbro no longer supports `secrets.json` and the `/config` page. Cf. [discussion 165](https://github.com/stanfrbd/cyberbro/discussions/165).\
 > If you already have a legacy `secrets.json`, convert it to `.env` with:
 > `python3 scripts/secrets_json_to_env.py`
 
