@@ -6,6 +6,8 @@ Rules:
 - booleans are written as lowercase true/false
 - gui_enabled_engines is written as a comma-separated list
 - empty values are omitted from generated .env entries
+- values containing '#', surrounding whitespace, backslashes, or newlines
+  are double-quoted for safe round-tripping with python-dotenv
 - output keeps only a minimal header comment block
 """
 
@@ -19,6 +21,7 @@ from pathlib import Path
 
 LOGGER = logging.getLogger(__name__)
 ENV_ASSIGNMENT_RE = re.compile(r"^(?P<indent>\s*)#?\s*(?P<key>[A-Z0-9_]+)\s*=.*$")
+_NEEDS_QUOTING_RE = re.compile(r"[#\n\r\\\"']|^\s|\s$")
 
 JsonPrimitive = str | int | float | bool | None
 JsonValue = JsonPrimitive | list[JsonPrimitive]
@@ -50,6 +53,22 @@ def load_json_object(path: Path) -> JsonObject:
             raise ValueError(f"Invalid non-string key found in {path}.")
         result[key] = value
     return result
+
+
+def quote_env_value(value: str) -> str:
+    """Wrap a .env value in double quotes when necessary for safe round-tripping.
+
+    python-dotenv treats unquoted '#' as a comment delimiter and strips
+    surrounding whitespace from unquoted values. Values containing those
+    characters, embedded quotes, backslashes, or newlines are double-quoted
+    with proper escaping.
+    """
+    if not value or not _NEEDS_QUOTING_RE.search(value):
+        return value
+    escaped = (
+        value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r")
+    )
+    return f'"{escaped}"'
 
 
 def stringify_value(key: str, value: JsonValue) -> str:
@@ -109,14 +128,14 @@ def render_env_lines(ordered_keys: list[str], env_values: dict[str, str]) -> lis
         value: str | None = env_values.get(key)
         if value is None or value == "":
             continue
-        rendered.append(f"{key}={value}")
+        rendered.append(f"{key}={quote_env_value(value)}")
         used_keys.add(key)
 
     extra_keys: list[str] = sorted(set(env_values) - used_keys)
     for key in extra_keys:
         if env_values[key] == "":
             continue
-        rendered.append(f"{key}={env_values[key]}")
+        rendered.append(f"{key}={quote_env_value(env_values[key])}")
 
     return rendered
 
