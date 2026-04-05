@@ -44,7 +44,6 @@ Optional custom paths:
 python3 scripts/secrets_json_to_env.py \
   --secrets secrets.json \
   --output .env \
-  --secrets-sample secrets-sample.json \
   --env-sample .env.sample
 ```
 
