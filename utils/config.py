@@ -149,11 +149,12 @@ def load_env_file(env_file: Path) -> None:
 
     if env_file.exists():
         load_dotenv(dotenv_path=env_file, override=False)
-        logger.info("Loaded environment variables from .env file.")
+        logger.info("Loaded environment variables from .env file. Don't use in production.")
         return
 
     logger.warning(
-        ".env file not found at %s. Falling back to process environment variables only.", env_file
+        "'.env' not found at %s (expected in production). Falling back to environment variables.",
+        env_file,
     )
 
 

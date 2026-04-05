@@ -159,7 +159,7 @@ services:
       - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-}
       - FLASK_DEBUG=${FLASK_DEBUG:-}
       - FLASK_PORT=${FLASK_PORT:-5000}
-      - FLASK_HOST=${FLASK_HOST:-0.0.0.0}
+      - FLASK_HOST=0.0.0.0
       - API_PREFIX=${API_PREFIX:-}
       - MAX_FORM_MEMORY_SIZE=${MAX_FORM_MEMORY_SIZE:-}
       - DISABLE_VERSION_CHECK=${DISABLE_VERSION_CHECK:-}
@@ -203,6 +203,7 @@ export HOST_PORT=5000
 
 !!! warning
     In Docker, keep `FLASK_PORT` and `HOST_PORT` aligned with your `ports:` mapping.
+  `FLASK_HOST` is forced to `0.0.0.0` in the container so a local `127.0.0.1` from your shell or `.env` cannot break exposure.
 
 ### API prefix
 

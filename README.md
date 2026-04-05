@@ -152,6 +152,7 @@ See [Advanced options for deployment](https://docs.cyberbro.net/quick-start/Adva
 
 > [!WARNING]
 > Make sure you install the `compose` plugin as `docker compose` and not `docker-compose`.
+> In Docker, the app binds to `0.0.0.0` inside the container even if your local `.env` sets `FLASK_HOST=127.0.0.1`.
 
 ```bash
 docker compose up # use -d to run in background and use --build to rebuild the image
