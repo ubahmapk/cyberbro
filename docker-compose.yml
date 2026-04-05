@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: cyberbro-web
+    container_name: cyberbro
     ports:
       - "${HOST_PORT:-5000}:${FLASK_PORT:-5000}"
     environment:
@@ -50,6 +50,7 @@ services:
       - VIRUSTOTAL=${VIRUSTOTAL:-}
       - WEBSCOUT=${WEBSCOUT:-}
       - DISABLE_VERSION_CHECK=${DISABLE_VERSION_CHECK:-}
+      - MIGRATE_OWNERSHIP_ON_START=${MIGRATE_OWNERSHIP_ON_START:-true}
     restart: always
     volumes:
       - ./data:/app/data
