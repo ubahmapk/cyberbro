@@ -3,7 +3,9 @@ Tests for Bad ASN Check engine and manager.
 """
 
 import logging
+from pathlib import Path
 
+import orjson
 import pytest
 from pytest_mock import MockerFixture
 
@@ -15,6 +17,13 @@ from engines.bad_asn import (
 )
 from models.bad_asn import AsnEntry, AsnSource, BadAsnReport, BadAsnStatus
 from models.observable import Observable, ObservableType
+from utils.bad_asn_manager import (
+    check_asn,
+    download_brianhama_bad_asn,
+    download_spamhaus_asndrop,
+    normalize_asn,
+    update_bad_asn_cache,
+)
 from utils.config import Secrets
 
 
@@ -25,6 +34,146 @@ def _make_asn_entry(
     for src in sources or []:
         entry.sources.add(src)
     return entry
+
+
+def test_normalize_asn():
+    """Test ASN normalization."""
+    assert normalize_asn("AS12345") == "12345"
+    assert normalize_asn("12345") == "12345"
+    assert normalize_asn(12345) == "12345"
+    assert normalize_asn("as12345") == "12345"
+    assert normalize_asn("  AS12345  ") == "12345"
+
+
+def test_download_spamhaus_asndrop(mocker: MockerFixture):
+    """Test Spamhaus ASNDROP download and parsing (JSONL format)."""
+    mock_response = mocker.Mock()
+    # Mock JSONL format (one JSON object per line)
+    mock_response.text = (
+        '{"asn":401696,"rir":"arin","domain":"cognetcloud.com","cc":"HK","asname":"COGNETCLOUD"}\n'
+        '{"asn":1234,"rir":"ripe","domain":"example.com","cc":"US","asname":"EXAMPLE"}\n'
+        '{"type":"metadata","timestamp":1767899078,"size":38060,"records":427}'
+    )
+    mock_response.raise_for_status = mocker.Mock()
+    mocker.patch("requests.get", return_value=mock_response)
+
+    result = download_spamhaus_asndrop()
+
+    assert "401696" in result
+    assert "1234" in result
+    assert AsnSource.SPAMHAUS in result["401696"].sources
+    assert result["401696"].name == "COGNETCLOUD"
+    assert result["401696"].domain == "cognetcloud.com"
+    # Metadata line should be skipped
+    assert len(result) == 2
+
+
+def test_download_brianhama_bad_asn(mocker: MockerFixture):
+    """Test Brianhama Bad ASN List download and parsing."""
+    mock_response = mocker.Mock()
+    mock_response.text = 'ASN,Entity\n198375,"INULOGIC SARL, FR"\n12345,"Test Entity, US"\n'
+    mock_response.raise_for_status = mocker.Mock()
+    mocker.patch("requests.get", return_value=mock_response)
+
+    result = download_brianhama_bad_asn()
+
+    assert "198375" in result
+    assert "12345" in result
+    assert AsnSource.BRIANHAMA in result["198375"].sources
+    assert result["198375"].name == "INULOGIC SARL, FR"
+
+
+def test_update_bad_asn_cache_creates_file(mocker: MockerFixture, tmp_path: Path):
+    """Test that update_bad_asn_cache creates the cache file."""
+    cache_file = tmp_path / "bad_asn_cache.json"
+    mocker.patch("utils.bad_asn_manager.CACHE_FILE", cache_file)
+
+    mock_spamhaus = {"401696": AsnEntry(asn="401696", name="Spamhaus Test")}
+    mock_brian = {"198375": AsnEntry(asn="198375", name="Brianhama Test")}
+    mocker.patch(
+        "utils.bad_asn_manager.download_spamhaus_asndrop",
+        return_value=mock_spamhaus,
+    )
+    mocker.patch(
+        "utils.bad_asn_manager.download_brianhama_bad_asn",
+        return_value=mock_brian,
+    )
+    mocker.patch(
+        "utils.bad_asn_manager.download_lethal_forensics_asn",
+        return_value={},
+    )
+
+    result = update_bad_asn_cache()
+
+    assert result is True
+    assert cache_file.exists()
+
+    cache_data = orjson.loads(cache_file.read_bytes())
+    assert "last_updated" in cache_data
+    assert "asns" in cache_data
+    assert "401696" in cache_data["asns"]
+    assert "198375" in cache_data["asns"]
+
+
+def test_update_bad_asn_cache_skips_if_fresh(mocker: MockerFixture, tmp_path: Path):
+    """Test that update_bad_asn_cache skips update if cache is fresh."""
+    cache_file = tmp_path / "bad_asn_cache.json"
+    cache_data = {"last_updated": 9999999999999, "asns": {}}
+    cache_file.write_bytes(orjson.dumps(cache_data))
+
+    mocker.patch("utils.bad_asn_manager.CACHE_FILE", cache_file)
+
+    result = update_bad_asn_cache()
+
+    assert result is False
+
+
+def test_check_asn_malicious(mocker: MockerFixture, tmp_path: Path):
+    """Test check_asn with a malicious ASN."""
+    cache_file = tmp_path / "bad_asn_cache.json"
+    cache_data = {
+        "last_updated": 9999999999999,
+        "asns": {
+            "401696": {
+                "asn": "401696",
+                "name": "COGNETCLOUD",
+                "cc": "HK",
+                "sources": ["spamhaus"],
+            }
+        },
+    }
+    cache_file.write_bytes(orjson.dumps(cache_data))
+
+    mocker.patch("utils.bad_asn_manager.CACHE_FILE", cache_file)
+
+    result = check_asn("401696")
+
+    assert result is not None
+    assert result.asn == "401696"
+    assert AsnSource.SPAMHAUS in result.sources
+
+
+def test_check_asn_clean(mocker: MockerFixture, tmp_path: Path):
+    """Test check_asn with a clean ASN."""
+    cache_file = tmp_path / "bad_asn_cache.json"
+    cache_data = {
+        "last_updated": 9999999999999,
+        "asns": {
+            "401696": {
+                "asn": "401696",
+                "name": "COGNETCLOUD",
+                "cc": "HK",
+                "sources": ["spamhaus"],
+            }
+        },
+    }
+    cache_file.write_bytes(orjson.dumps(cache_data))
+
+    mocker.patch("utils.bad_asn_manager.CACHE_FILE", cache_file)
+
+    result = check_asn("12345")
+
+    assert result is None
 
 
 def test_bad_asn_engine_analyze_with_context(mocker: MockerFixture):

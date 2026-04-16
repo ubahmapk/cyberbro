@@ -1,13 +1,59 @@
 # Advanced options for deployment
 
-!!! tip
-    All variables from `secrets.json` can be converted to **environment variables** (uppercase).
+!!! danger
+    `.env` contains secrets. Never commit it.  
+    For production/team use, protect secrets with SOPS, Vault, cloud secret managers, or an equivalent secure workflow.
 
-!!! note
-    You can add these environment variables in a `docker-compose-custom.yml` or just a `docker-compose-custom.yml` with a `.env`.  
-    If you don't specify proxy, no proxy will be used.
+!!! warning
+    Starting with version `v0.13.0`, Cyberbro no longer supports `secrets.json` and the `/config` GUI page.
 
-Here is a list of all available environment variables that can be used with examples:
+## Recommended workflow
+
+1. Copy the sample file:
+
+```bash
+cp .env.sample .env
+```
+
+2. Edit `.env` and set your API keys and runtime settings.
+
+3. Start Cyberbro:
+
+```bash
+docker compose up --build
+```
+
+## Runtime loading behavior
+
+At startup, Cyberbro tries to load `.env` from the project root.
+If `.env` is missing, Cyberbro falls back to process environment variables and logs a debug-level message (no warning is emitted, so production deployments using injected env vars will not see spurious log noise).
+
+## Migration from legacy `secrets.json`
+
+If you have an existing `secrets.json` file, use the migration helper script to convert it to the new `.env` format:
+
+```bash
+python3 scripts/secrets_json_to_env.py
+```
+
+Script location: `scripts/secrets_json_to_env.py`
+
+Optional custom paths:
+
+```bash
+python3 scripts/secrets_json_to_env.py \
+  --secrets secrets.json \
+  --output .env \
+  --env-sample .env.sample
+```
+
+After migration:
+
+1. Review generated `.env` values.
+2. Remove `secrets.json` from runtime usage.
+3. Restart Cyberbro.
+
+## Full list of supported environment variables with example values
 
 ```bash
 PROXY_URL=http://127.0.0.1:9000
@@ -19,9 +65,9 @@ IPINFO=api_key_here
 GOOGLE_CSE_KEY=api_key_here
 GOOGLE_CSE_CX=cx_here
 GOOGLE_SAFE_BROWSING=api_key_here
-MDE_TENANT_ID=api_key_here
-MDE_CLIENT_ID=api_key_here
-MDE_CLIENT_SECRET=api_key_here
+MDE_TENANT_ID=tenant_here
+MDE_CLIENT_ID=client_id_here
+MDE_CLIENT_SECRET=client_secret_here
 MISP_URL=https://misp.local
 MISP_API_KEY=api_key_here
 SHODAN=api_key_here
@@ -44,37 +90,35 @@ GUNICORN_THREADS_COUNT=4
 GUNICORN_TIMEOUT=200
 FLASK_DEBUG=false
 FLASK_PORT=5000
-FLASK_BIND=0.0.0.0
+HOST_PORT=5000
+FLASK_HOST=127.0.0.1
 API_PREFIX=my_api
 MAX_FORM_MEMORY_SIZE=1048576
-GUI_ENABLED_ENGINES=reverse_dns,rdap_whois
-CONFIG_PAGE_ENABLED=true
 SSL_VERIFY=true
 GUI_CACHE_TIMEOUT=1800
 API_CACHE_TIMEOUT=86400
+GUI_ENABLED_ENGINES=reverse_dns,rdap_whois
+DISABLE_VERSION_CHECK=false
 ```
 
-## Example of custom docker compose file
+## Docker image usage
 
 !!! tip
-    This can be useful when you don't want to build the image yourself. This image is produced by the GitHub actions workflow
+    You can run the public image built by GitHub Actions:
 
-```
+```text
 ghcr.io/stanfrbd/cyberbro:latest
 ```
 
-Example of `docker-compose-custom.yml` (note: no `"` in environment variables)
+Example `docker-compose-custom.yml` (note: no quotes in environment variable values):
 
-!!! warning
-    If you change `FLASK_PORT`, update the container-side port in the `ports:` mapping to match (e.g., `"8080:8080"` when `FLASK_PORT=8080`).
-
-```
+```yaml
 services:
   web:
     image: ghcr.io/stanfrbd/cyberbro:latest
     container_name: cyberbro
     ports:
-      - "5000:5000"
+      - "${HOST_PORT:-5000}:${FLASK_PORT:-5000}"
     environment:
       - FLASK_ENV=production
       - ABUSEIPDB=${ABUSEIPDB:-}
@@ -105,57 +149,40 @@ services:
       - THREATFOX=${THREATFOX:-}
       - VIRUSTOTAL=${VIRUSTOTAL:-}
       - WEBSCOUT=${WEBSCOUT:-}
-      - CONFIG_PAGE_ENABLED=${CONFIG_PAGE_ENABLED:-}
       - SSL_VERIFY=${SSL_VERIFY:-}
       - PROXY_URL=${PROXY_URL:-}
-      - GUI_CACHE_TIMEOUT=${GUI_CACHE_TIMEOUT1800:-}
-      - API_CACHE_TIMEOUT=${API_CACHE_TIMEOUT86400:-}
+      - GUI_CACHE_TIMEOUT=${GUI_CACHE_TIMEOUT:-1800}
+      - API_CACHE_TIMEOUT=${API_CACHE_TIMEOUT:-86400}
       - GUI_ENABLED_ENGINES=${GUI_ENABLED_ENGINES:-}
       - GUNICORN_WORKERS_COUNT=${GUNICORN_WORKERS_COUNT:-}
       - GUNICORN_THREADS_COUNT=${GUNICORN_THREADS_COUNT:-}
       - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-}
       - FLASK_DEBUG=${FLASK_DEBUG:-}
-      - FLASK_PORT=${FLASK_PORT:-}
-      - FLASK_BIND=${FLASK_BIND:-}
+      - FLASK_PORT=${FLASK_PORT:-5000}
+      - FLASK_HOST=0.0.0.0
       - API_PREFIX=${API_PREFIX:-}
       - MAX_FORM_MEMORY_SIZE=${MAX_FORM_MEMORY_SIZE:-}
+      - DISABLE_VERSION_CHECK=${DISABLE_VERSION_CHECK:-}
     restart: always
     volumes:
       - ./data:/app/data
       - ./logs:/var/log/cyberbro
 ```
 
-Example of `.env` file (note: no `"` in environment variables)
+Example `.env`:
 
-```
+```bash
 VIRUSTOTAL=api_key_here
 ABUSEIPDB=api_key_here
-GUI_ENABLED_ENGINES=reverse_dns,rdap_whois,ipquery,abuseipdb,virustotal,spur,google_safe_browsing,phishtank
+GUI_ENABLED_ENGINES=reverse_dns,rdap_whois,ipquery,abuseipdb,virustotal
 API_CACHE_TIMEOUT=1800
 ```
 
-**You can use the file `.env.sample` as a template to create your own `.env` file.**
+## Notes by setting
 
-!!! danger
-    Make sure you use either `secrets.json` or `.env` file for your deployment, not both.  
-    This may lead to unexpected behavior as the application will try to read both files and may override some values.
+### Gunicorn options
 
-!!! note
-    `./data:/app/data`: This maps the `data` directory on your host machine to the `/app/data` directory inside the container. This is mandatory for persisting the database `results.db` that is used by Cyberbro.  
-    `./logs:/var/log/cyberbro`: This maps the `logs` directory on your host machine to the `/var/log/cyberbro` directory inside the container. This is useful for persisting log files generated by the application, allowing you to access and analyze logs even after the container is stopped or removed.
-
-## Gunicorn options
-
-These options are applied via `prod/gunicorn.conf.py`, which reads them from `get_config()` at
-startup.
-
-**In `secrets.json`:**
-
-* Adding `"gunicorn_workers_count": 4` in `secrets.json` will set the number of gunicorn worker processes
-* Adding `"gunicorn_threads_count": 4` in `secrets.json` will set the number of threads per worker
-* Adding `"gunicorn_timeout": 200` in `secrets.json` will set the worker timeout in seconds
-
-**Or using environment variables:**
+Set:
 
 ```bash
 export GUNICORN_WORKERS_COUNT=4
@@ -163,210 +190,67 @@ export GUNICORN_THREADS_COUNT=4
 export GUNICORN_TIMEOUT=200
 ```
 
-!!! note
-    These variables are optional. If they don't exist in `secrets.json` or ENV, the defaults (`workers=1`, `threads=1`, `timeout=120`) will be used.
+Defaults: `workers=1`, `threads=1`, `timeout=120`.
 
-## Flask server settings
-
-These options control the interface and port that gunicorn/Flask binds to, as well as debug mode.
-
-**`flask_debug`** — enables Flask debug mode (default: `false`).
-
-!!! danger
-    Never enable `flask_debug` in production. It exposes an interactive debugger and disables security features.
-
-**In `secrets.json`:**
-
-```json
-"flask_debug": false
-```
-
-**Or using environment variables:**
+### Flask server settings
 
 ```bash
 export FLASK_DEBUG=false
-```
-
-______________________________________________________________________
-
-**`flask_port`** — port that gunicorn/Flask binds to inside the container (default: `5000`).
-
-!!! warning
-    **In Docker**, `flask_port` controls the container-side port. The left side of the `ports:` mapping in `docker-compose.yml` must match this value for external access (e.g., `"5000:5000"` when `flask_port=5000`).
-
-**In `secrets.json`:**
-
-```json
-"flask_port": 5000
-```
-
-**Or using environment variables:**
-
-```bash
 export FLASK_PORT=5000
+export FLASK_HOST=127.0.0.1
+export HOST_PORT=5000
 ```
-
-______________________________________________________________________
-
-**`flask_bind`** — network interface gunicorn binds to (default: `0.0.0.0`).
 
 !!! warning
-    **In Docker**, changing `flask_bind` from `0.0.0.0` may prevent the container from being reachable on the mapped port.
+    In Docker, keep `FLASK_PORT` and `HOST_PORT` aligned with your `ports:` mapping.
+    `FLASK_HOST` is forced to `0.0.0.0` in the container so a local `127.0.0.1` from your shell or `.env` cannot break exposure.
 
-**In `secrets.json`:**
-
-```json
-"flask_bind": "0.0.0.0"
-```
-
-**Or using environment variables:**
-
-```bash
-export FLASK_BIND=0.0.0.0
-```
-
-!!! note
-    All three Flask server settings are optional. If omitted, defaults are `flask_debug=false`, `flask_port=5000`, `flask_bind=0.0.0.0`.
-
-## API prefix in `app.py` and `index.html` options
-
-**In `secrets.json`:**
-
-!!! tip
-    By default, the API is accessible at `http://cyberbro_instance:5000/api`
-
-- Adding `"api_prefix": "my_api"` in `secrets.json` will set all the original prefix `/api/` endpoints to be renamed by prefix `/my_api/` endpoints in the files `app.py` and `index.html`
-
-**Or using environment variables:**
+### API prefix
 
 ```bash
 export API_PREFIX=my_api
 ```
 
-!!! note
-    This variable is optional, so if it doesn't exist in `secrets.json`, the API will be accessible at `/api/` by default.
+Default: `api`.
 
-## Selected engines in the GUI (`index.html` only)
-
-**In `secrets.json`:**
-
-- Adding `"gui_enabled_engines": ["reverse_dns", "rdap_whois"]` in `secrets.json` will restrict usage of these two engines in the GUI.
-
-**Or using environment variables:**
+### Selected engines in GUI
 
 ```bash
 export GUI_ENABLED_ENGINES=reverse_dns,rdap_whois
 ```
 
-!!! note
-    This variable is optional, so if it doesn't exist in `secrets.json` or ENV, all engines will be displayed in the GUI.
+If unset, all engines are displayed.
 
-!!! tip
-    Example: for the demo instance of cyberbro, only these engines are used:
-    `"gui_enabled_engines": ["reverse_dns", "rdap_whois", "ipquery", "abuseipdb", "virustotal", "spur", "google_safe_browsing", "shodan", "phishtank", "threatfox", "urlscan", "google", "github", "opencti", "abusix", "hudsonrock"]`  
-    With environment variable: `GUI_ENABLED_ENGINES=reverse_dns,rdap_whois,ipquery,abuseipdb,virustotal,spur,google_safe_browsing,shodan,phishtank,threatfox,urlscan,google,github,opencti,abusix,hudsonrock`
-
-## SSL verification settings for requests (backend)
-
-!!! danger
-    This is really insecure to disable it, do it at your own risk.
-
-You can change the default behavior using the following:
-
-**In `secrets.json`:**
-
-Adding `"ssl_verify": false` in `secrets.json` will disable the certificate trust verification in the requests (backend).
-
-**Or using environment variables:**
+### SSL verification
 
 ```bash
 export SSL_VERIFY=false
 ```
 
-!!! tip
-    This variable is optional, so if it doesn't exist in `secrets.json` or ENV, it will use the default parameter (True) which is more secure.
-
-## Config page in the GUI (`config.html`) http://cyberbro.local:5000/config
-
 !!! danger
-    This is unsecure so it is disabled by default.
+    Disabling SSL verification is insecure. Use only for controlled troubleshooting.
 
-You can add it using the following:
-
-**In `secrets.json`:**
-
-Adding `"config_page_enabled": true` in `secrets.json` will enable the config page in the GUI at http://cyberbro.local:5000/config
-
-**Or using environment variables:**
-
-```bash
-export CONFIG_PAGE_ENABLED=true
-```
-
-!!! note
-    This variable is optional, so if it doesn't exist in `secrets.json` or ENV, it will be disabled by default.
-
-## Upload more than 1MB observables in the form
-
-By default, the form in the GUI only accepts 1MB of data. You can change this limit using the following:
-
-**In `secrets.json`:**
-
-Adding `"max_form_memory_size": 1048576` in `secrets.json` will set the limit to 1MB (1048576 bytes) in the form.
-
-**Or using environment variables:**
+### Form upload size
 
 ```bash
 export MAX_FORM_MEMORY_SIZE=1048576
 ```
 
-!!! note
-    The value must be set in bytes, so 1MB = 1048576 bytes, 2MB = 2097152 bytes, etc.
-    Don't set it too high, it can cause problems with the database or treatment of the data.  
-    This variable is optional, so if it doesn't exist in `secrets.json` or ENV, it will use the default parameter (1MB).
+Default: 1 MB.
 
-[Flask doc about MAX_FORM_MEMORY_SIZE](https://flask.palletsprojects.com/en/stable/config/#MAX_FORM_MEMORY_SIZE)
-
-## Cache timeout for the GUI
-
-!!! note
-    This is the timeout for the cache in the GUI, not the API.  
-    The default value is 1800 seconds (30 minutes).  
-    You can change this value using the following:
-
-**In `secrets.json`:**
-
-Adding `"gui_cache_timeout": 1800` in `secrets.json` will set the timeout to 30 minutes (1800 seconds) in the GUI.
-
-**Or using environment variables:**
+### Cache timeout
 
 ```bash
 export GUI_CACHE_TIMEOUT=1800
-```
-
-!!! note
-    The value must be set in seconds, so 1 minute = 60 seconds, 1 hour = 3600 seconds, etc.  
-    Don't set it too high, it can cause problems with the database or treatment of the data.  
-    This variable is optional, so if it doesn't exist in `secrets.json` or ENV, it will use the default parameter (30 minutes).
-
-## Cache timeout for the API
-
-!!! note
-    This is the timeout for the cache in the API, not the GUI.  
-    The default value is 86400 seconds (24 hours).  
-    You can change this value using the following:
-
-**In `secrets.json`:**
-
-Adding `"api_cache_timeout": 86400` in `secrets.json` will set the timeout to 24 hours (86400 seconds) in the API.
-
-**Or using environment variables:**
-
-```bash
 export API_CACHE_TIMEOUT=86400
 ```
 
-!!! note
-    The value must be set in seconds, so 1 minute = 60 seconds, 1 hour = 3600 seconds, etc.  
-    Don't set it too high, it can cause problems with the database or treatment of the data.  
-    This variable is optional, so if it doesn't exist in `secrets.json` or ENV, it will use the default parameter (24 hours).
+### Disable version check
+
+```bash
+export DISABLE_VERSION_CHECK=true
+```
+
+## Related documentation
+
+- [API usage and engine names](https://docs.cyberbro.net/quick-start/API-usage-and-engine-names)

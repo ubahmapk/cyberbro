@@ -6,6 +6,7 @@ from requests.exceptions import ConnectTimeout, HTTPError, JSONDecodeError, Read
 from models.base_engine import BaseEngine
 from models.github import GithubReport, GrepAppResponse, SearchResults
 from models.observable import Observable, ObservableType
+from utils.http_headers import build_browser_like_headers
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,11 @@ class GitHubEngine(BaseEngine[GithubReport]):
             | ObservableType.EMAIL
         )
 
+    def _build_grep_headers(self) -> dict[str, str]:
+        # grep.app returns 429 for obvious automation fingerprints
+        # like the default python-requests User-Agent.
+        return build_browser_like_headers(origin="https://grep.app", referer="https://grep.app/")
+
     def analyze(self, observable: Observable) -> GithubReport:
         params: dict[str, str] = {"q": observable.value}
 
@@ -36,8 +42,10 @@ class GitHubEngine(BaseEngine[GithubReport]):
             response = self._make_request(
                 url="https://grep.app/api/search",
                 params=params,
+                headers=self._build_grep_headers(),
                 timeout=5,
             )
+
             response.raise_for_status()
             app_response: GrepAppResponse = GrepAppResponse(**response.json())
         except (ReadTimeout, ConnectTimeout):
