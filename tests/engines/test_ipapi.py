@@ -1,4 +1,5 @@
 import logging
+from unittest.mock import patch
 
 import pytest
 import requests
@@ -232,7 +233,8 @@ def test_analyze_response_missing_ip_key(secrets_with_key, ipv4_observable, capl
 
 
 @responses.activate
-def test_analyze_request_timeout(secrets_with_key, ipv4_observable, caplog):
+@patch("time.sleep")
+def test_analyze_request_timeout(mock_sleep, secrets_with_key, ipv4_observable, caplog):
     """Test handling of request timeout."""
     engine = IPAPIEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = "https://api.ipapi.is"
@@ -248,7 +250,8 @@ def test_analyze_request_timeout(secrets_with_key, ipv4_observable, caplog):
 
 
 @responses.activate
-def test_analyze_request_connection_error(secrets_with_key, ipv4_observable, caplog):
+@patch("time.sleep")
+def test_analyze_request_connection_error(mock_sleep, secrets_with_key, ipv4_observable, caplog):
     """Test handling of connection error."""
     engine = IPAPIEngine(secrets_with_key, proxies={}, ssl_verify=True)
     url = "https://api.ipapi.is"
