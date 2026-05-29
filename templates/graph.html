@@ -572,6 +572,15 @@
                 });
             }
 
+            if (entry.ransomware_live?.found && entry.ransomware_live?.victims) {
+                entry.ransomware_live.victims.forEach((victim) => {
+                    const groupName = victim.group_name || "Unknown Group";
+                    const groupNodeId = `ransomware_group_${groupName}`;
+                    addNode(groupNodeId, groupName, "ransomware_live", "https://img.icons8.com/officexs/32/skull.png");
+                    edges.push({ from: obs, to: groupNodeId, label: "Ransomware victim" });
+                });
+            }
+
             if (entry.bad_asn) {
                 const badAsnData = entry.bad_asn;
 
@@ -1030,6 +1039,22 @@
                 });
             }
 
+            // Hister results
+            if (entry.hister?.results) {
+                entry.hister.results.forEach((result) => {
+                    const histerTitle = result.title || result.url;
+                    if (histerTitle && histerTitle.trim() !== "") {
+                        addNode(
+                            histerTitle,
+                            histerTitle,
+                            "hister_result",
+                            "https://img.icons8.com/officexs/32/document.png",
+                        );
+                        edges.push({ from: obs, to: histerTitle, label: "Hister" });
+                    }
+                });
+            }
+
             // Check for MISP events
             if (entry.misp && entry.misp.events && Array.isArray(entry.misp.events)) {
                 entry.misp.events.forEach((mispEvent) => {
@@ -1047,6 +1072,24 @@
                         });
                     }
                 });
+            }
+
+            // Check for MISP-Feedback results
+            if (entry.misp_feedback) {
+                const status = entry.misp_feedback.status;
+                const group = status === "HIT" ? "misp_feedback_hit" : "misp_feedback_clean";
+                const nodeLabel = `MISP-Feedback: ${status}`;
+                addNode(
+                    nodeLabel,
+                    nodeLabel,
+                    group,
+                    "https://img.icons8.com/officexs/32/warning.png"
+                );
+                let edgeLabel = `Status: ${status}`;
+                if (entry.misp_feedback.warninglists && entry.misp_feedback.warninglists.length > 0) {
+                    edgeLabel += ` (${entry.misp_feedback.warninglists.join(", ")})`;
+                }
+                edges.push({ from: obs, to: nodeLabel, label: edgeLabel });
             }
 
             // Check for Reversing Labs Spectra Analyze events
@@ -1187,6 +1230,8 @@
                 reverse_dns: { color: { background: "#d4a6ff" } },
                 malware: { color: { background: "#ffcccb" } },
                 bad_asn: { color: { background: "#ff4444" } },
+                misp_feedback_hit: { color: { background: "#ff9999" } },
+                misp_feedback_clean: { color: { background: "#99ff99" } },
             },
             physics: {
                 stabilization: false,

@@ -11,6 +11,7 @@ from engines.github import GitHubEngine
 from engines.google import GoogleCSEEngine
 from engines.google_dns import GoogleDNSEngine
 from engines.google_safe_browsing import GoogleSafeBrowsingEngine
+from engines.hister import HisterEngine
 from engines.hudsonrock import HudsonRockEngine
 from engines.ioc_one import IOCOneHTMLEngine, IOCOnePDFEngine
 from engines.ipapi import IPAPIEngine
@@ -18,8 +19,10 @@ from engines.ipinfo import IPInfoEngine
 from engines.ipquery import IPQueryEngine
 from engines.microsoft_defender_for_endpoint import MDEEngine
 from engines.misp import MISPEngine
+from engines.misp_feedback import MispFeedbackEngine
 from engines.opencti import OpenCTIEngine
 from engines.phishtank import PhishTankEngine
+from engines.ransomware_live import RansomwareLiveEngine
 from engines.rdap_whois import RDAPWhoisEngine
 from engines.reverse_dns import ReverseDNSEngine
 from engines.reversinglabs_spectra_analyze import RLAnalyzeEngine
@@ -58,6 +61,7 @@ def get_engine_instances(
         GoogleCSEEngine(secrets, proxies, ssl_verify),
         GoogleDNSEngine(secrets, proxies, ssl_verify),
         GoogleSafeBrowsingEngine(secrets, proxies, ssl_verify),
+        HisterEngine(secrets, proxies, ssl_verify),
         HudsonRockEngine(secrets, proxies, ssl_verify),
         IOCOneHTMLEngine(secrets, proxies, ssl_verify),
         IOCOnePDFEngine(secrets, proxies, ssl_verify),
@@ -66,8 +70,10 @@ def get_engine_instances(
         IPQueryEngine(secrets, proxies, ssl_verify),
         MDEEngine(secrets, proxies, ssl_verify),
         MISPEngine(secrets, proxies, ssl_verify),
+        MispFeedbackEngine(secrets, proxies, ssl_verify),
         OpenCTIEngine(secrets, proxies, ssl_verify),
         PhishTankEngine(secrets, proxies, ssl_verify),
+        RansomwareLiveEngine(secrets, proxies, ssl_verify),
         RDAPWhoisEngine(secrets, proxies, ssl_verify),
         RLAnalyzeEngine(secrets, proxies, ssl_verify),
         RostiEngine(secrets, proxies, ssl_verify),

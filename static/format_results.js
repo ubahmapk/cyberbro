@@ -156,6 +156,19 @@ function formatResults(data) {
                 });
             }
         }
+        if (result.ransomware_live) {
+            plainText += `Ransomware.Live: Found: ${result.ransomware_live.found}, Count: ${result.ransomware_live.count}\n`;
+            if (result.ransomware_live.victims && result.ransomware_live.victims.length > 0) {
+                result.ransomware_live.victims.forEach(victim => {
+                    if (victim.post_title) plainText += `  - ${victim.post_title}`;
+                    if (victim.group_name) plainText += ` (${victim.group_name})`;
+                    if (victim.discovered) plainText += ` [${victim.discovered}]`;
+                    plainText += `\n`;
+                    if (victim.permalink) plainText += `    ${victim.permalink}\n`;
+                });
+            }
+            if (result.ransomware_live.search_url) plainText += `  Search: ${result.ransomware_live.search_url}\n`;
+        }
         if (result.google && result.google.results.length > 0) {
             plainText += `Google:\n`;
             result.google.results.forEach(googleResult => {
@@ -230,6 +243,14 @@ function formatResults(data) {
             }
         }
 
+        if (result.misp_feedback) {
+            plainText += `MISP-Feedback:\n`;
+            plainText += `  - Status: ${result.misp_feedback.status}\n`;
+            if (result.misp_feedback.warninglists && result.misp_feedback.warninglists.length > 0) {
+                plainText += `  - Warninglists: ${result.misp_feedback.warninglists.join(', ')}\n`;
+            }
+        }
+
         if (result.criminalip) {
             plainText += `Criminal IP:\n`;
             plainText += `  - Abuse Record Count: ${result.criminalip.abuse_record_count}\n`;
@@ -269,6 +290,16 @@ function formatResults(data) {
                 plainText += `  - Adversary: ${result.alienvault.adversary.join(', ')}\n`;
             }
 
+        }
+
+        if (result.hister) {
+            plainText += `Hister:\n`;
+            plainText += `  - Total results: ${result.hister.total}\n`;
+            if (result.hister.total > 0) {
+                result.hister.results.forEach(histerResult => {
+                    plainText += `  - ${histerResult.title}: ${histerResult.url}\n`;
+                });
+            }
         }
 
         if (result.hudsonrock) {
