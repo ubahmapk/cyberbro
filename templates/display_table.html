@@ -217,6 +217,10 @@
                     <th>Alienvault</th>
                     {% endif %}
 
+                    {% if "hister" in analysis_results.selected_engines %}
+                    <th>Hister</th>
+                    {% endif %}
+
                     {% if "google_dns" in analysis_results.selected_engines %}
                     <th>Google DNS (common records)</th>
                     {% endif %}
@@ -225,8 +229,16 @@
                     <th>MISP</th>
                     {% endif %}
 
+                    {% if "misp_feedback" in analysis_results.selected_engines %}
+                    <th>MISP-feedback</th>
+                    {% endif %}
+
                     {% if "crtsh" in analysis_results.selected_engines %}
                     <th>crt.sh</th>
+                    {% endif %}
+
+                    {% if "ransomware_live" in analysis_results.selected_engines %}
+                    <th>Ransomware.Live</th>
                     {% endif %}
                 </tr>
             </thead>
@@ -396,6 +408,10 @@
                     {% include "engine_layouts/alienvault_table.html" %}
                     {% endif %}
 
+                    {% if "hister" in analysis_results.selected_engines %}
+                    {% include "engine_layouts/hister_table.html" %}
+                    {% endif %}
+
                     {% if "google_dns" in analysis_results.selected_engines %}
                     {% include "engine_layouts/google_dns_table.html" %}
                     {% endif %}
@@ -404,8 +420,16 @@
                     {% include "engine_layouts/misp_table.html" %}
                     {% endif %}
 
+                    {% if "misp_feedback" in analysis_results.selected_engines %}
+                    {% include "engine_layouts/misp_feedback_table.html" %}
+                    {% endif %}
+
                     {% if "crtsh" in analysis_results.selected_engines %}
                     {% include "engine_layouts/crtsh_table.html" %}
+                    {% endif %}
+
+                    {% if "ransomware_live" in analysis_results.selected_engines %}
+                    {% include "engine_layouts/ransomware_live_table.html" %}
                     {% endif %}
 
                 </tr>
