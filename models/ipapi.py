@@ -1,7 +1,6 @@
 from typing import Any
 
-from cfgv import ValidationError
-from pydantic import AnyUrl, BaseModel, EmailStr, field_validator
+from pydantic import AnyUrl, BaseModel, EmailStr, Field, field_validator
 
 from models.report import BaseReport
 
@@ -51,7 +50,7 @@ class IpapiASN(BaseModel):
             return f"AS{v}"
         if isinstance(v, str) and not v.startswith("AS"):
             return f"AS{v}"
-        raise ValidationError("ASN must be a string starting with 'AS' or an integer")
+        raise ValueError("ASN must be a string starting with 'AS' or an integer")
 
 
 class IpapiLocation(BaseModel):
@@ -75,19 +74,19 @@ class IpapiLocation(BaseModel):
 class IpapiResponse(BaseModel):
     ip: str = ""
     rir: str = ""
-    is_bogon: bool
-    is_mobile: bool
-    is_satellite: bool
-    is_crawler: bool
-    is_datacenter: bool
-    is_tor: bool
-    is_proxy: bool
-    is_vpn: bool
-    is_abuser: bool
-    company: IpapiCompany
-    abuse: IpapiAbuse
-    asn: IpapiASN
-    location: IpapiLocation
+    is_bogon: bool = False
+    is_mobile: bool = False
+    is_satellite: bool = False
+    is_crawler: bool = False
+    is_datacenter: bool = False
+    is_tor: bool = False
+    is_proxy: bool = False
+    is_vpn: bool = False
+    is_abuser: bool = False
+    company: IpapiCompany = Field(default_factory=IpapiCompany)
+    abuse: IpapiAbuse = Field(default_factory=IpapiAbuse)
+    asn: IpapiASN = Field(default_factory=IpapiASN)
+    location: IpapiLocation = Field(default_factory=IpapiLocation)
 
 
 class IpapiReport(BaseReport):

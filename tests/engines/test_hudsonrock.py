@@ -118,7 +118,7 @@ def test_analyze_fqdn_success_complete(secrets, fqdn_observable):
     result = engine.analyze(fqdn_observable)
 
     assert result is not None
-    assert len(result["data"]["all_urls"]) == 2
+    assert len(result["data"]["all_urls"]) == 3
     assert result["stats"]["total_urls"] == 3
 
 

@@ -2,7 +2,7 @@ import logging
 from typing import Any
 
 from pydantic import ValidationError
-from requests import ConnectTimeout, HTTPError, ReadTimeout
+from requests.exceptions import RequestException
 
 from models.base_engine import BaseEngine
 from models.ipapi import IpapiReport, IpapiResponse
@@ -54,30 +54,30 @@ class IPAPIEngine(BaseEngine):
                 timeout=5,
             )
             response.raise_for_status()
-        except (ReadTimeout, ConnectTimeout):
-            msg: str = f"Timeout occurred while querying IPAPI for {observable.value}."
-            logger.error(msg)
-            return IpapiReport(success=False, error=msg)
-        except HTTPError as e:
-            msg: str = f"Error querying CriminalIP for {observable.value}: {e!s}"
+        except RequestException as e:
+            msg: str = f"Error querying ipapi for {observable.value}: {e!s}"
             logger.error(msg, exc_info=True)
             return IpapiReport(success=False, error=msg)
 
         try:
             api_response = IpapiResponse.model_validate(response.json())
-
-            report = IpapiReport()
-            report.ip = api_response.ip
-            report.location = api_response.location.city
-            report.country = api_response.location.country
-            report.asn = api_response.asn.asn
         except ValidationError as e:
             msg: str = f"Error validating IPAPI response for {observable.value}: {e!s}"
             logger.error(msg, exc_info=True)
             return IpapiReport(success=False, error=msg)
 
-        report.success = True
-        return report
+        if not api_response.ip:
+            msg = f"No IP in IPAPI response for {observable.value}"
+            logger.error(msg)
+            return IpapiReport(success=False, error=msg)
+
+        return IpapiReport(
+            success=True,
+            ip=api_response.ip,
+            location=api_response.location.city,
+            country=api_response.location.country,
+            asn=api_response.asn.asn,
+        )
 
     def create_export_row(self, analysis_result: Any) -> dict:
         if not analysis_result:
