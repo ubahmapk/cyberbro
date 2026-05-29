@@ -101,6 +101,7 @@ def test_analyze_fqdn_success_complete(secrets, fqdn_observable):
             "all_urls": [
                 {"url": "https://example.com/page1"},
                 {"url": "https://example.com/page2"},
+                {"url": "https://***.example.com/page2"},
             ],
             "clients_urls": [{"url": "https://example.com/client"}],
             "employees_urls": [{"url": "https://example.com/employee"}],

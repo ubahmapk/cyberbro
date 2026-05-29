@@ -1,9 +1,11 @@
 import logging
 from typing import Any
 
-import requests
+from pydantic import ValidationError
+from requests import ConnectTimeout, HTTPError, ReadTimeout
 
 from models.base_engine import BaseEngine
+from models.ipapi import IpapiReport, IpapiResponse
 from models.observable import Observable, ObservableType
 
 logger = logging.getLogger(__name__)
@@ -22,52 +24,60 @@ class IPAPIEngine(BaseEngine):
     def execute_after_reverse_dns(self):
         return True  # IP-only engine
 
-    def analyze(self, observable: Observable) -> dict[str, Any] | None:
-        try:
-            url = "https://api.ipapi.is"
-            headers = {"Content-Type": "application/json"}
-            data = {"q": observable.value}
+    def analyze(self, observable: Observable) -> IpapiReport:
+        url = "https://api.ipapi.is"
+        headers = {"Content-Type": "application/json"}
+        data = {"q": observable.value}
 
-            # Validate API key (should be non-empty and 20 characters)
-            if self.secrets.ipapi and len(self.secrets.ipapi) == 20:
-                # Use API key if it matches the expected length
-                data["key"] = self.secrets.ipapi
+        # Validate API key (should be non-empty and 20 characters)
+        if self.secrets.ipapi and len(self.secrets.ipapi) == 20:
+            # Use API key if it matches the expected length
+            data["key"] = self.secrets.ipapi
+        else:
+            # Don't use API key if it doesn't match the format
+            if self.secrets.ipapi:
+                logger.warning(
+                    "ipapi API key format is invalid, querying without API key for '%s'",
+                    observable.value,
+                )
             else:
-                # Don't use API key if it doesn't match the format
-                if self.secrets.ipapi:
-                    logger.warning(
-                        "ipapi API key format is invalid, querying without API key for '%s'",
-                        observable.value,
-                    )
-                else:
-                    logger.warning(
-                        "Be careful, you don't use API key for ipapi, rate limit"
-                        f"can happen more often (query: '{observable.value}')",
-                    )
+                logger.warning(
+                    "Be careful, you don't use API key for ipapi, rate limit"
+                    f"can happen more often (query: '{observable.value}')",
+                )
 
-            response = requests.post(
+        try:
+            response = self._make_request(
                 url,
-                json=data,
+                params=data,
                 headers=headers,
-                proxies=self.proxies,
-                verify=self.ssl_verify,
                 timeout=5,
             )
             response.raise_for_status()
+        except (ReadTimeout, ConnectTimeout):
+            msg: str = f"Timeout occurred while querying IPAPI for {observable.value}."
+            logger.error(msg)
+            return IpapiReport(success=False, error=msg)
+        except HTTPError as e:
+            msg: str = f"Error querying CriminalIP for {observable.value}: {e!s}"
+            logger.error(msg, exc_info=True)
+            return IpapiReport(success=False, error=msg)
 
-            data = response.json()
-            if "ip" in data:
-                # Reformat ASN field as per original logic
-                if "asn" not in data or not data["asn"]:
-                    data["asn"] = {"asn": "Unknown", "org": "Unknown"}
-                elif "asn" in data["asn"]:
-                    data["asn"]["asn"] = f"AS{data['asn']['asn']}"
-                return data
+        try:
+            api_response = IpapiResponse.model_validate(response.json())
 
-        except Exception as e:
-            logger.error("Error querying ipapi for '%s': %s", observable.value, e, exc_info=True)
+            report = IpapiReport()
+            report.ip = api_response.ip
+            report.location = api_response.location.city
+            report.country = api_response.location.country
+            report.asn = api_response.asn.asn
+        except ValidationError as e:
+            msg: str = f"Error validating IPAPI response for {observable.value}: {e!s}"
+            logger.error(msg, exc_info=True)
+            return IpapiReport(success=False, error=msg)
 
-        return None
+        report.success = True
+        return report
 
     def create_export_row(self, analysis_result: Any) -> dict:
         if not analysis_result:
