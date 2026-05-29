@@ -28,19 +28,26 @@ This refactoring migrates all 33 engines from returning raw `dict | None` to typ
 | ipinfo | ✅ | ✅ | ✅ | ✅ |
 | github | ✅ | ✅ | ✅ | ✅ |
 
-**Not started** (24 engines):
+**In progress** (model created, engine/tests partially refactored):
+
+| Engine | Model | Typed Engine | Tests |
+|--------|-------|-------------|-------|
+| google_dns | ✅ | ❌ | ❌ |
+| hudsonrock | ✅ | ❌ | ❌ |
+| ipapi | ✅ | ✅ (analyze only) | ✅ (analyze; create_export_row still dict-based) |
+
+**Not started** (24 engines — includes 3 added from main in 2026-05 merge):
 
 | Engine | Model | Typed Engine | Tests | Template Validation |
 |--------|-------|-------------|-------|-------|
 | google | ❌ | ❌ | ❌ | X |
-| google_dns | ❌ | ❌ | ❌ | X |
 | google_safe_browsing | ❌ | ❌ | ❌ | X |
-| hudsonrock | ❌ | ❌ | ❌ | X |
+| hister | ❌ | ❌ | ❌ | X |
 | ioc_one | ❌ | ❌ | ❌ | X |
-| ipapi | ❌ | ❌ | ❌ | X |
 | ipquery | ❌ | ❌ | ❌ | X |
 | microsoft_defender_for_endpoint | ❌ | ❌ | ❌ | X |
 | misp | ❌ | ❌ | ❌ | X |
+| misp_feedback | ❌ | ❌ | ❌ | X |
 | opencti | ❌ | ❌ | ❌ | X |
 | phishtank | ❌ | ❌ | ❌ | X |
 | rdap | ❌ | ❌ | ❌ | X |
@@ -52,6 +59,7 @@ This refactoring migrates all 33 engines from returning raw `dict | None` to typ
 | spur_us | ❌ | ❌ | ❌ | X |
 | threatfox | ❌ | ❌ | ❌ | X |
 | urlscan | ❌ | ❌ | ❌ | X |
+| ransomware_live | ❌ | ❌ | ❌ | X |
 | virustotal | ❌ | ❌ | ❌ | X |
 | webscout | ❌ | ❌ | ❌ | X |
 
